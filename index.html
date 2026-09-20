@@ -183,7 +183,7 @@
   .rv.d1{animation-delay:.08s}.rv.d2{animation-delay:.16s}.rv.d3{animation-delay:.24s}.rv.d4{animation-delay:.32s}
   @keyframes rise{to{opacity:1; transform:none}}
   @media (prefers-reduced-motion: reduce){ .rv{opacity:1; transform:none; animation:none} html{scroll-behavior:auto} }
-  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion: no-preference){ html{scroll-behavior:smooth} }
 
   @media (max-width:1000px){
     .plans{grid-template-columns:1fr 1fr}
