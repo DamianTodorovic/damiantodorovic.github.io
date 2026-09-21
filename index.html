@@ -246,7 +246,9 @@
   .tt li .t{font-family:var(--serif); font-size:18px}
   .tt li .d{grid-column:2; color:var(--text-3); font-size:14px; margin-top:3px}
   .tt li .st{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-3); white-space:nowrap}
-  .tt li.future{opacity:.28}
+  .tt li.future{background:transparent}
+  .tt li.future .t, .tt li.future .d{color:var(--text-3)}
+  .tt li.future .dot{background:var(--line-2); box-shadow:none}
   .tt li.expired .dot{background:var(--line-2); box-shadow:none}
   .tt li.expired .st, .tt li.superseded .st{color:var(--wax)}
   .tt li.superseded{background:rgba(142,47,47,.045)}
@@ -1062,10 +1064,13 @@
         el.style.transform = 'perspective(1400px) rotateY(' + (dx * 2.6).toFixed(2) + 'deg) rotateX(' + (-dy * 2.6).toFixed(2) + 'deg)';
       }
     }
+    function reset() { for (var i = 0; i < els.length; i++) els[i].style.transform = ''; }
     document.addEventListener('pointermove', function (e) {
       last = { x: e.clientX, y: e.clientY };
       if (!raf) raf = requestAnimationFrame(apply);
     }, { passive: true });
+    document.addEventListener('pointerleave', reset);
+    window.addEventListener('blur', reset);
   })();
 })();
 </script>
