@@ -869,31 +869,38 @@
       ctx.closePath();
     }
     function make() {
-      var n = Math.max(22, Math.min(52, Math.round((W * H) / 36000)));
+      var n = Math.max(16, Math.min(38, Math.round((W * H) / 42000)));
       marks = [];
       for (var i = 0; i < n; i++) {
+        var size = 26 + Math.random() * 40, x, y, tries = 0;
+        do { x = Math.random() * W; y = Math.random() * H; tries++; }
+        while (tries < 14 && marks.some(function (o) {
+          return Math.abs(o.x - x) < (o.s + size) * 0.78 && Math.abs(o.y - y) < (o.s + size) * 0.78;
+        }));
         marks.push({
-          x: Math.random() * W, y: Math.random() * H,
+          x: x, y: y,
           vx: (Math.random() - 0.5) * 0.14, vy: -0.04 - Math.random() * 0.10,
-          s: 20 + Math.random() * 40, rot: (Math.random() - 0.5) * 0.8,
+          s: size, rot: (Math.random() - 0.5) * 0.7,
           vr: (Math.random() - 0.5) * 0.0014,
-          a: 0.13 + Math.random() * 0.13, wax: Math.random() < 0.18
+          a: 0.14 + Math.random() * 0.12, wax: Math.random() < 0.18
         });
       }
     }
     function drawMark(m) {
-      var s = m.s;
+      var s = m.s, k = s / 512;   /* exact geometry of the KEPTA mark */
       ctx.save(); ctx.translate(m.x, m.y); ctx.rotate(m.rot); ctx.globalAlpha = m.a;
-      rrect(-s / 2, -s / 2, s, s, s * 0.24);
+      rrect(-s / 2, -s / 2, s, s, 112 * k);
       ctx.fillStyle = m.wax ? '#8e2f2f' : '#24313f'; ctx.fill();
-      ctx.globalAlpha = Math.min(1, m.a * 3.4);
-      ctx.strokeStyle = '#f6f4ef'; ctx.lineWidth = Math.max(1, s * 0.095); ctx.lineCap = 'round';
+      ctx.globalAlpha = Math.min(0.96, m.a * 3.2);
+      ctx.strokeStyle = '#f6f4ef';
+      ctx.lineWidth = Math.max(1.1, 24 * k);
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
       ctx.beginPath();
-      ctx.moveTo(-s * 0.17, -s * 0.21); ctx.lineTo(-s * 0.17, s * 0.21);
-      ctx.moveTo(-s * 0.17, 0); ctx.lineTo(s * 0.09, -s * 0.21);
-      ctx.moveTo(-s * 0.17, 0); ctx.lineTo(s * 0.09, s * 0.21);
+      ctx.moveTo(-80 * k, -80 * k); ctx.lineTo(-80 * k, 80 * k);
+      ctx.moveTo(-80 * k, 0); ctx.lineTo(32 * k, -80 * k);
+      ctx.moveTo(-80 * k, 0); ctx.lineTo(32 * k, 80 * k);
       ctx.stroke();
-      ctx.beginPath(); ctx.arc(s * 0.15, -s * 0.19, Math.max(1, s * 0.055), 0, 6.2832);
+      ctx.beginPath(); ctx.arc(80 * k, -78 * k, Math.max(1, 17 * k), 0, 6.2832);
       ctx.fillStyle = '#f6f4ef'; ctx.fill();
       ctx.restore();
     }
