@@ -113,7 +113,7 @@
   .palette-btn{display:inline-flex; align-items:center; gap:8px; background:transparent; border:1px solid var(--line); border-radius:6px; padding:8px 11px; cursor:pointer; color:var(--text-3); font-family:var(--mono); font-size:11px; letter-spacing:.06em; transition:border-color .2s ease, color .2s ease}
   .palette-btn:hover{border-color:var(--line-2); color:var(--text)}
   .progress{position:absolute; left:0; right:0; bottom:-1px; height:2px}
-  .progress i{display:block; height:100%; width:0; background:linear-gradient(90deg,var(--wax),var(--wax-2)); box-shadow:0 0 10px rgba(142,47,47,.35)}
+  .progress i{display:block; height:100%; width:100%; transform:scaleX(0); transform-origin:left center; transition:transform .12s linear; background:linear-gradient(90deg,var(--wax),var(--wax-2)); box-shadow:0 0 10px rgba(142,47,47,.35)}
   .nav-toggle{display:none; margin-left:auto; width:44px; height:40px; background:transparent; border:1px solid var(--line-2); border-radius:6px; align-items:center; justify-content:center; color:var(--text)}
   .nav-toggle svg{width:18px; height:18px}
 
@@ -145,7 +145,7 @@
 
   /* ---------- hero ---------- */
   .hero{position:relative; min-height:100svh; display:flex; align-items:center; padding:calc(var(--nav-h) + 60px) 0 90px; overflow:hidden}
-  #field{position:absolute; inset:0; width:100%; height:100%; z-index:0; opacity:.9}
+  #logos{position:fixed; inset:0; z-index:0; width:100%; height:100%; pointer-events:none}
   .hero::after{content:""; position:absolute; inset:0; z-index:1; pointer-events:none; background:linear-gradient(180deg, rgba(246,244,239,.62) 0%, rgba(246,244,239,.30) 42%, rgba(246,244,239,.96) 100%)}
   .hero .wrap{position:relative; z-index:3}
   .hero-head{margin-bottom:54px}
@@ -201,7 +201,7 @@
   .plate .bar{display:flex; align-items:center; gap:8px; padding:3px 3px 10px}
   .plate .bar i{width:9px; height:9px; border-radius:50%; background:#2b3c50}
   .plate .bar span{margin-left:auto; font-family:var(--mono); font-size:10px; letter-spacing:.12em; color:#8d9aab; text-transform:uppercase}
-  .plate img{width:100%; border-radius:7px; border:1px solid #17222e}
+  .plate img{width:100%; aspect-ratio:5/3; object-fit:cover; border-radius:7px; border:1px solid #17222e}
   figure{margin:0}
   figcaption{margin-top:15px; font-size:15px; color:var(--text-2)}
   figcaption .num{display:block; font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--wax-2); margin-bottom:7px}
@@ -340,6 +340,12 @@
   /* ---------- oversized footer mark ---------- */
   .bigmark{margin-top:70px; font-family:var(--serif); font-weight:400; font-size:clamp(66px,15vw,250px); line-height:.78; letter-spacing:-.045em; text-align:center; user-select:none; background:linear-gradient(180deg, rgba(20,22,26,.16), rgba(20,22,26,0) 78%); -webkit-background-clip:text; background-clip:text; color:transparent}
 
+  @media (pointer:coarse){
+    .copy{padding:12px 15px; font-size:11px}
+    .palette-btn{padding:13px 15px}
+    .masthead nav a{padding:12px 0}
+  }
+
   /* ---------- responsive ---------- */
   @media (max-width:1120px){
     .hero-body{grid-template-columns:minmax(0,1fr); gap:48px}
@@ -391,6 +397,7 @@
 </head>
 <body>
 <div class="aura" aria-hidden="true"></div>
+<canvas id="logos" aria-hidden="true"></canvas>
 <div class="grain" aria-hidden="true"></div>
 <div class="rule-top" aria-hidden="true"></div>
 <header class="masthead" id="masthead">
@@ -420,7 +427,6 @@
 <main id="top">
   <!-- ============ HERO ============ -->
   <section class="hero">
-    <canvas id="field" aria-hidden="true"></canvas>
     <div class="wrap">
       <div class="hero-head">
         <p class="eyebrow blur-in">Local-first memory for AI assistants</p>
@@ -868,64 +874,78 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* ================= living field (flow) ================= */
+  /* ================= floating KEPTA marks ================= */
   (function () {
-    var cv = $('#field'); if (!cv) return;
+    var cv = $('#logos'); if (!cv) return;
     var ctx = cv.getContext('2d'); if (!ctx) return;
     var dpr = Math.min(2, window.devicePixelRatio || 1);
-    var W = 0, H = 0, parts = [], raf = null, running = false, t = 0;
-    function field(x, y, tt) {
-      return Math.sin(x * 0.0017 + tt * 0.5) * 1.55 + Math.cos(y * 0.0021 - tt * 0.4) * 1.55 + Math.sin((x + y) * 0.0009 + tt * 0.28) * 0.85;
+    var W = 0, H = 0, marks = [], raf = null, running = false;
+    function rrect(x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
     }
-    function spawn(p) {
-      p.x = Math.random() * W; p.y = Math.random() * H;
-      p.life = 120 + Math.random() * 320;
-      p.wax = Math.random() < 0.055;
-      p.w = 0.45 + Math.random() * 0.85;
+    function make() {
+      var n = Math.max(14, Math.min(34, Math.round((W * H) / 52000)));
+      marks = [];
+      for (var i = 0; i < n; i++) {
+        marks.push({
+          x: Math.random() * W, y: Math.random() * H,
+          vx: (Math.random() - 0.5) * 0.14, vy: -0.04 - Math.random() * 0.10,
+          s: 18 + Math.random() * 36, rot: (Math.random() - 0.5) * 0.8,
+          vr: (Math.random() - 0.5) * 0.0014,
+          a: 0.05 + Math.random() * 0.07, wax: Math.random() < 0.16
+        });
+      }
     }
-    function paint(bg) { ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H); }
+    function drawMark(m) {
+      var s = m.s;
+      ctx.save(); ctx.translate(m.x, m.y); ctx.rotate(m.rot); ctx.globalAlpha = m.a;
+      rrect(-s / 2, -s / 2, s, s, s * 0.24);
+      ctx.fillStyle = m.wax ? '#8e2f2f' : '#24313f'; ctx.fill();
+      ctx.strokeStyle = '#f6f4ef'; ctx.lineWidth = Math.max(1, s * 0.095); ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.17, -s * 0.21); ctx.lineTo(-s * 0.17, s * 0.21);
+      ctx.moveTo(-s * 0.17, 0); ctx.lineTo(s * 0.09, -s * 0.21);
+      ctx.moveTo(-s * 0.17, 0); ctx.lineTo(s * 0.09, s * 0.21);
+      ctx.stroke();
+      ctx.beginPath(); ctx.arc(s * 0.15, -s * 0.19, Math.max(1, s * 0.055), 0, 6.2832);
+      ctx.fillStyle = '#f6f4ef'; ctx.fill();
+      ctx.restore();
+    }
+    function frame() {
+      if (!running) return;
+      ctx.clearRect(0, 0, W, H);
+      for (var i = 0; i < marks.length; i++) {
+        var m = marks[i];
+        m.x += m.vx; m.y += m.vy; m.rot += m.vr;
+        if (m.y < -90) { m.y = H + 70; m.x = Math.random() * W; }
+        if (m.x < -90) m.x = W + 70;
+        if (m.x > W + 90) m.x = -70;
+        drawMark(m);
+      }
+      raf = requestAnimationFrame(frame);
+    }
+    function start() { if (reduce || running) return; running = true; raf = requestAnimationFrame(frame); }
+    function stop() { running = false; if (raf) cancelAnimationFrame(raf); raf = null; }
     function resize() {
-      var host = cv.parentElement, r = host.getBoundingClientRect();
-      W = Math.max(1, r.width); H = Math.max(1, r.height);
+      W = window.innerWidth; H = window.innerHeight;
       cv.width = Math.floor(W * dpr); cv.height = Math.floor(H * dpr);
       cv.style.width = W + 'px'; cv.style.height = H + 'px';
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      paint('#f6f4ef');
-      var n = Math.max(240, Math.min(560, Math.round(W / 2.6)));
-      parts = []; for (var i = 0; i < n; i++) { var p = {}; spawn(p); parts.push(p); }
-    }
-    function step() {
-      t += 0.0034;
-      paint('rgba(246,244,239,0.058)');
-      ctx.lineCap = 'round';
-      for (var i = 0; i < parts.length; i++) {
-        var p = parts[i], a = field(p.x, p.y, t);
-        var nx = p.x + Math.cos(a) * 1.5 * p.w, ny = p.y + Math.sin(a) * 1.5 * p.w;
-        ctx.strokeStyle = p.wax ? 'rgba(142,47,47,.26)' : 'rgba(36,49,63,.15)';
-        ctx.lineWidth = p.w;
-        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(nx, ny); ctx.stroke();
-        p.x = nx; p.y = ny; p.life--;
-        if (p.life <= 0 || p.x < -30 || p.x > W + 30 || p.y < -30 || p.y > H + 30) spawn(p);
-      }
-    }
-    function loop() { if (!running) return; step(); raf = requestAnimationFrame(loop); }
-    function start() { if (reduce || running) return; running = true; raf = requestAnimationFrame(loop); }
-    function stop() { running = false; if (raf) cancelAnimationFrame(raf); raf = null; }
-    function still() {
-      paint('#f6f4ef');
-      for (var k = 0; k < 300; k++) {
-        var x = Math.random() * W, y = Math.random() * H, a = field(x, y, 1.2);
-        ctx.strokeStyle = k % 18 === 0 ? 'rgba(142,47,47,.20)' : 'rgba(36,49,63,.12)';
-        ctx.lineWidth = 0.9;
-        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(a) * 26, y + Math.sin(a) * 26); ctx.stroke();
-      }
+      make();
+      ctx.clearRect(0, 0, W, H);
+      for (var i = 0; i < marks.length; i++) drawMark(marks[i]);
     }
     resize();
-    if (reduce) { still(); }
-    else {
+    if (!reduce) {
       start();
-      if ('IntersectionObserver' in window) { new IntersectionObserver(function (e) { e[0].isIntersecting ? start() : stop(); }, { threshold: 0 }).observe(cv); }
-      var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(resize, 180); });
+      document.addEventListener('visibilitychange', function () { document.hidden ? stop() : start(); });
+      var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { stop(); resize(); start(); }, 200); });
     }
   })();
   /* ================= masthead ================= */
@@ -935,7 +955,8 @@
     var y = window.pageYOffset || document.documentElement.scrollTop;
     var h = document.documentElement.scrollHeight - window.innerHeight;
     masthead.classList.toggle('pinned', y > 12);
-    if (bar) bar.style.width = (h > 0 ? Math.min(100, (y / h) * 100) : 0) + '%';
+    if (bar) bar.style.transform = 'scaleX(' + (h > 0 ? Math.min(1, y / h) : 0) + ')';
+
   }
   window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(onFrame); } }, { passive: true });
   window.addEventListener('resize', onFrame);
