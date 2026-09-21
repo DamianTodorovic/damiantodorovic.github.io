@@ -49,7 +49,7 @@
     --nav-h:72px;
   }
   *{box-sizing:border-box}
-  html{-webkit-text-size-adjust:100%}
+  html{-webkit-text-size-adjust:100%; scroll-padding-top:calc(var(--nav-h) + 26px)}
   @media (prefers-reduced-motion: no-preference){ html{scroll-behavior:smooth} }
   body{
     margin:0; background:var(--ink-0); color:var(--text);
@@ -69,6 +69,8 @@
   h4{margin:0; font-family:var(--mono); font-size:11.5px; font-weight:500; letter-spacing:.16em; text-transform:uppercase; color:var(--text-3)}
   p{margin:0}
   img{max-width:100%; display:block}
+  button{cursor:pointer}
+  [data-tilt]{transition:transform .22s ease-out}
   ::-webkit-scrollbar{width:10px}
   ::-webkit-scrollbar-track{background:var(--ink-1)}
   ::-webkit-scrollbar-thumb{background:#243447; border:2px solid var(--ink-1); border-radius:6px}
@@ -318,6 +320,19 @@
   .palette-list li .pn{margin-left:auto; font-family:var(--mono); font-size:10px; color:var(--text-3); letter-spacing:.1em}
   .palette-list li .kind{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--wax-2); min-width:56px}
 
+  /* ---------- privacy shield demo ---------- */
+  .shield{margin-top:64px; border:1px solid var(--line-2); border-radius:14px; background:linear-gradient(180deg, rgba(22,33,46,.75), rgba(12,17,23,.82)); overflow:hidden; box-shadow:0 60px 100px -80px #000}
+  .shield .head{display:flex; align-items:baseline; gap:16px; padding:16px 22px; border-bottom:1px solid var(--line)}
+  .shield .head span{margin-left:auto; font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3)}
+  .shield .body{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .shield textarea{width:100%; min-height:176px; border:0; background:transparent; color:var(--text); font-family:var(--mono); font-size:13.5px; line-height:1.8; padding:22px; resize:vertical; outline:none; display:block}
+  .shield .out{border-left:1px solid var(--line); padding:22px; font-family:var(--mono); font-size:13.5px; line-height:1.8; color:var(--text-2); white-space:pre-wrap; word-break:break-word; min-height:176px}
+  .shield .out mark{background:rgba(195,74,65,.18); color:var(--wax-2); border-radius:3px; padding:1px 6px; box-decoration-break:clone; -webkit-box-decoration-break:clone}
+  .shield .foot{padding:14px 22px; border-top:1px solid var(--line); font-family:var(--mono); font-size:11px; letter-spacing:.04em; color:var(--text-3)}
+
+  /* ---------- oversized footer mark ---------- */
+  .bigmark{margin-top:70px; font-family:var(--serif); font-weight:400; font-size:clamp(66px,15vw,250px); line-height:.78; letter-spacing:-.045em; text-align:center; user-select:none; background:linear-gradient(180deg, rgba(238,241,245,.16), rgba(238,241,245,0) 78%); -webkit-background-clip:text; background-clip:text; color:transparent}
+
   /* ---------- responsive ---------- */
   @media (max-width:1120px){
     .hero-body{grid-template-columns:minmax(0,1fr); gap:48px}
@@ -333,6 +348,8 @@
   }
   @media (max-width:900px){
     .wrap{padding:0 24px}
+    .shield .body{grid-template-columns:minmax(0,1fr)}
+    .shield .out{border-left:0; border-top:1px solid var(--line)}
     .masthead nav{display:none}
     .nav-toggle{display:inline-flex}
     .masthead nav.open{display:flex; position:absolute; top:var(--nav-h); left:0; right:0; flex-direction:column; align-items:flex-start; gap:16px; background:#0a0e13; border-bottom:1px solid var(--line-2); padding:24px}
@@ -410,7 +427,7 @@
         </div>
 
         <div class="blur-in d2">
-          <div class="glass" role="group" aria-label="A live example of a KEPTA memory">
+          <div class="glass" data-tilt role="group" aria-label="A live example of a KEPTA memory">
             <div class="bar" aria-hidden="true"><i></i><i></i><i></i><span>kepta-mcp ui &#183; 127.0.0.1:4747</span></div>
             <div class="search">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
@@ -561,6 +578,16 @@
             <figcaption><span class="num">Plate I</span>Personal data becomes placeholders before a cloud model would ever see it.</figcaption>
           </figure>
         </div>
+      </div>
+
+      <div class="shield rv d3">
+        <div class="head"><h4>Privacy shield</h4><span>live example, edit the text</span></div>
+        <div class="body">
+          <label for="shield-in" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Text to shield</label>
+          <textarea id="shield-in" spellcheck="false">Call Anna Weber on +49 170 5551234 about the Miller case. Her address is Bahnhofstrasse 12, Hamburg. The invoice should go to anna.weber@example.com.</textarea>
+          <div class="out" id="shield-out" aria-live="polite"></div>
+        </div>
+        <div class="foot">Names, phone numbers, addresses and email addresses become placeholders before a cloud model would ever see them.</div>
       </div>
     </div>
   </section>
@@ -821,6 +848,7 @@
         <a href="#legal">Refund Policy</a>
       </div>
     </div>
+    <div class="bigmark" aria-hidden="true">KEPTA</div>
     <div class="legal-foot">
       <span>KEPTA is operated by Damian Todorovic, Germany. Payments are handled by Paddle.com Market Limited, our Merchant of Record. Not affiliated with Anthropic, Google or Cursor.</span>
       <span>This page runs no analytics, no cookies and no third-party scripts.</span>
@@ -1106,6 +1134,59 @@
       } else if (e.key === 'Enter') { e.preventDefault(); runItem(filtered[active]); }
     });
   }
+
+  /* ================= privacy shield (live) ================= */
+  var shieldIn = $('#shield-in'), shieldOut = $('#shield-out');
+  var SHIELD_STOP = { call: 1, tell: 1, ask: 1, meet: 1, email: 1, write: 1, note: 1, the: 1, her: 1, his: 1, our: 1, your: 1, their: 1, invoice: 1, mail: 1, about: 1, for: 1, from: 1, with: 1, and: 1, but: 1, if: 1, when: 1, please: 1, send: 1, forward: 1, today: 1, tomorrow: 1 };
+  function maskNames(t) {
+    var parts = t.split(/(\s+)/), cap = /^[A-Z\u00c4\u00d6\u00dc][a-z\u00e4\u00f6\u00fc\u00df]+$/;
+    for (var i = 0; i < parts.length; i += 2) {
+      var w = parts[i];
+      if (!cap.test(w) || SHIELD_STOP[w.toLowerCase()]) continue;
+      var j = i + 2;
+      if (j < parts.length && cap.test(parts[j]) && !SHIELD_STOP[parts[j].toLowerCase()]) { parts[i] = '[NAME]'; parts[i + 1] = ''; parts[j] = ''; }
+    }
+    return parts.join('');
+  }
+  function shieldText(t) {
+    var s = t
+      .replace(/[\w.+-]+@[\w-]+\.[\w.]{2,}/g, '[EMAIL]')
+      .replace(/\+?\d[\d\s().-]{6,}\d/g, '[PHONE]')
+      .replace(/\b[A-Z\u00c4\u00d6\u00dc][a-z\u00e4\u00f6\u00fc\u00df]+(?:strasse|stra\u00dfe|str\.|weg|allee|platz)\s*\d+[a-z]?\b/g, '[ADDRESS]');
+    return maskNames(s);
+  }
+  function renderShield() {
+    if (!shieldIn || !shieldOut) return;
+    var t = shieldText(shieldIn.value);
+    shieldOut.innerHTML = esc(t).replace(/\[(EMAIL|PHONE|ADDRESS|NAME)\]/g, '<mark>[$1]</mark>');
+  }
+  if (shieldIn && shieldOut) {
+    renderShield();
+    shieldIn.addEventListener('input', renderShield);
+  }
+
+  /* ================= pointer depth ================= */
+  (function () {
+    var els = $$('[data-tilt]');
+    if (!els.length || reduce) return;
+    if (!window.matchMedia || !window.matchMedia('(pointer: fine)').matches) return;
+    var raf = null, last = null;
+    function apply() {
+      raf = null;
+      if (!last) return;
+      for (var i = 0; i < els.length; i++) {
+        var el = els[i], r = el.getBoundingClientRect();
+        if (last.x < r.left - 140 || last.x > r.right + 140 || last.y < r.top - 140 || last.y > r.bottom + 140) { el.style.transform = ''; continue; }
+        var dx = (last.x - (r.left + r.width / 2)) / r.width;
+        var dy = (last.y - (r.top + r.height / 2)) / r.height;
+        el.style.transform = 'perspective(1400px) rotateY(' + (dx * 2.6).toFixed(2) + 'deg) rotateX(' + (-dy * 2.6).toFixed(2) + 'deg)';
+      }
+    }
+    document.addEventListener('pointermove', function (e) {
+      last = { x: e.clientX, y: e.clientY };
+      if (!raf) raf = requestAnimationFrame(apply);
+    }, { passive: true });
+  })();
 })();
 </script>
 </body>
