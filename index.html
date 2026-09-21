@@ -146,7 +146,6 @@
 
   /* ---------- hero ---------- */
   .hero{position:relative; min-height:100svh; display:flex; align-items:center; padding:calc(var(--nav-h) + 60px) 0 90px; overflow:hidden}
-  #logos{position:fixed; inset:0; z-index:0; width:100%; height:100%; pointer-events:none}
   .hero::after{content:""; position:absolute; inset:0; z-index:1; pointer-events:none; background:linear-gradient(180deg, rgba(246,244,239,.62) 0%, rgba(246,244,239,.30) 42%, rgba(246,244,239,.96) 100%)}
   .hero .wrap{position:relative; z-index:3}
   .hero-head{margin-bottom:54px}
@@ -406,7 +405,6 @@
 </head>
 <body>
 <div class="aura" aria-hidden="true"></div>
-<canvas id="logos" aria-hidden="true"></canvas>
 <div class="grain" aria-hidden="true"></div>
 <div class="rule-top" aria-hidden="true"></div>
 <header class="masthead" id="masthead">
@@ -853,88 +851,6 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* ================= floating KEPTA marks ================= */
-  (function () {
-    var cv = $('#logos'); if (!cv) return;
-    var ctx = cv.getContext('2d'); if (!ctx) return;
-    var dpr = Math.min(2, window.devicePixelRatio || 1);
-    var W = 0, H = 0, marks = [], raf = null, running = false;
-    function rrect(x, y, w, h, r) {
-      ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-      ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-      ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-      ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
-      ctx.closePath();
-    }
-    function make() {
-      var n = Math.max(16, Math.min(38, Math.round((W * H) / 42000)));
-      marks = [];
-      for (var i = 0; i < n; i++) {
-        var size = 26 + Math.random() * 40, x, y, tries = 0;
-        do { x = Math.random() * W; y = Math.random() * H; tries++; }
-        while (tries < 14 && marks.some(function (o) {
-          return Math.abs(o.x - x) < (o.s + size) * 0.78 && Math.abs(o.y - y) < (o.s + size) * 0.78;
-        }));
-        marks.push({
-          x: x, y: y,
-          vx: (Math.random() - 0.5) * 0.14, vy: -0.04 - Math.random() * 0.10,
-          s: size, rot: (Math.random() - 0.5) * 0.7,
-          vr: (Math.random() - 0.5) * 0.0014,
-          a: 0.14 + Math.random() * 0.12, wax: Math.random() < 0.18
-        });
-      }
-    }
-    function drawMark(m) {
-      var s = m.s, k = s / 512;   /* exact geometry of the KEPTA mark */
-      ctx.save(); ctx.translate(m.x, m.y); ctx.rotate(m.rot); ctx.globalAlpha = m.a;
-      rrect(-s / 2, -s / 2, s, s, 112 * k);
-      ctx.fillStyle = m.wax ? '#8e2f2f' : '#24313f'; ctx.fill();
-      ctx.globalAlpha = Math.min(0.96, m.a * 3.2);
-      ctx.strokeStyle = '#f6f4ef';
-      ctx.lineWidth = Math.max(1.1, 24 * k);
-      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-      ctx.beginPath();
-      ctx.moveTo(-80 * k, -80 * k); ctx.lineTo(-80 * k, 80 * k);
-      ctx.moveTo(-80 * k, 0); ctx.lineTo(32 * k, -80 * k);
-      ctx.moveTo(-80 * k, 0); ctx.lineTo(32 * k, 80 * k);
-      ctx.stroke();
-      ctx.beginPath(); ctx.arc(80 * k, -78 * k, Math.max(1, 17 * k), 0, 6.2832);
-      ctx.fillStyle = '#f6f4ef'; ctx.fill();
-      ctx.restore();
-    }
-    function frame() {
-      if (!running) return;
-      ctx.clearRect(0, 0, W, H);
-      for (var i = 0; i < marks.length; i++) {
-        var m = marks[i];
-        m.x += m.vx; m.y += m.vy; m.rot += m.vr;
-        if (m.y < -90) { m.y = H + 70; m.x = Math.random() * W; }
-        if (m.x < -90) m.x = W + 70;
-        if (m.x > W + 90) m.x = -70;
-        drawMark(m);
-      }
-      raf = requestAnimationFrame(frame);
-    }
-    function start() { if (reduce || running) return; running = true; raf = requestAnimationFrame(frame); }
-    function stop() { running = false; if (raf) cancelAnimationFrame(raf); raf = null; }
-    function resize() {
-      W = window.innerWidth; H = window.innerHeight;
-      cv.width = Math.floor(W * dpr); cv.height = Math.floor(H * dpr);
-      cv.style.width = W + 'px'; cv.style.height = H + 'px';
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      make();
-      ctx.clearRect(0, 0, W, H);
-      for (var i = 0; i < marks.length; i++) drawMark(marks[i]);
-    }
-    resize();
-    if (!reduce) {
-      start();
-      document.addEventListener('visibilitychange', function () { document.hidden ? stop() : start(); });
-      var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { stop(); resize(); start(); }, 200); });
-    }
-  })();
   /* ================= masthead ================= */
   var masthead = $('#masthead'), bar = $('#progressbar'), ticking = false;
   function onFrame() {
