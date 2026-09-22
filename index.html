@@ -296,6 +296,13 @@
   .term .buyline a{display:block}
   .badge{display:inline-block; font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:#ffb3a8; border:1px solid rgba(195,74,65,.6); border-radius:999px; padding:3px 9px; margin-left:12px; vertical-align:middle}
 
+  /* ---------- FAQ ---------- */
+  .faq{margin-top:52px; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:0 60px}
+  .qa{padding:26px 0; border-top:1px solid var(--line)}
+  .qa h3{font-size:clamp(19px,1.9vw,22px)}
+  .qa p{margin-top:11px; font-size:15.5px; line-height:1.62; color:var(--text-2)}
+  @media (max-width:900px){ .faq{grid-template-columns:minmax(0,1fr)} }
+
   /* ---------- legal ---------- */
   .legal-grid{display:grid; grid-template-columns:1.2fr 1.2fr 1fr; gap:54px; align-items:start}
   .legal-grid h3{font-size:24px; padding-bottom:13px; border-bottom:1px solid var(--line-2)}
@@ -390,6 +397,62 @@
   "author": { "@type": "Person", "name": "Damian Todorovic" },
   "license": "https://spdx.org/licenses/AGPL-3.0-or-later.html",
   "downloadUrl": "https://github.com/DamianTodorovic/kepta-pro-releases/releases/latest"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where does my data live?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The knowledge base is a single encrypted database. SQLCipher 4: AES-256 with an HMAC-SHA512 over every page, the write-ahead log included."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does KEPTA send anything anywhere?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "None. No account, no analytics, no call home. Loopback only, 127.0.0.1. There is no server that could receive your notes, because there is no server."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is there a trial?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A license key removes the daily limits and is verified offline on your machine."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which AI clients are supported?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Claude Desktop, Claude Code, Cursor, Windsurf, VS Code, Gemini CLI, Cline, Roo Code, Zed, Codex, Continue, any MCP client."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What happens without a license key?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A key is verified offline on your device with an Ed25519 signature, bound to your name. The app never locks and your data is never a hostage."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does the 14-day refund work?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "If KEPTA is not right for you, write to damian2212todi@gmail.com within 14 days of purchase and we will refund you in full, no questions asked. Refunds are issued via Paddle.com to the original payment method, typically within 5-10 business days."
+      }
+    }
+  ]
 }
 </script>
 </head>
@@ -704,6 +767,7 @@
           <h2 class="rv" style="margin-top:22px">Inspect it before you trust it.</h2>
           <p class="lead rv d1" style="margin-top:24px">The memory engine is AGPL-3.0 and free forever. The Python client is MIT, standard library only. Read the code, fork it, ship your own product from it.</p>
           <div class="cta-row rv d2"><a class="btn lg ghost" href="https://github.com/DamianTodorovic/kepta">github.com/DamianTodorovic/kepta</a></div>
+          <p class="fine rv d2" style="margin-top:22px">1,500+ automated tests in the desktop app, 436 in this open core.</p>
         </div>
         <div class="cmd rv d2">
           <div class="head" aria-hidden="true"><i></i><i></i><i></i><span>the whole memory layer</span></div>
@@ -714,6 +778,27 @@
 <span class="k">$</span> pip install kepta</pre>
           <button class="copy" type="button" data-copy="npx -y kepta-mcp setup">Copy</button>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FAQ ============ -->
+  <section id="faq">
+    <div class="wrap">
+      <div class="twocol tight" style="align-items:end">
+        <div>
+          <p class="eyebrow rv">Questions</p>
+          <h2 class="rv" style="margin-top:22px">The short answers.</h2>
+        </div>
+        <p class="lead rv d1">Every answer below is taken word for word from the sections above.</p>
+      </div>
+      <div class="faq rv d2">
+        <article class="qa"><h3>Where does my data live?</h3><p>The knowledge base is a single encrypted database. SQLCipher 4: AES-256 with an HMAC-SHA512 over every page, the write-ahead log included.</p></article>
+        <article class="qa"><h3>Does KEPTA send anything anywhere?</h3><p>None. No account, no analytics, no call home. Loopback only, 127.0.0.1. There is no server that could receive your notes, because there is no server.</p></article>
+        <article class="qa"><h3>Is there a trial?</h3><p>A license key removes the daily limits and is verified offline on your machine.</p></article>
+        <article class="qa"><h3>Which AI clients are supported?</h3><p>Claude Desktop, Claude Code, Cursor, Windsurf, VS Code, Gemini CLI, Cline, Roo Code, Zed, Codex, Continue, any MCP client.</p></article>
+        <article class="qa"><h3>What happens without a license key?</h3><p>A key is verified offline on your device with an Ed25519 signature, bound to your name. The app never locks and your data is never a hostage.</p></article>
+        <article class="qa"><h3>How does the 14-day refund work?</h3><p>If KEPTA is not right for you, write to damian2212todi@gmail.com within 14 days of purchase and we will refund you in full, no questions asked. Refunds are issued via Paddle.com to the original payment method, typically within 5-10 business days.</p></article>
       </div>
     </div>
   </section>
@@ -740,7 +825,7 @@
           <h4>Payment</h4>
           <p>Payments, invoicing and EU VAT are handled by our Merchant of Record, Paddle.com Market Limited. Prices are shown in euro and include applicable taxes where required.</p>
           <h4>No warranty</h4>
-          <p>The App is provided "as is". While we test carefully (1,400+ automated tests), we do not warrant that the App will be error-free. To the maximum extent permitted by law we exclude liability for indirect or consequential damages. Nothing in these terms limits liability where doing so would be unlawful.</p>
+          <p>The App is provided "as is". While we test carefully (over 1,900 automated tests across both codebases), we do not warrant that the App will be error-free. To the maximum extent permitted by law we exclude liability for indirect or consequential damages. Nothing in these terms limits liability where doing so would be unlawful.</p>
           <h4>Your data</h4>
           <p>Your memory database is yours. Uninstalling the App does not delete your data; you may export or delete it at any time from within the App. We have no technical ability to read your data.</p>
           <h4>Changes</h4>
@@ -805,6 +890,7 @@
       </div>
       <div>
         <h4 style="margin-bottom:14px">Legal</h4>
+        <a href="#faq">Questions</a>
         <a href="#legal">Terms of Service</a>
         <a href="#legal">Privacy Notice</a>
         <a href="#legal">Refund Policy</a>
