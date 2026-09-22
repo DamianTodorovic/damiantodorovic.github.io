@@ -17,9 +17,12 @@
 <meta property="og:image" content="https://damiantodorovic.github.io/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary">
+<meta property="og:image:alt" content="KEPTA - local, encrypted memory for your AI, with the three tiers Core, Pro and Enterprise">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="KEPTA - Local, encrypted memory for your AI">
 <meta name="twitter:description" content="One encrypted file on your own machine. No cloud, no account.">
+<meta name="twitter:image" content="https://damiantodorovic.github.io/og-image.png">
 <!--
   KEPTA - the vault. A cinematic product page.
   Purpose   Landing page for KEPTA: local, encrypted memory for AI assistants.
@@ -815,8 +818,8 @@
 <div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Command palette">
   <div class="palette-box">
     <label for="palette-input" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Search sections and commands</label>
-    <input id="palette-input" type="text" placeholder="Jump to a section, or copy a command" autocomplete="off" spellcheck="false">
-    <ul class="palette-list" id="palette-list"></ul>
+    <input id="palette-input" type="text" placeholder="Jump to a section, or copy a command" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="true" aria-controls="palette-list" aria-autocomplete="list">
+    <ul class="palette-list" id="palette-list" role="listbox" aria-label="Sections and commands"></ul>
   </div>
 </div>
 <script>
@@ -983,17 +986,18 @@
     { kind: 'Link', label: 'Download KEPTA Pro', href: 'https://github.com/DamianTodorovic/kepta-pro-releases/releases/latest' },
     { kind: 'Link', label: 'Source on GitHub', href: 'https://github.com/DamianTodorovic/kepta' }
   ];
-  var filtered = ITEMS.slice(), active = 0;
+  var filtered = ITEMS.slice(), active = 0, lastFocus = null;
   function renderPalette(q) {
     if (!pList) return;
     filtered = ITEMS.filter(function (i) { return i.label.toLowerCase().indexOf(q.toLowerCase()) > -1; });
     active = 0;
     pList.innerHTML = filtered.length ? filtered.map(function (i, n) {
-      return '<li data-n="' + n + '"' + (n === 0 ? ' class="active"' : '') + '><span class="kind">' + i.kind + '</span><span>' + esc(i.label) + '</span><span class="pn">' + (i.kind === 'Command' ? 'copy' : 'open') + '</span></li>';
+      return '<li id="popt-' + n + '" data-n="' + n + '" role="option" aria-selected="' + (n === 0 ? 'true' : 'false') + '"' + (n === 0 ? ' class="active"' : '') + '><span class="kind">' + i.kind + '</span><span>' + esc(i.label) + '</span><span class="pn">' + (i.kind === 'Command' ? 'copy' : 'open') + '</span></li>';
     }).join('') : '<li class="mem-empty">No match.</li>';
+    if (pInput) pInput.setAttribute('aria-activedescendant', filtered.length ? 'popt-0' : '');
   }
-  function openPalette() { if (!palette) return; palette.classList.add('open'); pInput.value = ''; renderPalette(''); setTimeout(function () { pInput.focus(); }, 20); }
-  function closePalette() { if (palette) palette.classList.remove('open'); }
+  function openPalette() { if (!palette) return; lastFocus = document.activeElement; palette.classList.add('open'); pInput.value = ''; renderPalette(''); setTimeout(function () { pInput.focus(); }, 20); }
+  function closePalette() { if (!palette) return; palette.classList.remove('open'); if (lastFocus && lastFocus.focus) { lastFocus.focus(); lastFocus = null; } }
   function runItem(i) {
     if (!i) return;
     if (i.go) { closePalette(); var el = $(i.go); if (el) el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); }
@@ -1008,11 +1012,16 @@
     document.addEventListener('keydown', function (e) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); palette.classList.contains('open') ? closePalette() : openPalette(); return; }
       if (!palette.classList.contains('open')) return;
-      if (e.key === 'Escape') { closePalette(); }
+      if (e.key === 'Escape') { e.preventDefault(); closePalette(); return; }
+      if (e.key === 'Tab') { e.preventDefault(); pInput.focus(); return; }
       else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
         active = Math.max(0, Math.min(filtered.length - 1, active + (e.key === 'ArrowDown' ? 1 : -1)));
-        $$('#palette-list li').forEach(function (li, n) { li.classList.toggle('active', n === active); });
+        $$('#palette-list li').forEach(function (li, n) {
+          li.classList.toggle('active', n === active);
+          li.setAttribute('aria-selected', n === active ? 'true' : 'false');
+        });
+        pInput.setAttribute('aria-activedescendant', filtered.length ? 'popt-' + active : '');
       } else if (e.key === 'Enter') { e.preventDefault(); runItem(filtered[active]); }
     });
   }

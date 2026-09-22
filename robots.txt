@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://damiantodorovic.github.io/sitemap.xml
