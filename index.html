@@ -297,11 +297,26 @@
   .badge{display:inline-block; font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:#ffb3a8; border:1px solid rgba(195,74,65,.6); border-radius:999px; padding:3px 9px; margin-left:12px; vertical-align:middle}
 
   /* ---------- FAQ ---------- */
-  .faq{margin-top:52px; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:0 60px}
-  .qa{padding:26px 0; border-top:1px solid var(--line)}
-  .qa h3{font-size:clamp(19px,1.9vw,22px)}
-  .qa p{margin-top:11px; font-size:15.5px; line-height:1.62; color:var(--text-2)}
-  @media (max-width:900px){ .faq{grid-template-columns:minmax(0,1fr)} }
+  section#faq{padding-top:72px}
+  .faq{margin-top:34px; border-top:1px solid var(--ink)}
+  .qa{display:grid; grid-template-columns:minmax(0,.92fr) minmax(0,1.18fr); gap:48px; align-items:start;
+      padding:34px 0; border-bottom:1px solid var(--line); transition:background .3s var(--ease)}
+  .qa:hover{background:rgba(20,22,26,.022)}
+  .qa .q{display:grid; grid-template-columns:minmax(0,1fr); align-items:baseline}
+  .qa .n{display:block; font-family:var(--mono); font-size:11.5px; letter-spacing:.14em; color:var(--text-2); margin-bottom:10px}
+  .qa h3{font-size:clamp(21px,2.15vw,27px); line-height:1.16; letter-spacing:-.015em; text-wrap:balance}
+  .qa p{font-size:16.5px; line-height:1.66; color:var(--text-2); max-width:56ch; text-wrap:pretty}
+  .nb{white-space:nowrap}
+  @media (min-width:1001px){
+    .faq{margin-left:-38px}
+    .qa .q{padding-left:38px}
+    .qa .n{position:absolute; left:0; top:35px; margin:0}
+    .qa{position:relative}
+  }
+  @media (max-width:900px){
+    .faq{margin-top:36px}
+    .qa{grid-template-columns:minmax(0,1fr); gap:12px; padding:24px 0}
+  }
 
   /* ---------- legal ---------- */
   .legal-grid{display:grid; grid-template-columns:1.2fr 1.2fr 1fr; gap:54px; align-items:start}
@@ -793,12 +808,12 @@
         <p class="lead rv d1">Every answer below is taken word for word from the sections above.</p>
       </div>
       <div class="faq rv d2">
-        <article class="qa"><h3>Where does my data live?</h3><p>The knowledge base is a single encrypted database. SQLCipher 4: AES-256 with an HMAC-SHA512 over every page, the write-ahead log included.</p></article>
-        <article class="qa"><h3>Does KEPTA send anything anywhere?</h3><p>None. No account, no analytics, no call home. Loopback only, 127.0.0.1. There is no server that could receive your notes, because there is no server.</p></article>
-        <article class="qa"><h3>Is there a trial?</h3><p>A license key removes the daily limits and is verified offline on your machine.</p></article>
-        <article class="qa"><h3>Which AI clients are supported?</h3><p>Claude Desktop, Claude Code, Cursor, Windsurf, VS Code, Gemini CLI, Cline, Roo Code, Zed, Codex, Continue, any MCP client.</p></article>
-        <article class="qa"><h3>What happens without a license key?</h3><p>A key is verified offline on your device with an Ed25519 signature, bound to your name. The app never locks and your data is never a hostage.</p></article>
-        <article class="qa"><h3>How does the 14-day refund work?</h3><p>If KEPTA is not right for you, write to damian2212todi@gmail.com within 14 days of purchase and we will refund you in full, no questions asked. Refunds are issued via Paddle.com to the original payment method, typically within 5-10 business days.</p></article>
+        <article class="qa"><div class="q"><span class="n" aria-hidden="true">01</span><h3>Where does my data live?</h3></div><p>The knowledge base is a single encrypted database. SQLCipher 4: AES-256 with an <span class="nb">HMAC-SHA512</span> over every page, the write-ahead log included.</p></article>
+        <article class="qa"><div class="q"><span class="n" aria-hidden="true">02</span><h3>Does KEPTA send anything anywhere?</h3></div><p>None. No account, no analytics, no call home. Loopback only, 127.0.0.1. There is no server that could receive your notes, because there is no server.</p></article>
+        <article class="qa"><div class="q"><span class="n" aria-hidden="true">03</span><h3>Is there a trial?</h3></div><p>A license key removes the daily limits and is verified offline on your machine.</p></article>
+        <article class="qa"><div class="q"><span class="n" aria-hidden="true">04</span><h3>Which AI clients are supported?</h3></div><p>Claude Desktop, Claude Code, Cursor, Windsurf, VS Code, Gemini CLI, Cline, Roo Code, Zed, Codex, Continue, any MCP client.</p></article>
+        <article class="qa"><div class="q"><span class="n" aria-hidden="true">05</span><h3>What happens without a license key?</h3></div><p>A key is verified offline on your device with an Ed25519 signature, bound to your name. The app never locks and your data is never a hostage.</p></article>
+        <article class="qa"><div class="q"><span class="n" aria-hidden="true">06</span><h3>How does the 14-day refund work?</h3></div><p>If KEPTA is not right for you, write to damian2212todi@gmail.com within 14 days of purchase and we will refund you in full, no questions asked. Refunds are issued via Paddle.com to the original payment method, typically within 5-10 business days.</p></article>
       </div>
     </div>
   </section>
