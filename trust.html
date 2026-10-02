@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KEPTA Enterprise — Trust Center</title>
+<meta name="description" content="The open architecture answer instead of certificate seals: encryption layers, tamper-proof audit chain, §203 position, GDPR, HIPAA/BAA stance — every claim provable in the app.">
+<meta name="robots" content="index">
+<style>
+:root{--line:#e5e1d8;--text-1:#141b22;--text-3:#6b7280;--accent:#8e2f2f}
+body{margin:0;background:#f6f4ef;color:var(--text-1);font:16px/1.65 Georgia,serif}
+header{padding:22px 5vw;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+header a{color:var(--text-1);text-decoration:none;font-weight:700;letter-spacing:.12em}
+main{max-width:880px;margin:0 auto;padding:48px 5vw 80px}
+h1{font-size:clamp(30px,5vw,44px);line-height:1.15;margin:.2em 0}
+h2{font-size:24px;margin-top:2em}
+.kicker{color:var(--accent);font:12px/1 ui-monospace,monospace;letter-spacing:.28em;text-transform:uppercase}
+table{width:100%;border-collapse:collapse;margin:1em 0}
+td,th{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top;font-size:15px}
+th{background:#efece4}
+li{margin:.4em 0}
+a{color:var(--accent)}
+footer{border-top:1px solid var(--line);padding:24px 5vw;color:var(--text-3);font-size:14px}
+</style>
+</head>
+<body>
+<header><a href="/">KEPTA</a><a href="/#enterprise">Enterprise</a></header>
+<main>
+<p class="kicker">KEPTA Enterprise — Trust Center</p>
+<h1>The open architecture answer, instead of certificate seals.</h1>
+<p>Every claim on this page is readable in code and demonstrable in the app with a single click. The threat model we removed is the one nobody else can: <strong>the cloud itself.</strong></p>
+
+<h2>The principle</h2>
+<p>Other vendors document how well they protect your data while transporting it into their datacenter. KEPTA Enterprise never transports it: <strong>an organization's brain lives in encrypted files on machines the organization controls.</strong> There is no vendor access path, so there is no vendor access to answer for.</p>
+<p>For procurement: the strongest data argument is an architecture test — <em>"show me the path through which a client's matter leaves your building."</em> Ours ends at your own network card.</p>
+
+<h2>Encryption, layer by layer</h2>
+<table>
+<tr><th>Layer</th><th>Mechanism</th></tr>
+<tr><td>Data at rest</td><td>SQLCipher 4: AES-256 plus an HMAC-SHA512 over every page, WAL included</td></tr>
+<tr><td>Per tenant</td><td>Every tenant brain carries its own derived key — one compromised tenant key never opens the others</td></tr>
+<tr><td>Key custody</td><td>The master key lives in the operator's OS keychain; BYOK/KMS adapter on the roadmap</td></tr>
+<tr><td>Transport</td><td>Console is loopback-only; deployments sit behind your firewall or run air-gapped</td></tr>
+</table>
+
+<h2>Tamper-proof audit chain</h2>
+<p>Every read and write of a tenant brain appends to a SHA-256 hash chain: line <em>n</em> carries the hash of line <em>n−1</em>. An edited, deleted or reordered entry visibly breaks the chain — and the app shows the exact row. The <strong>verify button</strong> recomputes the whole chain live and issues a seal with server timestamp and chain-tip fingerprint.</p>
+
+<h2>Human review for agent writes</h2>
+<p>Writes run through a per-tenant write policy: automatic, or gated by a human decision. The console shows <em>"The AI wanted → what happened"</em> — intent versus reality, with actor, resource and timestamp in the chain.</p>
+
+<h2>Point-in-time recovery</h2>
+<p>The time machine reconstructs a tenant's knowledge at any moment from the chain and restores it with a guarded restore that keeps the evidence chain intact.</p>
+
+<h2>§203 StGB — professional secrecy (law firms, tax advisors, physicians)</h2>
+<ul>
+<li><strong>Tenant separation:</strong> each client's brain is separated with its own key; bound agent keys see only their tenant (isolation is contract-tested — foreign access returns 403)</li>
+<li><strong>Confidentiality levels:</strong> per note and per tenant, with §203-grade profiles on the roadmap</li>
+<li><strong>No third-party leak:</strong> no cloud, no telemetry, no embedded third parties in the data path</li>
+</ul>
+
+<h2>GDPR</h2>
+<ul>
+<li><strong>Data subject rights:</strong> access and erasure run against local stores — no upstream processor to file requests with; deletion is provable through the chain</li>
+<li><strong>Processor status:</strong> in the standard architecture we are not a processor, because we never receive your data</li>
+<li><strong>Data residency:</strong> the strictest residency proof is machine ownership — your firm, your server, your country</li>
+</ul>
+
+<h2>HIPAA / BAA — our position</h2>
+<p>We do not sell a Business Associate Agreement wrapper, because in standard deployment <strong>we are not a business associate</strong>: no protected health information is ever handed to us — it never leaves your building. Organizations whose checklists require a BAA get the same answer as for SOC 2: <strong>the architecture makes the wrapper unnecessary; we deliver the architecture proof instead.</strong> Managed options on request, under separate agreement.</p>
+
+<h2>Certificates (SOC 2 / ISO 27001)</h2>
+<p>Certificates attest the processes of a cloud operator. Our answer is locality dominance — we run nothing that would need attestation. For procurement that requires paper: a SOC 2 readiness checklist is available on request, and the technical controls (access, encryption, audit, integrity) are built and tested in the product.</p>
+
+<h2>Provability — the part nobody else offers</h2>
+<ol>
+<li><strong>In the app:</strong> audit verify with seal, human review, time machine — demonstrable live, in front of you</li>
+<li><strong>In code:</strong> the private enterprise repository, 229+ tests per release</li>
+<li><strong>Manipulation demo:</strong> on request we show how tampering visibly breaks the chain — the opposite of security through obscurity</li>
+</ol>
+</main>
+<footer>KEPTA is operated by Damian Todorovic, Germany. This page sets no cookies and loads no third-party scripts. <a href="/#enterprise">Back to KEPTA</a></footer>
+</body>
+</html>
