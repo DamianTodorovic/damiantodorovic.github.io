@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<title>OG image source - KEPTA</title>
+<!-- Source for og-image.jpg. Regenerate with:
+     python3 -m http.server 8199   (in this folder)
+     "Brave Browser" --headless=new --window-size=1200,630 --force-device-scale-factor=1 \
+       --virtual-time-budget=25000 --screenshot=og-image.jpg http://localhost:8199/og.html -->
+<style>
+  @font-face{font-family:'Geist';font-style:normal;font-weight:100 900;font-display:block;src:url('assets/fonts/geist-latin-wght-normal.woff2') format('woff2-variations');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+  @font-face{font-family:'Geist Mono';font-style:normal;font-weight:100 900;font-display:block;src:url('assets/fonts/geist-mono-latin-wght-normal.woff2') format('woff2-variations');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+  @font-face{font-family:'Newsreader';font-style:normal;font-weight:200 800;font-display:block;src:url('assets/fonts/newsreader-latin-wght-normal.woff2') format('woff2-variations');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+
+  :root{
+    --bg:#0b0d10;
+    --glass-a:rgba(255,255,255,.070); --glass-b:rgba(255,255,255,.022);
+    --glass-brd:rgba(255,255,255,.110); --glass-hi:rgba(255,255,255,.160);
+    --raise:0 40px 80px -36px rgba(0,0,0,.86), 0 2px 10px -4px rgba(0,0,0,.62);
+    --text:#eceae4; --text-2:#a8afb8; --text-3:#767f8b;
+    --line:rgba(255,255,255,.085); --line-2:rgba(255,255,255,.16);
+    --wax:#e2705f; --wax-2:#f0907c; --wax-deep:#8e2f2f; --cream:#f0e4c8;
+    --serif:'Newsreader', Georgia, serif;
+    --sans:'Geist', system-ui, sans-serif;
+    --mono:'Geist Mono', ui-monospace, monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1200px;height:630px;overflow:hidden}
+  body{position:relative;background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+
+  .aura{position:absolute;inset:-30%;filter:blur(44px);
+    background:
+      radial-gradient(30% 44% at 84% 12%, rgba(160,52,52,.80), transparent 64%),
+      radial-gradient(26% 36% at 100% 62%, rgba(226,112,95,.22), transparent 66%),
+      radial-gradient(34% 40% at 2% 98%, rgba(63,86,112,.62), transparent 70%),
+      radial-gradient(22% 26% at 40% 52%, rgba(240,228,200,.06), transparent 72%);
+  }
+  .grain{position:absolute;inset:0;opacity:.26;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.42'/%3E%3C/svg%3E");
+  }
+
+  .canvas{position:absolute;inset:0;padding:52px 56px 46px;display:flex;flex-direction:column;justify-content:space-between}
+  .cols{display:flex;gap:44px;align-items:flex-start}
+  .left{flex:1 1 auto;min-width:0}
+
+  .kicker{display:flex;align-items:center;gap:13px;font-family:var(--mono);font-size:13px;letter-spacing:.185em;text-transform:uppercase;color:var(--text-2)}
+  .kicker .dot{width:9px;height:9px;border-radius:50%;background:var(--wax);box-shadow:0 0 0 5px rgba(226,112,95,.16)}
+
+  h1{font-family:var(--serif);font-weight:400;font-size:66px;line-height:1.02;letter-spacing:-.028em;margin-top:16px}
+  h1 .dim{color:var(--text-3)}
+  .sub{margin-top:18px;width:430px;font-size:18.5px;line-height:1.48;color:var(--text-2)}
+  .sub b{color:var(--cream);font-weight:500}
+  .clients{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);font-family:var(--mono);font-size:12.5px;letter-spacing:.10em;color:var(--text-3);width:430px;line-height:1.7}
+  .clients b{font-weight:500;color:var(--text-2)}
+
+  /* glass memory card */
+  .card{flex:0 0 404px;width:404px;border-radius:22px;padding:12px;
+    background:linear-gradient(158deg,var(--glass-a),var(--glass-b));
+    border:1px solid var(--glass-brd);
+    box-shadow:var(--raise), inset 0 1px 0 var(--glass-hi);
+    -webkit-backdrop-filter:blur(22px) saturate(175%); backdrop-filter:blur(22px) saturate(175%);
+  }
+  .bar{display:flex;align-items:center;gap:7px;padding:8px 8px 12px}
+  .bar i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.20)}
+  .bar span{margin-left:8px;font-family:var(--mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--text-3)}
+  .q{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.28);padding:11px 13px}
+  .q svg{width:15px;height:15px;flex:0 0 auto;stroke:var(--text-3);fill:none;stroke-width:1.9}
+  .q b{font-weight:400;font-size:15px;color:var(--text)}
+  .q em{font-style:normal;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-left:auto}
+  ul{list-style:none;margin-top:8px}
+  li{padding:11px 8px 12px;border-top:1px solid var(--line)}
+  li.top{background:linear-gradient(90deg,rgba(226,112,95,.13),transparent 70%);border-top-color:rgba(226,112,95,.30);border-radius:10px}
+  .row{display:flex;align-items:baseline;gap:10px}
+  .row .t{font-size:14.5px;color:var(--text)}
+  .row .s{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--wax-2)}
+  li:not(.top) .row .s{color:var(--text-3)}
+  .body{font-size:12.5px;line-height:1.45;color:var(--text-3);margin-top:3px}
+  .meter{height:3px;border-radius:2px;background:rgba(255,255,255,.09);margin-top:8px;overflow:hidden}
+  .meter i{display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,var(--wax-deep),var(--wax))}
+  .cfoot{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line);padding:11px 8px 4px;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3)}
+  .cfoot b{font-weight:500;color:var(--text-2)}
+
+  .foot{display:flex;align-items:flex-end;justify-content:space-between;gap:28px;
+    border-top:1px solid var(--line);padding-top:20px}
+  .chips{display:flex;gap:9px}
+  .chip{font-family:var(--mono);font-size:12.5px;letter-spacing:.05em;color:var(--text-2);
+    padding:8px 14px;border-radius:999px;border:1px solid var(--line-2);
+    background:linear-gradient(158deg,var(--glass-a),var(--glass-b));white-space:nowrap;
+    -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px)}
+  .chip em{font-style:normal;color:var(--wax-2)}
+  .url{display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:13.5px;letter-spacing:.09em;color:var(--text-3)}
+  .url svg{width:34px;height:34px;border-radius:9px}
+  .url span{line-height:1.5}
+  .url strong{display:block;font-weight:500;color:var(--text);letter-spacing:.2em;font-size:13px}
+</style>
+</head>
+<body>
+<div class="aura"></div>
+<div class="grain"></div>
+<div class="canvas">
+  <div class="cols">
+    <div class="left">
+      <div class="kicker"><span class="dot"></span>KEPTA &#183; local-first memory for AI assistants</div>
+      <h1><span class="dim">Your AI forgets.</span><br>KEPTA keeps<br>the record.</h1>
+      <p class="sub">One <b>encrypted</b> memory on your own machine, shared by every assistant you use. No cloud, no account.</p>
+      <p class="clients"><b>Any MCP client</b> &#183; Claude Desktop &#183; Cursor<br>Windsurf &#183; VS Code &#183; Zed &#183; scripts over HTTP</p>
+    </div>
+
+    <div class="card">
+      <div class="bar"><i></i><i></i><i></i><span>KEPTA &#183; example memory</span></div>
+      <div class="q">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
+        <b>Miller, billing</b><em>hybrid</em>
+      </div>
+      <ul>
+        <li class="top">
+          <div class="row"><span class="t">Client Miller, billing</span><span class="s">74%</span></div>
+          <div class="body">Invoiced quarterly, always to the Hamburg office.</div>
+          <div class="meter"><i style="width:74%"></i></div>
+        </li>
+        <li>
+          <div class="row"><span class="t">Miller, new billing address</span><span class="s">48%</span></div>
+          <div class="body">Registered on 12 June. Replaces the January address.</div>
+          <div class="meter"><i style="width:48%"></i></div>
+        </li>
+        <li>
+          <div class="row"><span class="t">Preferred contact channel</span><span class="s">31%</span></div>
+          <div class="body">Email for anything contractual, chat for the rest.</div>
+          <div class="meter"><i style="width:31%"></i></div>
+        </li>
+      </ul>
+      <div class="cfoot"><b>Hybrid retrieval</b>&#183;<span>BM25 + vectors + graph</span></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="chips">
+      <span class="chip">SQLCipher 4 &#183; AES-256</span>
+      <span class="chip">8 MCP tools</span>
+      <span class="chip">466 tests &#183; rerun it</span>
+      <span class="chip"><em>Free forever</em> &#183; BUSL-1.1</span>
+    </div>
+    <div class="url">
+      <svg viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="112" fill="#0f0f0f"/><path d="M176 176 V336 M176 256 L288 176 M176 256 L288 336" stroke="#ffffff" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="336" cy="178" r="17" fill="#ffffff"/></svg>
+      <span><strong>KEPTA</strong>damiantodorovic.github.io</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>
