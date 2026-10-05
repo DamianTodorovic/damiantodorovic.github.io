@@ -1482,13 +1482,20 @@
   .tint{border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:linear-gradient(180deg, color-mix(in srgb, var(--tint) 9%, transparent), transparent)}
   section#faq{padding-top:80px}
   #faq > h2{margin-bottom:34px}
-  .faq-artikel{position:relative; display:grid; grid-template-columns:44px minmax(0,1fr); gap:22px; align-items:baseline; padding:30px 0; border-bottom:1px solid var(--line); transition:background .3s var(--ease)}
+  /* Die Frage steht in der zweiten, die Antwort in der dritten Spalte. Vorher
+     lagen beide untereinander in einer 1174 px breiten Spur, und die Antwort
+     durfte darin nicht breiter sein als ihr Zeilenmaß — also stand rechts ein
+     leerer Rand von zweihundertfünfzig bis dreihundertvierzig Pixel, den nichts
+     füllte. Der Rand gehört der Frage: nichts erfunden, nur umgestellt, und es
+     ist die gedruckte Form einer FAQ, nicht die einer Seite mit Loch. */
+  .faq-artikel{position:relative; display:grid; grid-template-columns:44px minmax(210px,300px) minmax(0,1fr); gap:22px 34px; align-items:baseline; padding:30px 0; border-bottom:1px solid var(--line); transition:background .3s var(--ease)}
   .faq-artikel:first-of-type{border-top:1px solid var(--line)}
   .faq-artikel:hover{background:var(--haze-3)}
-  .faq-artikel h3, .faq-artikel p{grid-column:2}
+  .faq-artikel h3{grid-column:2}
+  .faq-artikel p{grid-column:3}
   .faq-artikel .n{font-family:var(--mono); font-size:11.5px; letter-spacing:.14em; color:var(--text-3)}
   .faq-artikel h3{font-size:clamp(20px,2.1vw,26px); line-height:1.18; letter-spacing:-.015em}
-  .faq-artikel p{margin-top:12px; font-size:16.5px; line-height:1.66; color:var(--text-2); max-width:74ch}
+  .faq-artikel p{margin-top:0; font-size:16.5px; line-height:1.66; color:var(--text-2); max-width:36em}
   .faq-artikel code{font-family:var(--mono); font-size:14px; color:var(--wax-2); background:var(--glass-a); padding:1px 6px; border-radius:5px}
 
   /* ---------- legal ---------- */
@@ -1588,7 +1595,11 @@
     .foot{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
     .legal-grid{grid-template-columns:minmax(0,1fr)}
     .terms{grid-template-columns:minmax(0,1fr)}
+    /* Eine Spur: die Nummerspalte fällt, und mit ihr die zwei Rasterstellungen —
+       blieben sie stehen, baute das Raster zwei implizite Spalten und die Antwort
+       rückte seitlich aus dem Bild, statt unter die Frage zu fallen. */
     .faq-artikel{grid-template-columns:minmax(0,1fr); gap:6px}
+    .faq-artikel h3,.faq-artikel p{grid-column:auto}
     .legs{grid-template-columns:minmax(0,1fr)}
   }
   @media (max-width:560px){
