@@ -930,6 +930,8 @@
 
 
 
+
+
   /* ---------- act one: the flight ----------
      The spacer carries no ink on purpose. It is length, and length is what the
      camera reads: 1700svh puts one lens event (LENS = 0.024 u) at about 346 px,
@@ -2364,6 +2366,8 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
 
 
 
+
+
 <div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Command palette">
   <div class="palette-box">
     <label for="palette-input" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Search sections and commands</label>
@@ -2557,11 +2561,13 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
        ein Zoom, nicht nur eine Fahrt. */
     state: 'zünden',
     stateHow: 'Ein Knoten (n01, der erste in MEM) zieht aus dem Staub, der ihn ' +
-      'schon umgibt: uRevealK fährt in dieser Szene von 0 auf 1, und die ' +
-      'Streupositionen aScatter, die index.html für jeden Punkt schon baut ' +
-      '(~2886), sind genau dafür da. Der Kern leuchtet, bevor er Masse hat: ' +
-      'uAlphaGain 0 -> 0.35.',
-    uni: { uRevealK: 1, uDissolve: 0, uFocus: 0.55, uPlane: 1252, uMotion: 0.35,
+      'schon umgibt: uRevealK hält die Szene auf einem halbwachsenden Draht ' +
+      '(0.45) und fährt bis Szene 2 auf 1 — die Kanten wachsen mit der Fahrt ' +
+      'aus dem Knoten, nicht mit der Uhr, und ein Halt zeigt darum einen ' +
+      'Knoten, der noch nicht verdrahtet ist. Die Streupositionen aScatter, ' +
+      'die index.html für jeden Punkt schon baut (~2886), sind genau dafür da. ' +
+      'Der Kern leuchtet, bevor er Masse hat: uAlphaGain 0 -> 0.35.',
+    uni: { uRevealK: 0.45, uDissolve: 0, uFocus: 0.55, uPlane: 1252, uMotion: 0.35,
            uBloom: 0.55, uFlat: 0, uWire: 0, uAlphaGain: 0.35, uDensK: 1.15,
            uHitN: 0, uSeed: 'n01@Lumen' },
     labels: { hubs: 0, max: 0 },              /* in Szene 1 steht kein Name */
@@ -3075,7 +3081,7 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
     var A = eIdx >= 0 ? SCENES[eIdx] : sc, B = eIdx >= 0 ? SCENES[eIdx + 1] : sc;
     var w = q.edge > 0 ? q.x : 0;
     ['uFocus', 'uMotion', 'uDissolve', 'uBloom', 'uFlat', 'uWire', 'uDensK',
-     'uRevealK', 'uAlphaGain', 'uHitN'].forEach(function (n) {
+     'uRevealK', 'uDamp', 'uAlphaGain', 'uHitN'].forEach(function (n) {
       base[n] = lerp(A.uni[n] || 0, B.uni[n] || 0, w);
     });
     /* EIN Wert für die Schrift, kein Rätsel für die Engine. Die Einhüllende
@@ -3154,7 +3160,9 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
      Szene — also wird u diskret in Szenenindex übersetzt, ohne Dämpfung,
      ohne Fahrt, ohne Blende, und die Kamera steht auf dem to-Schlüssel.
      Kein Fokus-Zieher (eine Fokusverlagerung IST Bewegung), kein Bloom-
-     Flash, keine Tempo-Unschärfe, keine Partikel-Auflösung. Der Satz
+     Flash, keine Tempo-Unschärfe. Was bleibt, sind die Zustände der Szene —
+     aufgelöster Körper, flacher Bauplan, gealterte Farbe — denn die sind kein
+     Vortrag, sondern das Bild, und ein Ausweg ohne Bild ist keine Alternative. Der Satz
      wechselt über Deckkraft allein.
      WICHTIG FÜR DIE INTEGRATION: index.html ruft draw() in diesem Zweig
      nur bei Resize und Theme-Wechsel (~3863ff). railFrame() hängt aber in
@@ -3169,8 +3177,10 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
       index: q.i, id: sc.id, name: sc.name,
       key: k, upAxis: k.upAxis || 'y',
       uni: { uFocus: 0, uMotion: 0, uDissolve: sc.uni.uDissolve || 0, uBloom: 0,
-             uFlat: sc.uni.uFlat, uWire: sc.uni.uWire,
-             uAlphaGain: sc.uni.uAlphaGain, uRevealK: 1, uDensK: sc.uni.uDensK || 1,
+             uFlat: sc.uni.uFlat, uWire: sc.uni.uWire, uDamp: sc.uni.uDamp || 0,
+             uAlphaGain: sc.uni.uAlphaGain,
+             uRevealK: sc.uni.uRevealK == null ? 1 : sc.uni.uRevealK,
+             uDensK: sc.uni.uDensK || 1,
              uSX: 0, uSTime: 0.5, uSIdx: sc.id, uPlane: dist(k.pos, k.look),
              uSentence: 1 },
       hero: sc.hero, second: sc.second,
@@ -3274,6 +3284,8 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
   if (typeof module !== 'undefined' && module.exports) module.exports = SCENES_API;
 })(typeof window !== 'undefined' ? window : this);
   /* <<< KEPTA_SCENES */
+
+
 
 
 
@@ -5010,6 +5022,10 @@ uniform vec3 uInk;
 uniform vec3 uSlate;
 uniform vec3 uClay;
 uniform vec3 uHot;
+uniform float uFlat;
+uniform float uDamp;
+uniform float uDissolve;
+uniform float uWire;
 ` + CLEAR_GLSL + `
 out vec4 frag;
 float smin(float a, float b, float k) {
@@ -5038,7 +5054,19 @@ vec2 bsphere(vec3 ro, vec3 rd, vec4 s) {
   h = sqrt(h);
   return vec2(-b - h, -b + h);
 }
+/* Welt Coordinates, nicht Bildschirm: ein Schirmmuster, das beim Zug der
+   Kamera über das Gewebe kriecht, ist eine kaputte Maske. Eine Zelle im
+   Objekt bleibt an dem Fleisch, das sie auffrisst. */
+float hash33(vec3 p) {
+  p = fract(p * 0.3184155 + vec3(0.71, 0.113, 0.419));
+  p *= 17.0;
+  return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+}
 void main() {
+  /* Ein Wert, zweimal gebraucht: die Glut der Halo-Schicht und die der
+     Oberfläche altern zusammen, sonst säße über einem entfärbten Körper
+     ein warmer Rand wie neu. */
+  vec3 hot = mix(uHot, uSlate, clamp(uDamp, 0.0, 1.0));
   /* clip space, not vUv: the attribute only reaches 1 at the right and top edge,
      so treating it as if it reached 2 put the whole ray cone in the top-left
      quadrant and every body at twice the angle it should subtend */
@@ -5092,7 +5120,7 @@ void main() {
   if (hit < 0.0) {
     float ah = halo * 0.042 * uAlpha * cm * ef;
     if (ah < 0.004) discard;
-    frag = vec4(mix(uSlate, uHot, 0.26 + 0.4 * uDark), min(ah, 0.20));
+    frag = vec4(mix(uSlate, hot, 0.26 + 0.4 * uDark), min(ah, 0.20));
     return;
   }
   vec3 p = uEye + rd * hit;
@@ -5118,9 +5146,15 @@ void main() {
      ink and the floor comes up with it; the rim keeps its wax edge either way. */
   vec3 body = mix(uSlate, uInk, mix(0.40, 0.62, uDark)) *
     (mix(0.16, 0.74, uDark) + 0.78 * dif) * (0.76 + 0.36 * sky) * (0.78 + 0.22 * ao);
-  vec3 rim = mix(uClay, uHot, 0.42);
+  vec3 rim = mix(uClay, hot, 0.42);
   vec3 col = mix(body, rim, fres * 0.34) + rim * pow(fres, 2.4) * 0.16 +
-    uHot * spec * mix(0.34, 0.10, uDark);
+    hot * spec * mix(0.34, 0.10, uDark) * (1.0 - clamp(uFlat, 0.0, 1.0));
+  /* uFlat ist keine Helligkeit, sondern der Entzug der Modellierung: ein
+     Bauplan wird nicht flach, weil man ihm die Lichtquelle wegnimmt, sondern
+     weil kein Kanal mehr für sich entscheidet. Darum die Leuchtdichte und
+     nicht ein Gemisch gegen Papier — Papier wäre eine zweite Fläche. */
+  col = mix(col, vec3(dot(col, vec3(0.2126, 0.7152, 0.0722))),
+    clamp(uFlat, 0.0, 1.0));
   /* the organs are seen through the same air the page is printed on: what is far
      is not darkened, it is dissolved into the paper. Without this the body reads
      as a black disc pasted on a light page instead of a thing at a distance.
@@ -5141,8 +5175,13 @@ void main() {
     float k = length(uOrg[i].xyz - p) - uOrg[i].w;
     if (k < bk) { bk = k; rs = uOrg[i].w; bdd = length(uOrg[i].xyz - uEye); gf = uOrgF[i]; }
   }
+  /* Der Körper geht in Punkte. Bei uDissolve 0 ist das ein Vergleich, der
+     nie gewinnt — die sechs anderen Szenen kosten damit einen Befehl. */
+  if (uDissolve > 0.0 && hash33(floor(p * 0.25)) < uDissolve) discard;
   float a = (0.86 + 0.14 * fres) * uAlpha * cm * ef * gf *
-    smoothstep(rs * 2.5, rs * 5.0, bdd);
+    smoothstep(rs * 2.5, rs * 5.0, bdd) *
+    (1.0 - 0.34 * clamp(uDissolve, 0.0, 1.0)) *
+    (1.0 - 0.22 * clamp(uWire, 0.0, 1.0));
   /* On ivory the stone is a shadow that has been dropped into the paper, and a
      shadow has no business being solid: at full alpha the body turns into a flat
      slab and the midtones that carry its shape are cut off. It can still carry
@@ -5193,6 +5232,7 @@ uniform vec3 uInk;
 uniform vec3 uSlate;
 uniform vec3 uClay;
 uniform float uDark;
+uniform float uGlowK;
 ` + CLEAR_GLSL + `
 out vec4 frag;
 void main() {
@@ -5206,7 +5246,7 @@ void main() {
      against ivory: on paper the same alpha is a dozen luma points, which the eye
      does not collect as a dot. The dust is the depth cue of the whole flight, so on
      the light page it has to be drawn as pencil, not as a shadow of a shadow. */
-  al *= mix(2.1, 1.0, uDark);
+  al *= mix(2.1, 1.0, uDark) * uGlowK;
   if (al < 0.004) discard;
   vec3 col = vTone < 0.5 ? mix(uInk, uSlate, vTone * 2.0) : mix(uSlate, uClay, (vTone - 0.5) * 2.0);
   frag = vec4(col, min(al, 1.0));
@@ -5220,6 +5260,7 @@ layout(location = 3) in vec2 aAnim;
 uniform mat4 uView;
 uniform mat4 uProj;
 uniform float uReveal;
+uniform float uRevealK;
 uniform float uFogK;
 uniform float uDrift;
 out float vTone;
@@ -5228,7 +5269,10 @@ out float vFog;
 out float vS;
 out vec3 vP;
 void main() {
-  float t = clamp((uReveal - aAnim.x) / 0.34, 0.0, 1.0);
+  /* uReveal ist der Atem der ganzen Seite, uRevealK sagt, wie viel davon
+     die Szene schon zeigen darf: in der Zuendung steht der Knoten, die
+     Verdrahtung kommt erst in der nächsten. */
+  float t = clamp((uReveal * uRevealK - aAnim.x) / 0.34, 0.0, 1.0);
   float e = t * t * (3.0 - 2.0 * t);
   vec3 p = mix(aScatter, aPos, e);
   vP = p;
@@ -5254,6 +5298,7 @@ uniform vec3 uHot;
 uniform float uPkt;
 uniform float uTime;
 uniform float uDark;
+uniform float uWire;
 ` + CLEAR_GLSL + `
 out vec4 frag;
 void main() {
@@ -5266,7 +5311,7 @@ void main() {
   al *= mix(0.42, 1.0, clearMask(gl_FragCoord.xy / uRes * 2.0 - 1.0));
   /* the same arithmetic as the dust: a hairline is one pixel wide, and on ivory a
      hairline has to be dark enough to see, not merely present */
-  al *= mix(1.9, 1.0, uDark);
+  al *= mix(1.9, 1.0, uDark) * (1.0 + 1.15 * clamp(uWire, 0.0, 1.0));
   if (al < 0.004) discard;
   vec3 base = vTone < 0.5 ? mix(uInk, uSlate, vTone * 2.0) : mix(uSlate, uClay, (vTone - 0.5) * 2.0);
   frag = vec4(mix(base, uHot, min(uPkt * q, 1.0)), min(al, 1.0));
@@ -5302,9 +5347,9 @@ void main() {
     var pB = program(VS_B, FS_B), pM = program(VS_B, FS_M), pP = program(VS_P, FS_P), pL = program(VS_L, FS_L);
     if (!pB || !pM || !pP || !pL) { off(); return; }
     var uB = uni(pB, ['uRes', 'uTime', 'uCam', 'uRoll', 'uVel', 'uDens', 'uDark', 'uInk', 'uSlate', 'uClay', 'uHot', 'uHoleN', 'uHole[0]']);
-    var uM = uni(pM, ['uRes', 'uEye', 'uR', 'uU', 'uF', 'uTanX', 'uTanY', 'uBallN', 'uBall[0]', 'uOrg[0]', 'uOrgN', 'uOrgF[0]', 'uBound', 'uAlpha', 'uDark', 'uPaper', 'uInk', 'uSlate', 'uClay', 'uHot', 'uHoleN', 'uHole[0]']);
-    var uP = uni(pP, ['uView', 'uProj', 'uReveal', 'uTime', 'uFocal', 'uFogK', 'uDrift', 'uInk', 'uSlate', 'uClay', 'uDark', 'uRes', 'uHoleN', 'uHole[0]']);
-    var uL = uni(pL, ['uView', 'uProj', 'uReveal', 'uFogK', 'uDrift', 'uInk', 'uSlate', 'uClay', 'uHot', 'uPkt', 'uTime', 'uDark', 'uRes', 'uHoleN', 'uHole[0]']);
+    var uM = uni(pM, ['uRes', 'uEye', 'uR', 'uU', 'uF', 'uTanX', 'uTanY', 'uBallN', 'uBall[0]', 'uOrg[0]', 'uOrgN', 'uOrgF[0]', 'uBound', 'uAlpha', 'uDark', 'uPaper', 'uInk', 'uSlate', 'uClay', 'uHot', 'uFlat', 'uDamp', 'uDissolve', 'uWire', 'uHoleN', 'uHole[0]']);
+    var uP = uni(pP, ['uView', 'uProj', 'uReveal', 'uTime', 'uFocal', 'uFogK', 'uDrift', 'uInk', 'uSlate', 'uClay', 'uDark', 'uGlowK', 'uRes', 'uHoleN', 'uHole[0]']);
+    var uL = uni(pL, ['uView', 'uProj', 'uReveal', 'uRevealK', 'uFogK', 'uDrift', 'uInk', 'uSlate', 'uClay', 'uHot', 'uPkt', 'uTime', 'uDark', 'uWire', 'uRes', 'uHoleN', 'uHole[0]']);
     var hP = uP['uHole[0]'], hL = uL['uHole[0]'], hB = uB['uHole[0]'], hM = uM['uBall[0]'], hMh = uM['uHole[0]'];
     if (!hP || !hL || !hB || !hM || !hMh) { off(); return; }
     scenePass.init({ gl: gl, canvas: cv, reduced: reduce });
@@ -6231,6 +6276,8 @@ window.addEventListener('scroll', function () {
 
 
 
+
+
     /* ---- die Regie am Steuer ----
        REG ist der Datenblock oben im Skript (web-qa/build/scenes.js). Ist er
        nicht da — noscript, kein WebGL2, ein kaputtes Skript — bleibt null
@@ -6251,6 +6298,7 @@ window.addEventListener('scroll', function () {
       uTar = progress();
       var asp = W / Math.max(H, 1);
       var key = null, hero = null, gain = 1, uni = null;
+      var stoffFlat = 0, stoffDamp = 0, stoffAuf = 0, stoffDraht = 0, stoffRk = 1;
       if (REG) {
         /* rate() is damp() with a speed limit. The limit is the point: a swipe
            of 1800 px/s is 0.122 u/s, six times reading tempo, and unbounded the
@@ -6272,6 +6320,13 @@ window.addEventListener('scroll', function () {
         FOV = key.fov;
         hero = REG.heroAt(uCur);
         gain = hero.gain;
+        if (uni) {
+          stoffFlat = uni.uFlat || 0;
+          stoffDamp = uni.uDamp || 0;
+          stoffAuf = uni.uDissolve || 0;
+          stoffDraht = uni.uWire || 0;
+          stoffRk = uni.uRevealK == null ? 1 : uni.uRevealK;
+        }
       } else {
         uCur = damp(uCur, uTar, 2.6, dt);
         pathAt(uCur, eye);
@@ -6530,6 +6585,10 @@ window.addEventListener('scroll', function () {
         gl.uniform3fv(uM.uSlate, C.slate);
         gl.uniform3fv(uM.uClay, C.clay);
         gl.uniform3fv(uM.uHot, C.hot);
+        gl.uniform1f(uM.uFlat, stoffFlat);
+        gl.uniform1f(uM.uDamp, stoffDamp);
+        gl.uniform1f(uM.uDissolve, stoffAuf);
+        gl.uniform1f(uM.uWire, stoffDraht);
         gl.uniform1f(uM.uHoleN, holeN);
         gl.uniform4fv(hMh, HOLES);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -6547,6 +6606,10 @@ window.addEventListener('scroll', function () {
       gl.uniform3fv(uP.uSlate, C.slate);
       gl.uniform3fv(uP.uClay, C.clay);
       gl.uniform1f(uP.uDark, C.dark);
+      /* was der Körper an Fläche verliert, gewinnt der Staub an Glanz: derselbe
+         Wert, zwei Seiten, damit die Szene beim Auflösen nicht einfach dunkler
+         wird, sondern das Medium wechselt */
+      gl.uniform1f(uP.uGlowK, 1 + 1.1 * stoffAuf);
       gl.uniform2f(uP.uRes, PW, PH);
       gl.uniform1f(uP.uHoleN, holeN);
       gl.uniform4fv(hP, HOLES);
@@ -6557,6 +6620,7 @@ window.addEventListener('scroll', function () {
       gl.uniformMatrix4fv(uL.uView, false, mView);
       gl.uniformMatrix4fv(uL.uProj, false, mProj);
       gl.uniform1f(uL.uReveal, reveal);
+      gl.uniform1f(uL.uRevealK, stoffRk);
       gl.uniform1f(uL.uFogK, FOGK);
       gl.uniform1f(uL.uDrift, drift);
       gl.uniform1f(uL.uTime, live ? time : 0);
@@ -6565,6 +6629,7 @@ window.addEventListener('scroll', function () {
       gl.uniform3fv(uL.uClay, C.clay);
       gl.uniform1f(uL.uDark, C.dark);
       gl.uniform3fv(uL.uHot, C.hot);
+      gl.uniform1f(uL.uWire, stoffDraht);
       gl.uniform2f(uL.uRes, PW, PH);
       gl.uniform1f(uL.uHoleN, holeN);
       gl.uniform4fv(hL, HOLES);
