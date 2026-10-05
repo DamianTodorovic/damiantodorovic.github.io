@@ -356,10 +356,22 @@
   /* ---------- section furniture ---------- */
   section{position:relative; padding:96px 0}
   .lead{font-size:clamp(18px,1.9vw,23px); line-height:1.5; color:var(--text-2); max-width:46ch}
-  .fine{font-size:14px; color:var(--text-3); max-width:80ch}
+  .fine{font-size:14px; color:var(--text-3); max-width:36em}
   .twocol{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:80px; align-items:center}
   .twocol.tight{gap:58px}
-  .prose{max-width:74ch}
+  .prose{max-width:34em}
+  /* Die Lesemaße der Seite standen in ch — und ch ist die Breite der Ziffer Null,
+     bei dieser Serif auf dieser Stufe rund 1,4-mal so breit wie eine durchschnittliche
+     Minuskel. Ein Budget von 74 ch setzte deshalb nicht 74 Zeichen, sondern etwa 100,
+     und 104 ch etwa 94. Gemessen über das ganze Dokument: die Körperzeilen von Akt 2
+     liefen 82 bis 137 Zeichen, wo lesen bei 60 bis 75 aufhört noch gut. Darum jetzt
+     em statt ch: schriftgradbezogen, und die Null hört auf, die Zeilenlänge zu
+     bestimmen. Die sechs breitesten Absätze trugen keine Klasse und lagen über
+     fünf verschiedene Sektionen verstreut — eine Einzelfallregel hätte sechs
+     Regeln gebraucht und die siebte beim nächsten Absatz. Also die Decke für
+     Lesetext im Dokument: max-width verengt nur, wo etwas weiter lief, und macht
+     nichts breiter, was schon eng steht. */
+  main p{max-width:34em}
   .center{text-align:center}
   .center .lead{margin-left:auto; margin-right:auto}
   .sect-head{display:flex; align-items:flex-end; justify-content:space-between; gap:40px; flex-wrap:wrap; margin-bottom:52px}
@@ -1244,7 +1256,7 @@
      register of a printed footnote — present, not hidden, and not apologised for
      either. A buyer who has to go looking for the caveats reads the omission as
      concealment. */
-  .statband .fine{margin:0; padding:18px 26px 22px; font-size:13px; line-height:1.62; color:var(--text-3); max-width:104ch; text-wrap:pretty}
+  .statband .fine{margin:0; padding:18px 26px 22px; font-size:13px; line-height:1.62; color:var(--text-3); max-width:38em; text-wrap:pretty}
   .fine code{font-family:var(--mono); font-size:.92em; color:var(--wax-2)}
   @media (max-width:620px){ .statband .fine{padding:16px 20px 20px} }
 
@@ -1317,7 +1329,7 @@
   /* The caption sits above the scroll frame, not inside the table: a caption that
      scrolls with its table gets cut mid-word on a phone, and its whole job is to
      say what the numbers are before anyone reads them. */
-  .proof .tcap{margin:0 0 14px; font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3); text-wrap:pretty}
+  .proof .tcap{margin:0 0 14px; font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3); text-wrap:pretty; max-width:60em}
   .proof .tcap code{font-size:11px; letter-spacing:.04em; text-transform:none; color:var(--wax-2)}
   .proof th,.proof td{padding:11px 14px; text-align:right; font-size:14.5px; color:var(--text-2); border-bottom:1px solid var(--line)}
   .proof thead th{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-3); font-weight:400; border-bottom-color:var(--line-3); padding-top:0}
@@ -1326,7 +1338,7 @@
   .proof tr.ship td,.proof tr.ship th[scope="row"]{color:var(--text)}
   .proof tr.ship th[scope="row"]::after{content:"\00a0\2190"; color:var(--wax-2); font-family:var(--mono)}
   .proof .weak{color:var(--wax-2)}
-  .note{margin-top:20px; font-size:15px; color:var(--text-2); max-width:74ch; text-wrap:pretty}
+  .note{margin-top:20px; font-size:15px; color:var(--text-2); max-width:34em; text-wrap:pretty}
   .note code{font-family:var(--mono); font-size:13.5px; color:var(--wax-2)}
   @media (max-width:620px){ .proof th,.proof td{padding:9px 8px; font-size:13.5px} }
 
