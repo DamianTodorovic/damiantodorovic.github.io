@@ -1749,7 +1749,7 @@
     <div><dt>time</dt><dd>A superseded memory keeps <b>0.4</b> of its weight, never the whole of it</dd></div>
     <div><dt>outbound</dt><dd><b>Zero.</b> No account, no upload, no server-side copy of a memory</dd></div>
     <div><dt>tests</dt><dd><b>474</b> in 36 files, run by CI on every push to main and every pull request</dd></div>
-    <div><dt>interface</dt><dd><b>8</b> MCP tools over stdio and HTTP, protocol 2026-07-28</dd></div>
+    <div><dt>interface</dt><dd><b>8</b> MCP tools over stdio, HTTP <code>POST /mcp</code> from source, protocol 2026-07-28</dd></div>
   </dl>
   <!-- Every number in the rows above is reproduced by a command in the public
        repository, so the conditions belong in the same card as the claim. A buyer
@@ -1797,7 +1797,7 @@
 
             <rect x="418" y="66" width="248" height="122" rx="14" style="fill:var(--node); stroke:var(--line-2)"/>
             <text x="542" y="112" text-anchor="middle" style="fill:var(--node-tx)">kepta-mcp</text>
-            <text x="542" y="136" text-anchor="middle" font-size="10.5" style="fill:var(--node-tx); fill-opacity:.72">MCP stdio + HTTP POST /mcp</text>
+            <text x="542" y="136" text-anchor="middle" font-size="10.5" style="fill:var(--node-tx); fill-opacity:.72">MCP stdio · HTTP POST /mcp (source)</text>
             <text x="542" y="158" text-anchor="middle" font-size="10.5" style="fill:var(--node-tx); fill-opacity:.72">one code path</text>
 
             <rect x="790" y="66" width="289" height="122" rx="14" style="fill:var(--glass-a); stroke:var(--glass-brd)"/>
@@ -1821,7 +1821,7 @@
           </li>
           <li class="hub">
             <h3 class="cap">kepta-mcp</h3>
-            <p>MCP over stdio and HTTP <code>POST /mcp</code> — one code path, so every client gets the same answers.</p>
+            <p>MCP over stdio from npm; <code>POST /mcp</code> when you run it from source — one code path, so every client gets the same answers.</p>
           </li>
           <li>
             <h3 class="cap">One encrypted file</h3>
@@ -2076,7 +2076,7 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
         <p class="who">One person &#183; every assistant on the machine</p>
         <ul role="list">
           <li>The full engine: hybrid search (BM25 + vectors + graph), bi-temporal validity, supersede chains</li>
-          <li>8 MCP tools, protocol 2026-07-28 — stdio and stateless HTTP (<code>POST /mcp</code>)</li>
+          <li>8 MCP tools, protocol 2026-07-28 — stdio from the npm binary, stateless HTTP (<code>POST /mcp</code>) when run from source</li>
           <li>One SQLCipher-encrypted file on your machine — no account to create, nothing that calls home. The first day is uncapped; after that some of the app's conveniences (chat, clips, scans) carry daily limits, never a lock. Saving and searching a note never does.</li>
           <li>Every number in the two tables above comes from <code>npm run eval</code> and <code>npx tsx scripts/ablation.ts</code> — rerun them</li>
         </ul>
@@ -2497,6 +2497,20 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
     'n11@Guanc':  [-271.0,   12.6, -2669.3, 11.5]
   };
 
+  /* Die Kürzel der NODE-Tabelle im Klartext. Sie sind keine Bequemlichkeit,
+     sondern der Schlüssel, über den die Engine auflöst: eine Szene nennt einen
+     Knoten beim Namen ('n08@MCP'), die Welt sagt, wo er liegt. Würde die Regie
+     Koordinaten schicken, stünde in ihr eine zweite Kopie des Feldes — und die
+     erste Zeile, die sich ändert (eine Notiz, ein Entity, die Saat des
+     Zufalls), wäre ein Licht, das auf einen leeren Fleck fällt.
+     Geprüft vom Gate: jedes Ziel muss in HUB[3] vorkommen, und jedes Knoten-
+     tag muss ein Schlüssel hier sein. */
+  var TAG = {
+    Lumen: 'Lumen & Co', Hamb: 'Hamburg office', MCP: 'MCP', Duck: 'DuckDB',
+    Post: 'Postgres', Spei: 'Speicherinweg', Keyc: 'macOS keychain',
+    Guanc: 'Guanciale'
+  };
+
   /* Fäden, die es in der Welt wirklich gibt (hubLinks()):
        Lumen & Co <-> Hamburg office   (2)
        Lumen & Co <-> Speicherinweg    (1)   <- der Adress-Faden, 1689 Einheiten
@@ -2569,7 +2583,7 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
       'Der Kern leuchtet, bevor er Masse hat: uAlphaGain 0 -> 0.35.',
     uni: { uRevealK: 0.45, uDissolve: 0, uFocus: 0.55, uPlane: 1252, uMotion: 0.35,
            uBloom: 0.55, uFlat: 0, uWire: 0, uAlphaGain: 0.35, uDensK: 1.15,
-           uHitN: 0, uSeed: 'n01@Lumen' },
+           uSeed: 'n01@Lumen' },
     labels: { hubs: 0, max: 0 },              /* in Szene 1 steht kein Name */
     hud: { step: '[ RETAINER ] 1/7', number: '1 note', ref: 'fakten.md#sz-1' },
     sentence: { slot: 's1', section: 'hero', at: [0.30, 0.94] }
@@ -2594,7 +2608,7 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
       '(Hamburg office, Speicherinweg) — das ist die ganze Behauptung.',
     uni: { uRevealK: 1, uDissolve: 0, uFocus: 0.18, uPlane: 1085, uMotion: 0.18,
            uBloom: 0.30, uFlat: 0, uWire: 0, uAlphaGain: 0.85, uDensK: 1.0,
-           uHitN: 0, uSeed: 'n01@Lumen' },
+           uSeed: 'n01@Lumen' },
     labels: { hubs: [0, 1], max: 2 },         /* Ortsnamen, nicht Legende */
     hud: { step: '[ RETAINER ] 2/7', number: '6 notes · 8 entities', ref: 'fakten.md#sz-2' },
     sentence: { slot: 's2', section: 'how', at: [0.02, 0.94] }
@@ -2607,23 +2621,56 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
       to:   { pos: [-60, -180, 258], look: HUB[2], fov: 0.50, roll: 0.020 }
     },
     /* Suchlicht über dem MCP-Hub. Der Query, den die Seite selbst als
-       Chip anbietet und der HIER im Bild liegt, ist "mcp transport":
-       verschmolzene Rangfolge n08 #1, n06 #2, n07 #3 — alle drei Knoten
-       sitzen 2.7° bis 4.0° von der Blickachse, also mitten im Bild.
+       Chip anbietet und der HIER im Bild liegt, ist "mcp transport".
+       Nachgemessen am Playground desselben Blatts (CDP, 5.10.2026): die
+       verschmolzene Rangfolge gibt n08 #1 (Rerank 100 %), n06 #2 (30 %),
+       n07 #3 (0 %) — alle drei Knoten sitzen 2.7° bis 4.0° von der
+       Blickachse, also mitten im Bild. n07 antwortet kein Wort des Queries;
+       es kommt über die Entity-Leg hinein. Darum steigt es und glüht nicht.
        ("billing address" trifft n02/n01/n03/n05 — die liegen an Hub 0/1/3/4/5
        und damit hinter oder seitwärts dieser Kamera. Wer Szene 3 mit
        "billing address" beleuchten will, muss die Kamera zu Hub 0 zurück
        holen; das ist hier bewusst nicht geschehen.) */
     state: 'gefunden werden',
-    stateHow: 'uSearch = vec4(Lichtpunkt xyz, Radius) wandert mit s über den ' +
-      'Cluster; uHit[6] = vec4(Knoten xyz, Rang-Lift) hebt die getroffenen ' +
-      'Punkte im Vertex-Shader an. Lift aus der echten Rangfolge: ' +
-      'n08 1.00, n06 0.70, n07 0.45. Die Rangfolge ist das Ergebnis von ' +
-      'searchEngine(), nicht eine Dekoration.',
+    stateHow: 'Die Laterne scanzt den Hub, den die Szene behauptet: uSearch = ' +
+      'vec4(Lichtpunkt xyz, Radius) geht von ihm zu den Funden, in der ' +
+      'Reihenfolge ihrer Rangfolge, und was sie erreicht, steigt — Höhe = ' +
+      'verschmolzener Score durch den des Siegers, Glut = die Lesart des ' +
+      'Rerankers allein. Beides holt sich die Engine von searchEngine(uQuery), ' +
+      'nicht aus dieser Datei: stünde die Rangfolge hier, wäre sie eine ' +
+      'Abschrift des Ergebnisses und nicht das Ergebnis. Die Bahn folgt ihr ' +
+      'dennoch, und zwar als Erste: die Szene heisst „Rangfolge statt ' +
+      'Volltext-Treffer", also muss der Sieger der erste sein, der sich hebt, ' +
+      'und nicht der letzte. Der Shader hebt punktnah (aMeta trägt keine ' +
+      'Kennung), also heben die Wort-Satelliten einer Notiz mit ihr und der ' +
+      'Staub im Tunnel bleibt liegen.',
     uni: { uRevealK: 1, uDissolve: 0, uFocus: 0.12, uPlane: 1259, uMotion: 0.15,
            uBloom: 0.40, uFlat: 0, uWire: 0, uAlphaGain: 1.0, uDensK: 0.9,
-           uHit: ['n08@MCP:1.00', 'n06@MCP:0.70', 'n07@MCP:0.45'], uHitN: 3,
-           uSearch: 'sweep', uQuery: 'mcp transport' },
+           uSearchK: 1, uQuery: 'mcp transport',
+           /* Choreografie der Laterne in Welt-Einheiten und in Pfadzeit. Der
+              Pfad ist nicht die Szenenzeit: er läuft über die SPAN-Breite der
+              Szene von 0 bis 1, die Station bei u = 0.31 liegt damit bei
+              T = 0.50. Bei den drei Funden, die dieser Query auf diesem Blatt
+              hat (nachgemessen 5.10.2026), erreicht das Licht sie bei
+              T = 0.22 / 0.38 / 0.54 und voll stehen sie ankunft später, bei
+              0.37 / 0.53 / 0.69: der Sieger steht an der Station, die zwei
+              unter ihm kommen in der zweiten Hälfte nach. Wäre ende über 0.54
+              geschoben, stünde an der Station niemand.
+
+              radius und heben sind an demselben Nachmittag gemessen, nicht
+              geschätzt. Das Doppel schaltet die Blende (__dbg.blende) und
+              zeichnet denselben Stand der Welt zweimal, einmal mit Licht und
+              einmal ohne — der Abzug ist dann die Laterne allein, gegen „ohne"
+              gemessen an „ohne" gibt er exakt 0 Pixel. Bei 112/262 betrug das
+              Signal 0,5 % des Bildes und der Siegerhub war 17,4 px gross; bei
+              150/400 sind es 0,6 % und 26,4 px, und der Hub ist damit im
+              Standbild als Scheibe zu erkennen statt als Fleck. Grösser ist
+              nicht gefahren: bei 150 stehen die zwei Fäden zu den Nachbarn
+              noch lesbar unter der Scheibe, und die Fäden sind der Grund, die
+              Laterne überhaupt zu bauen. Der Abzug ist nachzustellen mit
+              `node web-qa/latab.js` — dasselbe Bild dreimal, mit, ohne, mit. */
+           uSearch: { radius: 150, heben: 400, eintritt: 0.06, ende: 0.54,
+                      ankunft: 0.15 } },
     labels: { hubs: [2], max: 3 },
     hud: { step: '[ RETAINER ] 3/7', number: 'ms auf diesem Rechner', ref: 'fakten.md#sz-3' },
     sentence: { slot: 's3', section: 'retrieval', at: [0.02, 0.94] }
@@ -2650,7 +2697,7 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
       'Nacht und Verfall.',
     uni: { uRevealK: 1, uDissolve: 0, uFocus: 0.10, uPlane: 1255, uMotion: 0.12,
            uBloom: 0.22, uFlat: 0.15, uWire: 0, uAlphaGain: 1.0, uDensK: 0.95,
-           uHitN: 0, uAge: [90, 184], uRing: 0.489, uDamp: 0.35, uSeed: 'n04@Duck' },
+           uAge: [90, 184], uRing: 0.489, uDamp: 0.35, uSeed: 'n04@Duck' },
     labels: { hubs: [3, 4], max: 2 },
     hud: { step: '[ RETAINER ] 4/7', number: '90 / 184 Tage', ref: 'fakten.md#sz-4' },
     sentence: { slot: 's4', section: 'time', at: [0.02, 0.94] }
@@ -2685,7 +2732,7 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
       'uAlphaGain alt 1 -> 0.25, neu 0.6 -> 1.0.',
     uni: { uRevealK: 1, uDissolve: 0.15, uFocus: 0.14, uPlane: 1307, uMotion: 0.20,
            uBloom: 0.30, uFlat: 0, uWire: 1, uAlphaGain: 1.0, uDensK: 1.0,
-           uHitN: 0, uOld: 'n03@Lumen', uNew: 'n02@Lumen', uThreadT: 0.25 },
+           uOld: 'n03@Lumen', uNew: 'n02@Lumen', uThreadT: 0.25 },
     labels: { hubs: [0, 1], max: 2 },
     hud: { step: '[ RETAINER ] 5/7', number: '1 von 12 ersetzt · 148 Tage', ref: 'fakten.md#sz-5' },
     sentence: { slot: 's5', section: 'time', at: [0.02, 0.94] }
@@ -2713,13 +2760,13 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
       'sonst läuft der Faden weiter, wenn der Leser stillsteht.',
     uni: { uRevealK: 1, uDissolve: 0, uFocus: 0.22, uPlane: 2317, uMotion: 0.30,
            uBloom: 0.45, uFlat: 0, uWire: 0.25, uAlphaGain: 0.18, uDensK: 1.1,
-           uHitN: 0, uThread: [HUB[0], HUB[5]], uThreadT: 1, uSince: 112 },
+           uThread: [HUB[0], HUB[5]], uThreadT: 1, uSince: 112 },
     labels: { hubs: 'all', max: 8 },
     hud: { step: '[ RETAINER ] 6/7', number: '112 Tage · 1689 Einheiten', ref: 'fakten.md#sz-6' },
     sentence: { slot: 's6', section: 'playground', at: [0.02, 0.94] },
     /* Der Playground ist die Laterne: die Eingabe schreibt uSearch, die
      * Antwort ist Bewegung in der Welt. Daten dazu aus Abschnitt 3, Szene 3. */
-    interactive: { input: '#memsearch', drives: ['uSearch', 'uHit', 'uHitN'] }
+    interactive: { input: '#memsearch', drives: ['uSearch', 'uHit'] }
   },
   {
     id: 7, name: 'Proof', claim: 'Zahlen, Belege, Preis',
@@ -2746,7 +2793,7 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
       'das stehende Wasserzeichen für Akt 2.',
     uni: { uRevealK: 1, uDissolve: 0.55, uFocus: 0.04, uPlane: 1906, uMotion: 0.10,
            uBloom: 0.10, uFlat: 1, uWire: 0.6, uAlphaGain: 0.30, uDensK: 0.7,
-           uHitN: 0, uPaperAt: 0.92 },
+           uPaperAt: 0.92 },
     labels: { hubs: 'off', max: 0 },
     hud: { step: '[ RETAINER ] 7/7', number: 'Belege stehen im Papier', ref: 'fakten.md#sz-7' },
     sentence: { slot: 's7', section: 'core', at: [0.02, 0.86] }
@@ -2800,10 +2847,19 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
                              stillsteht" -> uThreadT = s.
        uSX      float 0..1   Überlappungsgewicht an der Grenze (x aus
                              sceneAt), damit die Schrift die Blende mitmacht.
-       uHit[6]  vec4         xyz eines getroffenen Knotens + Rang-Lift.
-       uHitN    float       Anzahl davon (0..6) — Szene 3: 3.
-       uSearch  vec4        Lichtpunkt einer Suche xyz + Radius; schreibt der
-                             Playground (S6, interactive).
+       uHit[6]  vec4         xyz eines getroffenen Knotens + Hub, wie hoch er
+                             steigt, und Glut. Setzt die Engine aus
+                             searchEngine(uQuery) — die Regie kennt keine Zahl
+                             davon. uHitN (float) = wie viele gefüllt sind.
+       uSearchK float 0..1   Blende der Laterne: 1 in Szene 3, sonst 0, über
+                             das Fenster geblendet.
+       uSearchT float 0..1   Pfadparameter der Laterne. Aus u über die SPAN-
+                             Breite der suchenden Szene, NIE aus s: zwei
+                             Szenenzeiten laufen an einer Grenze von 1 auf 0
+                             zurück, und ein Licht, das auf dem Rückweg den
+                             Sieger wieder hinlegt, ist ein Schnitt.
+       uSearch  vec4         Lichtpunkt einer Suche xyz + Radius; schreibt die
+                             Laterne (S3) und später der Playground (S6).
        uAge     vec2        Tage alt / Gültigkeitstage (S4: 90/184).
        uRing    vec4        Hub xyz + Radius + Fortschritt 0..1 (S4: 0.489).
        uDamp    float 0..1   Sättigungssenke uHot -> uSlate, Verfall statt
@@ -3035,6 +3091,16 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
      und points wären nie gesetzt gewesen. Eine Fassung, alle drei Kanäle. */
   function gainAt(u) { var g = heroAt(u).gain; return { mass: g, lines: g, points: g }; }
 
+  /* Die Szene, die eine Laterne hat — zur Zeit eine (S3), und wenn der
+     Playground in S6 dazukommt, ist hier der eine Ort, der das kennt. */
+  var SUCH = -1;
+  SCENES.forEach(function (s, i) { if (SUCH < 0 && s.uni.uSearch) SUCH = i; });
+  function suchPfad(u) {
+    if (SUCH < 0) return 0;
+    var s = SPAN[SUCH];
+    return clamp01((u - s[0]) / Math.max(1e-6, s[1] - s[0]));
+  }
+
   /* Uniform-Bündel für einen Frame. Alles, was die Engine neu bauen muss,
      kommt hier raus und nirgends sonst her. */
   function uniAt(u, aspect) {
@@ -3042,7 +3108,7 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
     var d = dist(k.pos, k.look);
     var base = {
       uSIdx: sc.id, uSTime: q.s, uSX: q.x, uSEdge: q.edge,
-      uPlane: d, uAlphaGain: sc.uni.uAlphaGain, uHitN: sc.uni.uHitN || 0,
+      uPlane: d, uAlphaGain: sc.uni.uAlphaGain,
       uPaper: q.paper ? 1 : 0
     };
     /* Pässe über dem Fenster: jedes Gewicht ist 0..1 aus q.x. */
@@ -3081,9 +3147,15 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
     var A = eIdx >= 0 ? SCENES[eIdx] : sc, B = eIdx >= 0 ? SCENES[eIdx + 1] : sc;
     var w = q.edge > 0 ? q.x : 0;
     ['uFocus', 'uMotion', 'uDissolve', 'uBloom', 'uFlat', 'uWire', 'uDensK',
-     'uRevealK', 'uDamp', 'uAlphaGain', 'uHitN'].forEach(function (n) {
+     'uRevealK', 'uDamp', 'uAlphaGain', 'uSearchK'].forEach(function (n) {
       base[n] = lerp(A.uni[n] || 0, B.uni[n] || 0, w);
     });
+    /* Der Pfad der Laterne kommt NIE aus s. Zwei Szenenzeiten laufen an einer
+       Grenze von 1 auf 0 zurück, und das Licht würde auf dem Rückweg den
+       Sieger wieder hinlegen — ein Schnitt, den der Vertrag verbietet. Über
+       die SPAN-Breite der suchenden Szene mit u gezählt ist dieselbe Fahrt
+       von selbst stetig: vor ihr 0, in ihr 0..1, nach ihr 1. */
+    base.uSearchT = suchPfad(u);
     /* EIN Wert für die Schrift, kein Rätsel für die Engine. Die Einhüllende
        hängt an der Szenenzeit (textFade), und in der zweiten Hälfte des
        Fensters darf die kommende Szene ihren Text erst mit dem Aufleuchten
@@ -3181,6 +3253,12 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
              uAlphaGain: sc.uni.uAlphaGain,
              uRevealK: sc.uni.uRevealK == null ? 1 : sc.uni.uRevealK,
              uDensK: sc.uni.uDensK || 1,
+             /* Die Laterne ist im Stand kein Vortrag, sondern ein Bild: stehen
+                bleiben heisst hier, dass der Scan durch ist und die Rangfolge
+                steht. Ein Ausweg, der die Höhe jeder Notiz tilgt, erzählt die
+                Szene mit Verfallsdatum ohne ihr einziges Argument. */
+             uSearchK: sc.uni.uSearchK || 0,
+             uSearchT: sc.uni.uSearch ? 1 : 0,
              uSX: 0, uSTime: 0.5, uSIdx: sc.id, uPlane: dist(k.pos, k.look),
              uSentence: 1 },
       hero: sc.hero, second: sc.second,
@@ -3276,7 +3354,7 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
     /* Auswege */
     still: still, chapters: chapters,
     /* Welt, damit die QA mit echten Koordinaten messen kann */
-    HUB: HUB, NODE: NODE, CENTROID: CENTROID, SHELL: SHELL, PEAK_DZ: PEAK_DZ,
+    HUB: HUB, NODE: NODE, TAG: TAG, CENTROID: CENTROID, SHELL: SHELL, PEAK_DZ: PEAK_DZ,
     THREAD: THREAD
   };
 
@@ -5205,34 +5283,71 @@ uniform float uTime;
 uniform float uFocal;
 uniform float uFogK;
 uniform float uDrift;
+/* uHit = die Notizen, die der eigene Retriever gefunden hat. Weltfest, also
+   in Weltkoordinaten: ein Fund, der beim Zug der Kamera über das Bild
+   wandert, ist eine Schablone und kein Befund. */
+uniform vec4 uHit[6];
+uniform float uHitGlut[6];
+uniform float uHitN;
+uniform float uHitLift;
+uniform vec4 uSearch;
+uniform float uSuchK;
 out float vTone;
 out float vGlow;
 out float vFog;
+out float vLift;
+out float vGlut;
+out float vLit;
 void main() {
   float t = clamp((uReveal - aAnim.x) / 0.34, 0.0, 1.0);
   float e = t * t * (3.0 - 2.0 * t);
   vec3 p = mix(aScatter, aPos, e);
   float ph = aAnim.y * 6.2831853;
   p += uDrift * 2.4 * vec3(sin(uTime * 0.31 + ph), sin(uTime * 0.22 + ph * 1.7), cos(uTime * 0.17 + ph));
+  /* Genommen wird aPos und nicht das driftende p: ein Muster, das mit dem
+     Wackeln des Staubes an und ausgeht, ist kein Befund, sondern Rauschen. */
+  float lift = 0.0, glut = 0.0;
+  for (int i = 0; i < 6; i++) {
+    if (float(i) >= uHitN) break;
+    float nah = 1.0 - smoothstep(0.0, max(uSearch.w, 0.001),
+      distance(aPos, uHit[i].xyz));
+    lift += uHit[i].w * nah;
+    glut += uHitGlut[i] * nah;
+  }
+  lift = min(lift, 1.0) * uSuchK;
+  glut = min(glut, 1.0) * uSuchK;
+  float lit = (1.0 - smoothstep(0.0, max(uSearch.w, 0.001),
+    distance(aPos, uSearch.xyz))) * uSuchK;
   vec4 v = uView * vec4(p, 1.0);
+  /* Wer gefunden wird, kommt vor: die Hebung setzt in Blickrichtung an, weil
+     das der Weg zum Leser ist, und aMeta.x * uFocal / d macht den Knoten dabei
+     größer — beides an einem Wert, damit Höhe und Größe nie auseinanderlaufen. */
+  v.z += lift * uHitLift;
   float d = -v.z;
-  if (d < 2.0) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); gl_PointSize = 0.0; vTone = 0.0; vGlow = 0.0; vFog = 0.0; return; }
+  if (d < 2.0) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); gl_PointSize = 0.0; vTone = 0.0; vGlow = 0.0; vFog = 0.0; vLift = 0.0; vGlut = 0.0; vLit = 0.0; return; }
   gl_Position = uProj * v;
   gl_PointSize = clamp(aMeta.x * uFocal / d, 1.0, 64.0);
   vFog = exp(-pow(d * uFogK, 2.0)) * smoothstep(20.0, 86.0, d);
   vTone = aMeta.y;
   vGlow = aMeta.z * e;
+  vLift = lift;
+  vGlut = glut;
+  vLit = lit;
 }`;
     var FS_P = `#version 300 es
 precision highp float;
 in float vTone;
 in float vGlow;
 in float vFog;
+in float vLift;
+in float vGlut;
+in float vLit;
 uniform vec3 uInk;
 uniform vec3 uSlate;
 uniform vec3 uClay;
 uniform float uDark;
 uniform float uGlowK;
+uniform vec3 uHot;
 ` + CLEAR_GLSL + `
 out vec4 frag;
 void main() {
@@ -5241,7 +5356,11 @@ void main() {
   if (r2 > 1.0) discard;
   float r = sqrt(r2);
   float a = (1.0 - smoothstep(0.30, 0.64, r)) * 0.78 + pow(1.0 - r, 3.0) * 0.62;
-  float al = a * vFog * vGlow * mix(0.34, 1.0, clearMask(gl_FragCoord.xy / uRes * 2.0 - 1.0));
+  /* Die Maske gilt auch für die Hebung. Ein Knoten hinter dem Satz ist Welt
+     und keine Ebene über ihr: die Leserebene räumt, auch vor einem Fund. */
+  float cm = mix(0.34, 1.0, clearMask(gl_FragCoord.xy / uRes * 2.0 - 1.0));
+  float heben = clamp(vLift + vGlut * 0.7 + vLit * 0.45, 0.0, 1.0) * cm;
+  float al = a * vFog * (vGlow + heben * 0.55) * cm;
   /* A one-pixel mark at five hundredths is a glimmer against ink and nothing at all
      against ivory: on paper the same alpha is a dozen luma points, which the eye
      does not collect as a dot. The dust is the depth cue of the whole flight, so on
@@ -5249,6 +5368,10 @@ void main() {
   al *= mix(2.1, 1.0, uDark) * uGlowK;
   if (al < 0.004) discard;
   vec3 col = vTone < 0.5 ? mix(uInk, uSlate, vTone * 2.0) : mix(uSlate, uClay, (vTone - 0.5) * 2.0);
+  /* Auf dem Papier ist ein Fund eine dunklere Setzung, auf der Tinte ein
+     Aufleuchten: dasselbe Gemisch, nach uDark verkehrt herum gegriffen, weil
+     auf der hellen Seite das Papier selbst das Licht ist. */
+  col = mix(col, mix(uInk, uHot, uDark), heben * 0.8);
   frag = vec4(col, min(al, 1.0));
 }`;
     var VS_L = `#version 300 es
@@ -5261,6 +5384,12 @@ uniform mat4 uView;
 uniform mat4 uProj;
 uniform float uReveal;
 uniform float uRevealK;
+uniform vec4 uHit[6];
+uniform float uHitGlut[6];
+uniform float uHitN;
+uniform float uHitLift;
+uniform vec4 uSearch;
+uniform float uSuchK;
 uniform float uFogK;
 uniform float uDrift;
 out float vTone;
@@ -5268,6 +5397,8 @@ out float vGlow;
 out float vFog;
 out float vS;
 out vec3 vP;
+out float vLift;
+out float vGlut;
 void main() {
   /* uReveal ist der Atem der ganzen Seite, uRevealK sagt, wie viel davon
      die Szene schon zeigen darf: in der Zuendung steht der Knoten, die
@@ -5276,13 +5407,28 @@ void main() {
   float e = t * t * (3.0 - 2.0 * t);
   vec3 p = mix(aScatter, aPos, e);
   vP = p;
+  float lift = 0.0, glut = 0.0;
+  for (int i = 0; i < 6; i++) {
+    if (float(i) >= uHitN) break;
+    float nah = 1.0 - smoothstep(0.0, max(uSearch.w, 0.001),
+      distance(aPos, uHit[i].xyz));
+    lift += uHit[i].w * nah;
+    glut += uHitGlut[i] * nah;
+  }
+  lift = min(lift, 1.0) * uSuchK;
+  glut = min(glut, 1.0) * uSuchK;
   vec4 v = uView * vec4(p, 1.0);
+  /* vP bleibt die ungeliftete Welt: der Packet-Ticker zählt auf der Bahn des
+     Fadens, und ein Faden, der mit dem Hub atmet, würde sein Packet stauchen. */
+  v.z += lift * uHitLift;
   float d = -v.z;
   gl_Position = uProj * v;
   vFog = exp(-pow(max(d, 0.0) * uFogK, 2.0)) * smoothstep(18.0, 96.0, d);
   vTone = aMeta.y;
   vGlow = aMeta.z * e;
   vS = aAnim.y;
+  vLift = lift;
+  vGlut = glut;
 }`;
     var FS_L = `#version 300 es
 precision highp float;
@@ -5291,6 +5437,8 @@ in float vGlow;
 in float vFog;
 in float vS;
 in vec3 vP;
+in float vLift;
+in float vGlut;
 uniform vec3 uInk;
 uniform vec3 uSlate;
 uniform vec3 uClay;
@@ -5307,13 +5455,15 @@ void main() {
   float dv = vS - s;
   dv -= floor(dv + 0.5);
   float q = exp(-dv * dv * 260.0);
-  float al = vGlow * vFog * (0.62 + uPkt * q * 1.45);
-  al *= mix(0.42, 1.0, clearMask(gl_FragCoord.xy / uRes * 2.0 - 1.0));
+  float cm = mix(0.42, 1.0, clearMask(gl_FragCoord.xy / uRes * 2.0 - 1.0));
+  float heben = clamp(vLift + vGlut * 0.7, 0.0, 1.0) * cm;
+  float al = vGlow * vFog * (0.62 + heben * 0.5 + uPkt * q * 1.45) * cm;
   /* the same arithmetic as the dust: a hairline is one pixel wide, and on ivory a
      hairline has to be dark enough to see, not merely present */
   al *= mix(1.9, 1.0, uDark) * (1.0 + 1.15 * clamp(uWire, 0.0, 1.0));
   if (al < 0.004) discard;
   vec3 base = vTone < 0.5 ? mix(uInk, uSlate, vTone * 2.0) : mix(uSlate, uClay, (vTone - 0.5) * 2.0);
+  base = mix(base, mix(uInk, uHot, uDark), heben * 0.8);
   frag = vec4(mix(base, uHot, min(uPkt * q, 1.0)), min(al, 1.0));
 }`;
 
@@ -5348,8 +5498,8 @@ void main() {
     if (!pB || !pM || !pP || !pL) { off(); return; }
     var uB = uni(pB, ['uRes', 'uTime', 'uCam', 'uRoll', 'uVel', 'uDens', 'uDark', 'uInk', 'uSlate', 'uClay', 'uHot', 'uHoleN', 'uHole[0]']);
     var uM = uni(pM, ['uRes', 'uEye', 'uR', 'uU', 'uF', 'uTanX', 'uTanY', 'uBallN', 'uBall[0]', 'uOrg[0]', 'uOrgN', 'uOrgF[0]', 'uBound', 'uAlpha', 'uDark', 'uPaper', 'uInk', 'uSlate', 'uClay', 'uHot', 'uFlat', 'uDamp', 'uDissolve', 'uWire', 'uHoleN', 'uHole[0]']);
-    var uP = uni(pP, ['uView', 'uProj', 'uReveal', 'uTime', 'uFocal', 'uFogK', 'uDrift', 'uInk', 'uSlate', 'uClay', 'uDark', 'uGlowK', 'uRes', 'uHoleN', 'uHole[0]']);
-    var uL = uni(pL, ['uView', 'uProj', 'uReveal', 'uRevealK', 'uFogK', 'uDrift', 'uInk', 'uSlate', 'uClay', 'uHot', 'uPkt', 'uTime', 'uDark', 'uWire', 'uRes', 'uHoleN', 'uHole[0]']);
+    var uP = uni(pP, ['uView', 'uProj', 'uReveal', 'uTime', 'uFocal', 'uFogK', 'uDrift', 'uInk', 'uSlate', 'uClay', 'uDark', 'uGlowK', 'uHit[0]', 'uHitGlut[0]', 'uHitN', 'uHitLift', 'uSearch', 'uSuchK', 'uHot', 'uRes', 'uHoleN', 'uHole[0]']);
+    var uL = uni(pL, ['uView', 'uProj', 'uReveal', 'uRevealK', 'uFogK', 'uDrift', 'uInk', 'uSlate', 'uClay', 'uHot', 'uPkt', 'uTime', 'uDark', 'uWire', 'uHit[0]', 'uHitGlut[0]', 'uHitN', 'uHitLift', 'uSearch', 'uSuchK', 'uRes', 'uHoleN', 'uHole[0]']);
     var hP = uP['uHole[0]'], hL = uL['uHole[0]'], hB = uB['uHole[0]'], hM = uM['uBall[0]'], hMh = uM['uHole[0]'];
     if (!hP || !hL || !hB || !hM || !hMh) { off(); return; }
     scenePass.init({ gl: gl, canvas: cv, reduced: reduce });
@@ -5378,7 +5528,7 @@ void main() {
       return {
         name: name, ang: ang, rad: rad,
         x: Math.cos(ang) * rad, y: Math.sin(ang) * rad * 0.6,
-        z: -(k * STEP) - 320, hub: null
+        z: -(k * STEP) - 320, hub: null, nodes: []
       };
     });
     CL.forEach(function (c) {
@@ -5392,6 +5542,11 @@ void main() {
         var nz = c.z + (rnd() - 0.5) * 210;
         var w = m.sup ? 0.4 : 1;
         var np = pt(nx, ny, nz, 11.5 * w, 0.62, 0.95 * w, 0.46 + rnd() * 0.07);
+        /* Der Hub kennt seine Knoten bei Namen. Die Laterne braucht keine neue
+           Geometrie, sie braucht denselben Punkt, den der Staub schon
+           zeichnet — ein zweiter Satz Koordinaten wäre eine Welt, die dem
+           Bilde nicht gehört. */
+        c.nodes.push({ id: m.id, p: np });
         ln(np, c.hub, 0.58, m.sup ? 0.24 : 0.52, 0);
         /* the words of a note as its own satellites: the mass of the field is
            language, not decoration */
@@ -6088,6 +6243,7 @@ void main() {
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(function () {
         buildWords(); railBuild(); holesDirty = true;
+        WPS.forEach(function (q) { q.breite = undefined; });
       }, function () {});
     }
 
@@ -6117,12 +6273,18 @@ void main() {
         if (nx < -1.3 || nx > 1.3 || ny < -1.35 || ny > 1.35) { if (w.on) { el.style.opacity = '0'; w.on = false; } continue; }
         var o = Math.exp(-Math.pow(d * FOGK, 2)) * Math.min(1, (d - 90) / 320) * rv;
         var s = Math.max(0.52, Math.min(1.45, 640 / d));
-        /* a name is a box, not a point: it runs to the right of its anchor and
-           down from it, and the whole of that box has to miss the prose. Overlap
-           hides the name outright — a faded name is the worst of both, too quiet
-           to read and still in the way. */
-        var lw = (300 * s) / Math.max(cw, 1) * 2, lh = (36 * s) / Math.max(ch, 1) * 2;
-        var x0 = nx - 0.012, x1 = nx + lw, y0 = ny - lh * 0.62, y1 = ny + lh * 0.4;
+        /* a name is a box, not a point, and the whole of that box has to miss the
+           prose. Overlap hides the name outright — a faded name is the worst of
+           both, too quiet to read and still in the way. The box is measured now,
+           not assumed: transform-origin 0 50 % puts the anchor at its left edge,
+           middle height, and offsetWidth/Height report the layout box without the
+           scale — so a name that wraps at a narrow window carries its second line.
+           One layout read per name per width, not per frame. */
+        if (w.breite === undefined || w.bcw !== cw) {
+          w.breite = el.offsetWidth || 240; w.hoehe = el.offsetHeight || 36; w.bcw = cw;
+        }
+        var x0 = nx - 0.012, x1 = nx + (s * w.breite) / Math.max(cw, 1) * 2;
+        var y0 = ny - (s * w.hoehe) / Math.max(ch, 1), y1 = ny + (s * w.hoehe) / Math.max(ch, 1);
         /* half a name off the edge of the frame is worse than no name: it reads as
            a layout that broke rather than a world that continues past it */
         if (x1 > 0.985 || x0 < -0.985 || y1 > 0.985 || y0 < -0.985) { o = 0; hart = true; }
@@ -6287,6 +6449,92 @@ window.addEventListener('scroll', function () {
        hero  die zwei Korper, die marchiert werden sollen, und wie schwer
        gain  derselbe Wert als Deckkraft-Multiplikator auf uAlpha */
     var REG = window.KEPTA_SCENES || null;
+    /* ---- die Laterne ----
+       Die Regie nennt den Query, diese Zeilen lösen ihn auf — mit dem einen
+       Kern, der auf dieser Seite auch das Suchfeld und den Playground bedient
+       (searchEngine). Ein hier abgeschriebener Rang wäre eine Behauptung über
+       die Suche; diese Seite tut die Suche. Aufgelöst wird einmal pro Szene,
+       die eine Laterne behauptet, und die Bahn geht vom Hub zu den Funden in
+       ihrer Rangfolge: das Licht hebt, wen es trifft, und den Sieger zuerst. */
+    var LAT = {
+      key: -1, n: 0, radius: 150, heben: 400, ankunft: 0.15, ein: 0.06, end: 0.54,
+      hit: new Float32Array(24), gbuf: new Float32Array(6), licht: new Float32Array(4),
+      hoehe: [0, 0, 0, 0, 0, 0], glut: [0, 0, 0, 0, 0, 0], ank: [0, 0, 0, 0, 0, 0],
+      pfad: null
+    };
+    /* Die Bühne kennt clamp01 nicht — der Klemmer lebt in der Klammer der
+       Regie, und zwei Module, die sich einen Helfer aus einem dritten leihen,
+       sind ein Aufriss, wenn das dritte umzieht. */
+    function klemm(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+    function notiz(hub, id) {
+      for (var c = 0; c < CL.length; c++) {
+        if (CL[c].name !== hub) continue;
+        for (var j = 0; j < CL[c].nodes.length; j++) {
+          if (CL[c].nodes[j].id === id) return CL[c].nodes[j].p;
+        }
+      }
+      return null;
+    }
+    function laterne(sc) {
+      var s = sc.uni.uSearch || {};
+      LAT.radius = s.radius || 150; LAT.heben = s.heben || 400;
+      LAT.ankunft = s.ankunft == null ? 0.15 : s.ankunft;
+      LAT.ein = s.eintritt == null ? 0.06 : s.eintritt;
+      LAT.end = s.ende == null ? 0.54 : s.ende;
+      var rows = [];
+      try { rows = searchEngine(String(sc.uni.uQuery || "")).rows.slice(0, 6); }
+      catch (e) { rows = []; }
+      LAT.n = 0; LAT.pfad = null;
+      for (var i = 0; i < 6; i++) {
+        LAT.hoehe[i] = 0; LAT.glut[i] = 0; LAT.ank[i] = LAT.end;
+        LAT.hit[i * 4 + 3] = 0; LAT.gbuf[i] = 0;
+      }
+      if (!rows.length) return;
+      var prima = rows[0].m.l[0], ci = -1;
+      CL.forEach(function (c, k) { if (c.name === prima) ci = k; });
+      var pfad = [];
+      /* Die Bahn beginnt am Hub, den die Szene behauptet, und geht von ihm
+         zu den Funden — in der Reihenfolge ihrer Rangfolge. Der Feldordnung
+         zu folgen wäre billiger, aber die Szene heisst „Rangfolge statt
+         Volltext-Treffer": das Bild muss den Sieger zuerst zeigen, nicht
+         zuletzt. */
+      if (ci >= 0) pfad.push([CL[ci].hub.x, CL[ci].hub.y, CL[ci].hub.z]);
+      var sieg = rows[0].score || 1;
+      for (var r = 0; r < rows.length && LAT.n < 6; r++) {
+        var m = rows[r].m, p = notiz(m.l[0], m.id);
+        /* Ein Fund ohne Ort im Felde hebt nichts: die Welt kennt nur, was sie
+           selbst gezeichnet hat. */
+        if (!p) continue;
+        var i2 = LAT.n;
+        LAT.hit[i2 * 4] = p.x; LAT.hit[i2 * 4 + 1] = p.y; LAT.hit[i2 * 4 + 2] = p.z;
+        LAT.hoehe[i2] = Math.min(1, rows[r].score / sieg);
+        LAT.glut[i2] = rows[r].rr || 0;
+        pfad.push([p.x, p.y, p.z]);
+        LAT.n = i2 + 1;
+      }
+      LAT.pfad = pfad.length > 1 ? pfad : null;
+      var seg = Math.max(1, LAT.n);
+      for (var i3 = 0; i3 < LAT.n; i3++) {
+        LAT.ank[i3] = LAT.ein + (i3 + 1) / seg * (LAT.end - LAT.ein);
+      }
+    }
+    function latBild(t) {
+      for (var i = 0; i < 6; i++) {
+        var f = LAT.ankunft > 0 ? klemm((t - LAT.ank[i]) / LAT.ankunft) : 1;
+        LAT.hit[i * 4 + 3] = LAT.hoehe[i] * f;
+        LAT.gbuf[i] = LAT.glut[i] * f;
+      }
+      LAT.licht[3] = LAT.radius;
+      var pf = LAT.pfad;
+      if (!pf) { LAT.licht[0] = 0; LAT.licht[1] = 0; LAT.licht[2] = -320; return; }
+      var n = pf.length - 1;
+      var g = LAT.end > LAT.ein ? klemm((t - LAT.ein) / (LAT.end - LAT.ein)) : 1;
+      var x = g * n, i0 = Math.min(n - 1, Math.floor(x)), fr = x - i0;
+      var A = pf[i0], B = pf[i0 + 1];
+      LAT.licht[0] = A[0] + (B[0] - A[0]) * fr;
+      LAT.licht[1] = A[1] + (B[1] - A[1]) * fr;
+      LAT.licht[2] = A[2] + (B[2] - A[2]) * fr;
+    }
     var stillScene = -2;
     var regKey = { pos: [0, 0, 0], look: [0, 0, 0], fov: 0.9, roll: 0, upAxis: 'y' };
     var SCR = [0.5, 0.5];
@@ -6299,6 +6547,7 @@ window.addEventListener('scroll', function () {
       var asp = W / Math.max(H, 1);
       var key = null, hero = null, gain = 1, uni = null;
       var stoffFlat = 0, stoffDamp = 0, stoffAuf = 0, stoffDraht = 0, stoffRk = 1;
+      var latK = 0, latT = 0;
       if (REG) {
         /* rate() is damp() with a speed limit. The limit is the point: a swipe
            of 1800 px/s is 0.122 u/s, six times reading tempo, and unbounded the
@@ -6326,6 +6575,20 @@ window.addEventListener('scroll', function () {
           stoffAuf = uni.uDissolve || 0;
           stoffDraht = uni.uWire || 0;
           stoffRk = uni.uRevealK == null ? 1 : uni.uRevealK;
+          latK = uni.uSearchK || 0;
+          latT = uni.uSearchT || 0;
+          /* Aufgelöst wird nur, wo die Szene, die gerade gilt, eine Laterne
+             behauptet. Bei jeder Grenze neu aufgelöst fiele uHitN auf 0, während
+             die Blende noch auf halbem Licht stünde — ein Schnitt. So erbt die
+             kommende Szene die gemachte Bahn, und auslöschen tut sie allein
+             uSuchK, das über das Fenster geblendet ist. */
+          var sIdx = (uni.uSIdx || 1) - 1;
+          var szene = REG.SCENES[sIdx];
+          if (szene && szene.uni.uSearch && sIdx !== LAT.key) {
+            LAT.key = sIdx;
+            laterne(szene);
+          }
+          latBild(latT);
         }
       } else {
         uCur = damp(uCur, uTar, 2.6, dt);
@@ -6610,6 +6873,13 @@ window.addEventListener('scroll', function () {
          Wert, zwei Seiten, damit die Szene beim Auflösen nicht einfach dunkler
          wird, sondern das Medium wechselt */
       gl.uniform1f(uP.uGlowK, 1 + 1.1 * stoffAuf);
+      gl.uniform3fv(uP.uHot, C.hot);
+      gl.uniform1f(uP.uSuchK, latK);
+      gl.uniform1f(uP.uHitLift, LAT.heben);
+      gl.uniform1f(uP.uHitN, LAT.n);
+      gl.uniform4fv(uP["uHit[0]"], LAT.hit);
+      gl.uniform1fv(uP["uHitGlut[0]"], LAT.gbuf);
+      gl.uniform4fv(uP.uSearch, LAT.licht);
       gl.uniform2f(uP.uRes, PW, PH);
       gl.uniform1f(uP.uHoleN, holeN);
       gl.uniform4fv(hP, HOLES);
@@ -6630,6 +6900,12 @@ window.addEventListener('scroll', function () {
       gl.uniform1f(uL.uDark, C.dark);
       gl.uniform3fv(uL.uHot, C.hot);
       gl.uniform1f(uL.uWire, stoffDraht);
+      gl.uniform1f(uL.uSuchK, latK);
+      gl.uniform1f(uL.uHitLift, LAT.heben);
+      gl.uniform1f(uL.uHitN, LAT.n);
+      gl.uniform4fv(uL["uHit[0]"], LAT.hit);
+      gl.uniform1fv(uL["uHitGlut[0]"], LAT.gbuf);
+      gl.uniform4fv(uL.uSearch, LAT.licht);
       gl.uniform2f(uL.uRes, PW, PH);
       gl.uniform1f(uL.uHoleN, holeN);
       gl.uniform4fv(hL, HOLES);
