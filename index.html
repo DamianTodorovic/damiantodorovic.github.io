@@ -2439,7 +2439,18 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
   var TAU = 1 / 2.6;
   var LENS = 0.024;          /* Breite eines Übergangs in u, zentriert auf die Grenze */
   var TRAVEL = 0.30;         /* Anfahrt = Abfahrt, als Anteil der Szenenbreite */
-  var MAXRATE = 0.055;       /* harte Geschwindigkeitsgrenze der Kamerazeit, u/s */
+  /* Geschwindigkeitsgrenze der Kamerazeit, u/s. Die Grenze ist richtig — ohne
+     sie fliegt ein Wisch in einer Sekunde durch zwei Szenen. Ihr Wert war es
+     nicht: 0,055 u/s sind auf einem Flug von 14076 px für 0,92 u genau
+     842 px/s, die die Kamera mithält, und ein normaler Zwei-Finger-Scroll ist
+     1000–3000 px/s. Bei jedem gewöhnlichen Scrollen lief die Welt also einem
+     Rückstand hinterher, den sie erst nach dem Loslassen in derselben
+     Geschwindigkeit wieder einsammeln konnte — das ist kein Ruckeln, das ist
+     Gummi, und es liest sich als Fehler. 0,22 u/s = 3370 px/s: oberhalb dessen,
+     was jemand absichtlich liest, unterhalb eines Fling, der ohnehin über JUMP
+     in einen Schnitt geht. Der ganze Akt braucht damit weiterhin mindestens
+     4,2 s. */
+  var MAXRATE = 0.22;
   var JUMP = 0.10;           /* Sprung über diese Menge u ist kein Scrollen mehr -> Schnitt */
   var PAPER = 0.92;          /* ab hier Akt 2 */
   var LOOKAHEAD = 0.075;     /* bleibt der Wert aus index.html ~3637 */
