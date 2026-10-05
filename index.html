@@ -2513,13 +2513,15 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
 
   /* Fäden, die es in der Welt wirklich gibt (hubLinks()):
        Lumen & Co <-> Hamburg office   (2)
-       Lumen & Co <-> Speicherinweg    (1)   <- der Adress-Faden, 1689 Einheiten
+       Lumen & Co <-> Speicherinweg    (1)   <- der Adress-Faden, 1687 Einheiten
        DuckDB     <-> Postgres         (2)
        MCP        <-> macOS keychain   (1)
      Szene 5 pflanzt den Adress-Faden, Szene 6 leuchtet ihn an. Dasselbe
-     Objekt, zwei Szenen — das ist der eine Gegenstand, den die Seite trägt. */
+     Objekt, zwei Szenen — das ist der eine Gegenstand, den die Seite trägt.
+     Die Länge ist nicht abgeschrieben, sondern aus den zwei Hub-Orten der
+     Zeichnung gemessen (1686,9; Sonde __dbg.faden()). */
   var THREAD = {
-    a: HUB[0], b: HUB[5], len: 1689, note: 'n02', label: 'Lumen & Co <-> Speicherinweg'
+    a: HUB[0], b: HUB[5], len: 1687, note: 'n02', label: 'Lumen & Co <-> Speicherinweg'
   };
 
   /* =====================================================================
@@ -2742,14 +2744,21 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
        zurück. Das ist der Preis dafür, dass der Satz wahr ist.
        Gültigkeit der alten: 2026-01-15 bis 2026-06-12 = 148 Tage. */
     state: 'ersetzt werden',
-    stateHow: 'uWire = 1 am alten Ende: die Drahtkontur trifft n03, und ' +
-      'n03 hat in der Welt schon 4.6 von 11.5 Punkten — der Faktor 0.4 ist ' +
-      'SUPERSEDED aus dem Ranking (~1866). Der Draht ist also keine neue ' +
-      'Idee, sondern dasselbe 0.4, das die Engine rechnet, endlich als Bild. ' +
-      'uAlphaGain alt 1 -> 0.25, neu 0.6 -> 1.0.',
+    stateHow: 'Der Adress-Faden wird gelegt: uThreadT läuft von 0,575 bis 0,71 ' +
+      'über die u-Achse und steht an dieser Station bei einem Drittel — die neue ' +
+      'Notiz schiebt sich sichtbar vor die alte, und der Weg zwischen den zwei ' +
+      'Orten derselben Adresse wird zum Gegenstand, nicht zur Dekoration. ' +
+      'uWire = 1 legt über BEIDE Körper die Drahtkontur; dass sie genau n03 ' +
+      'trifft, behauptet das Bild nicht, die Kontur ist eine Stoffeigenschaft ' +
+      'der Masse. Dass n03 in der Welt schon 4,6 von 11,5 Punkten hat, ist ' +
+      'dagegen gemessen: der Faktor 0,4 ist SUPERSEDED aus dem Ranking (~1866), ' +
+      'und der Draht ist dasselbe 0,4, das die Engine rechnet, endlich als Bild.',
     uni: { uRevealK: 1, uDissolve: 0.15, uFocus: 0.14, uPlane: 1307, uMotion: 0.20,
            uBloom: 0.30, uFlat: 0, uWire: 1, uAlphaGain: 1.0, uDensK: 1.0,
-           uOld: 'n03@Lumen', uNew: 'n02@Lumen', uThreadT: 0.25 },
+           uThreadK: 1,
+           /* von/ende sind u, nicht Szenenzeit: der Faden gehört zwei Szenen,
+              und eine Szenenzeit liefe an der Grenze von 1 auf 0 zurück. */
+           uThread: { von: 0.575, ende: 0.71 } },
     labels: { hubs: [0, 1], max: 2 },
     hud: { step: '[ RETAINER ] 5/7', number: '1 von 12 ersetzt · 148 Tage', ref: 'fakten.md#sz-5' },
     sentence: { slot: 's5', section: 'time', at: [0.02, 0.94] }
@@ -2769,17 +2778,18 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
        außerhalb des Fensters [-2450,-420]. Die Gestalt wird von den Fäden
        und dem Staub getragen, nicht von den Körpern; uAlphaGain 0.18. */
     state: 'als Faden wiederleuchten',
-    stateHow: 'uThread = vec4(HUB[0].xyz, 1689) und uThreadT = s: der eine ' +
-      'echte Faden Lumen & Co <-> Speicherinweg läuft ab, angetrieben von ' +
-      'Szenenzeit statt von uTime. Der LINIEN-Pass hat dafür schon uPkt ' +
-      '(~2819/3849) — aber sein Packet-Ticker ist fract(uTime*0.055+ph), also ' +
-      'Zeit. Für Szene 6 muss uPkt auf uThreadT umgestellt werden dürfen, ' +
-      'sonst läuft der Faden weiter, wenn der Leser stillsteht.',
+    stateHow: 'Derselbe Faden, jetzt ganz: uThreadT ist bei dieser Station ' +
+      'durchgezählt (ende 0,71 liegt vor der Mitte der Spanne), und die große ' +
+      'Rückzugskamera zeigt ihn zum ersten Mal zwischen zwei Körpern statt in ' +
+      'einem. Getrieben ist er von u, nicht von uTime — der Packet-Ticker des ' +
+      'LINIEN-Passes läuft über fract(uTime*0.055+ph) und räumt auf diesem ' +
+      'einen Faden, solange uThreadK > 0: ein Packet, das weiterläuft, wenn der ' +
+      'Leser stillsteht, ist ein Ornament und kein Vorgang.',
     uni: { uRevealK: 1, uDissolve: 0, uFocus: 0.22, uPlane: 2317, uMotion: 0.30,
            uBloom: 0.45, uFlat: 0, uWire: 0.25, uAlphaGain: 0.18, uDensK: 1.1,
-           uThread: [HUB[0], HUB[5]], uThreadT: 1, uSince: 112 },
+           uThreadK: 1 },
     labels: { hubs: 'all', max: 8 },
-    hud: { step: '[ RETAINER ] 6/7', number: '112 Tage · 1689 Einheiten', ref: 'fakten.md#sz-6' },
+    hud: { step: '[ RETAINER ] 6/7', number: '112 Tage · 1687 Einheiten', ref: 'fakten.md#sz-6' },
     sentence: { slot: 's6', section: 'playground', at: [0.02, 0.94] },
     /* Der Playground ist die Laterne: die Eingabe schreibt uSearch, die
      * Antwort ist Bewegung in der Welt. Daten dazu aus Abschnitt 3, Szene 3. */
@@ -2849,7 +2859,8 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
        uBloom   float 0..1   Vorblütung der hellen Kanten im Offscreen-Puffer.
        uFlat    float 0..1   Mischung dif -> pow(dif,2.2) im Massen-Shader
                              (~2677) — Licht wird flach, der Bauplan S7.
-       uWire    float 0..1   Drahtkontur statt Volumen am alten Knoten (S5).
+       uWire    float 0..1   Drahtkontur statt Volumen an den Körpern der
+                             Szene (S5); ein Stoff, kein Ortszeiger.
        uAlphaGain float      Multiplikator auf uAlpha (~3803) je Szene; ohne
                              ihn ist S6/S7 so hell wie S3.
        uDensK   float        Dichte-Skalierung im Raymarcher, damit 2 Organe
@@ -2858,10 +2869,12 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
                              Zünden (S1) und Wachsen (S2).
        uSIdx    float        Szenenindex 1..7 — für alles, was pro Szene eine
                              andere Farbe/Richtung hat.
-       uSTime   float 0..1   Szenenzeit s. Unerlässlich: der Packet-Ticker in
-                             pL ist fract(uTime*0.055+ph) (Zeit), Szene 6 aber
-                             verlangt "der Faden läuft ab, wenn der Leser
-                             stillsteht" -> uThreadT = s.
+       uSTime   float 0..1   Szenenzeit s. Kein Shader liest sie — und das ist
+                             die Regel, nicht ein Vergessen: alles, was in einer
+                             Szene fortschreitet, läuft über u (uSearchT,
+                             uRingT, uThreadT), weil zwei Szenenzeiten an einer
+                             Grenze von 1 auf 0 zurücklaufen. Behalten für die
+                             Standbilder (still), die keine u-Achse haben.
        uSX      float 0..1   Überlappungsgewicht an der Grenze (x aus
                              sceneAt), damit die Schrift die Blende mitmacht.
        uHit[6]  vec4         xyz eines getroffenen Knotens + Hub, wie hoch er
@@ -2890,10 +2903,20 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
                              dem längsten Fenster, das TT führt (90 / 184).
        uDamp    float 0..1   Sättigungssenke uHot -> uSlate, Verfall statt
                              Nacht (S4: 0.35).
-       uOld/uNew vec4        altes und neues Ende derselben Notiz, Welt-xyz +
-                             Radius (S5: n03@Lumen, n02@Lumen, 143.7 apart).
-       uThread  vec4        ein echter Faden: a.xyz + Länge (S6: 1689).
-       uThreadT float 0..1   Fadenfortschritt aus Szenenzeit, nicht uTime.
+       uOld/uNew —           gestrichen: kein Shader liest sie, und die zwei
+                             Enden derselben Adresse sind in der Welt schon
+                             zwei Knoten (n03, n02 am Lumen-Hub, 143.7 apart).
+                             Was das Bild davon zeigt, ist der Faden unten.
+       uThread  {von,ende}   die Bahn des Adressfadens in u, nicht als Uniform:
+                             er gehört zwei Szenen, also zählt er über die
+                             u-Achse und nicht über eine Spannenbreite.
+       uThreadK float 0..1   Blende des Fadens: 1 in Szene 5 und 6, sonst 0,
+                             über das Fenster geblendet.
+       uThreadT float 0..1   Wie weit der Faden gelegt ist. Aus u über
+                             [von, ende], NIE aus s und NIE aus uTime: aus s
+                             gezogen würde er an der Grenze 5->6 noch einmal
+                             bei null anfangen, aus uTime gezogen liefe er
+                             weiter, wenn der Leser stillsteht.
        uSeed    —           Referenz auf einen NODE-Namen; die Engine setzt
                              daraus die Position. Kein Uniform im Shader.
        uPaper   float 0..1   Akt-2-Schalter ab u = 0.92 (SPANN: PAPER).
@@ -3141,6 +3164,19 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
     return clamp01((u - s[0]) / Math.max(1e-6, s[1] - s[0]));
   }
 
+  /* Der dritte Taktgeber, und der einzige, der über ZWEI Spannen zählt. Der
+     Adress-Faden gehört Szene 5 und Szene 6 — dieselbe Notiz, zwei Orte, ein
+     Gegenstand — also darf seine Bahn nicht an der Grenze zwischen ihnen
+     zurücklaufen. Er läuft darum über u selbst, von von bis ende, und die
+     Blende uThreadK entscheidet, wann er im Bild ist. */
+  var FADENSZ = -1;
+  SCENES.forEach(function (s, i) { if (FADENSZ < 0 && s.uni.uThread) FADENSZ = i; });
+  function fadenPfad(u) {
+    if (FADENSZ < 0) return 0;
+    var c = SCENES[FADENSZ].uni.uThread;
+    return c.ende > c.von ? clamp01((u - c.von) / (c.ende - c.von)) : 1;
+  }
+
   /* Uniform-Bündel für einen Frame. Alles, was die Engine neu bauen muss,
      kommt hier raus und nirgends sonst her. */
   function uniAt(u, aspect) {
@@ -3187,7 +3223,7 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
     var A = eIdx >= 0 ? SCENES[eIdx] : sc, B = eIdx >= 0 ? SCENES[eIdx + 1] : sc;
     var w = q.edge > 0 ? q.x : 0;
     ['uFocus', 'uMotion', 'uDissolve', 'uBloom', 'uFlat', 'uWire', 'uDensK',
-     'uRevealK', 'uDamp', 'uAlphaGain', 'uSearchK', 'uRingK'].forEach(function (n) {
+     'uRevealK', 'uDamp', 'uAlphaGain', 'uSearchK', 'uRingK', 'uThreadK'].forEach(function (n) {
       base[n] = lerp(A.uni[n] || 0, B.uni[n] || 0, w);
     });
     /* Der Pfad der Laterne kommt NIE aus s. Zwei Szenenzeiten laufen an einer
@@ -3199,6 +3235,11 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
     /* Dieselbe Regel für die Skala, und derselbe Grund: ein Ring, der sich an
        der Grenze noch einmal leert, erzählt den Verfall zweimal. */
     base.uRingT = ringPfad(u);
+    /* Und derselbe Grund zum dritten Mal, in der größten Probe des Satzes: ein
+       Faden, der sich an der Szene-5/6-Grenze noch einmal zurückzieht, legt die
+       Adresse zweimal. Über u gezählt ist er vor 0,575 null, zwischen 0,575 und
+       0,71 0..1, und danach eins. */
+    base.uThreadT = fadenPfad(u);
     /* EIN Wert für die Schrift, kein Rätsel für die Engine. Die Einhüllende
        hängt an der Szenenzeit (textFade), und in der zweiten Hälfte des
        Fensters darf die kommende Szene ihren Text erst mit dem Aufleuchten
@@ -5426,7 +5467,7 @@ precision highp float;
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aScatter;
 layout(location = 2) in vec3 aMeta;
-layout(location = 3) in vec2 aAnim;
+layout(location = 3) in vec3 aAnim;
 uniform mat4 uView;
 uniform mat4 uProj;
 uniform float uReveal;
@@ -5446,6 +5487,7 @@ out float vS;
 out vec3 vP;
 out float vLift;
 out float vGlut;
+out float vFaden;
 void main() {
   /* uReveal ist der Atem der ganzen Seite, uRevealK sagt, wie viel davon
      die Szene schon zeigen darf: in der Zuendung steht der Knoten, die
@@ -5474,6 +5516,7 @@ void main() {
   vTone = aMeta.y;
   vGlow = aMeta.z * e;
   vS = aAnim.y;
+  vFaden = aAnim.z;
   vLift = lift;
   vGlut = glut;
 }`;
@@ -5486,11 +5529,14 @@ in float vS;
 in vec3 vP;
 in float vLift;
 in float vGlut;
+in float vFaden;
 uniform vec3 uInk;
 uniform vec3 uSlate;
 uniform vec3 uClay;
 uniform vec3 uHot;
 uniform float uPkt;
+uniform float uThreadT;
+uniform float uThreadK;
 uniform float uTime;
 uniform float uDark;
 uniform float uWire;
@@ -5498,20 +5544,34 @@ uniform float uWire;
 out vec4 frag;
 void main() {
   float ph = fract(dot(vP, vec3(0.0091, 0.0173, 0.0043)));
+  /* Zwei Taktgeber, eine Blende. f ist eins nur auf dem Adressfaden und nur,
+     solange die Szene ihm gehört; auf diesem einen Zug räumt die Uhr, denn ein
+     Packet, das weiterläuft, wenn der Leser stillsteht, ist ein Ornament und
+     kein Vorgang. Die vier anderen Fäden behalten ihren. */
+  float f = clamp(uThreadK, 0.0, 1.0) * vFaden;
   float s = fract(uTime * 0.055 + ph);
   float dv = vS - s;
   dv -= floor(dv + 0.5);
-  float q = exp(-dv * dv * 260.0);
+  float q = exp(-dv * dv * 260.0) * (1.0 - f);
+  /* vS ist auf einer Linie schon die Bogenlänge 0..1, die Bahn braucht keine
+     zweite Geometrie: hinter dem Kopf bleibt der gelegte Faden stehen, und der
+     Kopf selbst ist das jetzt. */
+  float tt = clamp(uThreadT, 0.0, 1.0);
+  float spur = (1.0 - smoothstep(tt, tt + 0.05, vS)) * f;
+  float kopf = exp(-pow((vS - tt) * 11.0, 2.0)) * f;
   float cm = mix(0.42, 1.0, clearMask(gl_FragCoord.xy / uRes * 2.0 - 1.0));
   float heben = clamp(vLift + vGlut * 0.7, 0.0, 1.0) * cm;
-  float al = vGlow * vFog * (0.62 + heben * 0.5 + uPkt * q * 1.45) * cm;
+  /* spur und kopf gehen NICHT durch uPkt: der gelegte Faden ist ein Zustand,
+     keine Animation, und ein Standbild ohne ihn wäre ein anderes Bild. */
+  float al = vGlow * vFog * (0.62 + heben * 0.5 + uPkt * q * 1.45 +
+    spur * 1.15 + kopf * 2.2) * cm;
   /* the same arithmetic as the dust: a hairline is one pixel wide, and on ivory a
      hairline has to be dark enough to see, not merely present */
   al *= mix(1.9, 1.0, uDark) * (1.0 + 1.15 * clamp(uWire, 0.0, 1.0));
   if (al < 0.004) discard;
   vec3 base = vTone < 0.5 ? mix(uInk, uSlate, vTone * 2.0) : mix(uSlate, uClay, (vTone - 0.5) * 2.0);
   base = mix(base, mix(uInk, uHot, uDark), heben * 0.8);
-  frag = vec4(mix(base, uHot, min(uPkt * q, 1.0)), min(al, 1.0));
+  frag = vec4(mix(base, uHot, min(max(uPkt * q, kopf), 1.0)), min(al, 1.0));
 }`;
 
     /* Die Skala: ein Quadrat, das im Fragment zum Kreis gezählt wird. */
@@ -5640,7 +5700,7 @@ void main() {
     var uB = uni(pB, ['uRes', 'uTime', 'uCam', 'uRoll', 'uVel', 'uDens', 'uDark', 'uInk', 'uSlate', 'uClay', 'uHot', 'uHoleN', 'uHole[0]']);
     var uM = uni(pM, ['uRes', 'uEye', 'uR', 'uU', 'uF', 'uTanX', 'uTanY', 'uBallN', 'uBall[0]', 'uOrg[0]', 'uOrgN', 'uOrgF[0]', 'uBound', 'uAlpha', 'uDark', 'uPaper', 'uInk', 'uSlate', 'uClay', 'uHot', 'uFlat', 'uDamp', 'uDissolve', 'uWire', 'uHoleN', 'uHole[0]']);
     var uP = uni(pP, ['uView', 'uProj', 'uReveal', 'uTime', 'uFocal', 'uFogK', 'uDrift', 'uInk', 'uSlate', 'uClay', 'uDark', 'uGlowK', 'uHit[0]', 'uHitGlut[0]', 'uHitN', 'uHitLift', 'uSearch', 'uSuchK', 'uHot', 'uRes', 'uHoleN', 'uHole[0]']);
-    var uL = uni(pL, ['uView', 'uProj', 'uReveal', 'uRevealK', 'uFogK', 'uDrift', 'uInk', 'uSlate', 'uClay', 'uHot', 'uPkt', 'uTime', 'uDark', 'uWire', 'uHit[0]', 'uHitGlut[0]', 'uHitN', 'uHitLift', 'uSearch', 'uSuchK', 'uRes', 'uHoleN', 'uHole[0]']);
+    var uL = uni(pL, ['uView', 'uProj', 'uReveal', 'uRevealK', 'uFogK', 'uDrift', 'uInk', 'uSlate', 'uClay', 'uHot', 'uPkt', 'uTime', 'uDark', 'uWire', 'uThreadT', 'uThreadK', 'uHit[0]', 'uHitGlut[0]', 'uHitN', 'uHitLift', 'uSearch', 'uSuchK', 'uRes', 'uHoleN', 'uHole[0]']);
     var uR = uni(pR, ['uView', 'uProj', 'uFogK', 'uRing', 'uRechts', 'uHoch', 'uVor',
       'uRingT', 'uRingK', 'uDicke', 'uInk', 'uSlate', 'uClay', 'uHot', 'uDark',
       'uRes', 'uHoleN', 'uHole[0]']);
@@ -5664,7 +5724,17 @@ void main() {
       PTS.push(o);
       return o;
     }
-    function ln(a, b, tone, glow, pkt) { LNS.push({ a: a, b: b, tone: tone, glow: glow, pkt: pkt ? 1 : 0 }); }
+    function ln(a, b, tone, glow, pkt, faden) {
+      LNS.push({ a: a, b: b, tone: tone, glow: glow, pkt: pkt ? 1 : 0,
+        faden: faden ? 1 : 0 });
+    }
+    /* Der eine Faden, den die Seite trägt, mit dem Maß, das er in der
+       Zeichnung wirklich hat — nicht dem, das in einer Tabelle steht. */
+    function laenge(p, q) {
+      return Math.sqrt(Math.pow(q.x - p.x, 2) + Math.pow(q.y - p.y, 2) +
+        Math.pow(q.z - p.z, 2));
+    }
+    var FADEN = { a: null, b: null, laenge: 0, k: 0, t: 0 };
 
     var CL = ENAMES.map(function (name, k) {
       var ang = -1.02 + k * 2.399963 + (rnd() - 0.5) * 0.24;
@@ -5742,10 +5812,24 @@ void main() {
     }
     /* two hubs are one conversation only where a note names both — the same rule
        the hero diagram draws with, and these are the filaments that carry a packet */
+    /* Von den fünf Fäden, die eine Notiz wirklich knüpft, trägt einer die
+       Seite: Lumen & Co <-> Speicherinweg, dieselbe Adresse an zwei Orten.
+       Markiert wird er bei Namen. Koordinaten abzuschreiben wäre ein zweiter
+       Satz Welt — die Regie führt ihre Hubs in einer eigenen Tabelle, und die
+       Zeichnung hier ist die, die der Leser sieht. */
+    var AD = (window.KEPTA_SCENES || {}).THREAD;
+    function adr(k) {
+      if (!AD) return 0;
+      var a = AD.a[3], b = AD.b[3];
+      return (k.a === a && k.b === b) || (k.a === b && k.b === a) ? 1 : 0;
+    }
     hubLinks().forEach(function (h) {
       var A = null, B = null;
       CL.forEach(function (c) { if (c.name === h.a) A = c; if (c.name === h.b) B = c; });
-      if (A && B) ln(A.hub, B.hub, 0.92, 0.72, 1);
+      if (!A || !B) return;
+      var fd = adr(h);
+      ln(A.hub, B.hub, 0.92, 0.72, 1, fd);
+      if (fd) { FADEN.a = A.hub; FADEN.b = B.hub; FADEN.laenge = laenge(A.hub, B.hub); }
     });
     LNS.sort(function (x, y) { return x.pkt - y.pkt; });
 
@@ -5903,22 +5987,24 @@ void main() {
     var ordN = 0;
     LNS.forEach(function (l) { if (!l.pkt) ordN += 2; });
 
-    var STRIDE = 44, nP = PTS.length, nL = LNS.length * 2;
-    var all = new Float32Array((nP + nL) * 11), at = 0;
-    function emit(p, glow, s) {
+    var STRIDE = 48, nP = PTS.length, nL = LNS.length * 2;
+    var all = new Float32Array((nP + nL) * 12), at = 0;
+    function emit(p, glow, s, faden) {
       all[at++] = p.x; all[at++] = p.y; all[at++] = p.z;
       all[at++] = p.sx; all[at++] = p.sy; all[at++] = p.sz;
       all[at++] = p.size; all[at++] = p.tone; all[at++] = glow;
-      all[at++] = p.delay; all[at++] = s;
+      all[at++] = p.delay; all[at++] = s; all[at++] = faden || 0;
     }
     PTS.forEach(function (p) { emit(p, p.glow, p.phase); });
-    LNS.forEach(function (l) { emit(l.a, l.glow, 0); emit(l.b, l.glow, 1); });
+    LNS.forEach(function (l) {
+      emit(l.a, l.glow, 0, l.faden); emit(l.b, l.glow, 1, l.faden);
+    });
 
     var vbo = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
     gl.bufferData(gl.ARRAY_BUFFER, all, gl.STATIC_DRAW);
     all = null;
-    function vao(first, count) {
+    function vao(first, count, kiesschen) {
       var v = gl.createVertexArray();
       gl.bindVertexArray(v);
       gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
@@ -5926,12 +6012,12 @@ void main() {
       gl.vertexAttribPointer(0, 3, gl.FLOAT, false, STRIDE, base);
       gl.vertexAttribPointer(1, 3, gl.FLOAT, false, STRIDE, base + 12);
       gl.vertexAttribPointer(2, 3, gl.FLOAT, false, STRIDE, base + 24);
-      gl.vertexAttribPointer(3, 2, gl.FLOAT, false, STRIDE, base + 36);
+      gl.vertexAttribPointer(3, kiesschen || 2, gl.FLOAT, false, STRIDE, base + 36);
       for (var i = 0; i < 4; i++) gl.enableVertexAttribArray(i);
       gl.bindVertexArray(null);
       return v;
     }
-    var vaoP = vao(0, nP), vaoL = vao(nP, nL);
+    var vaoP = vao(0, nP), vaoL = vao(nP, nL, 3);
     /* Vier Ecken, ein Streifen: die Dicke entsteht im Fragment, also braucht
        die Scheibe keine Tessellation und keinen zweiten Satz Uniformen. */
     var qR = gl.createBuffer();
@@ -6755,7 +6841,7 @@ window.addEventListener('scroll', function () {
       var asp = W / Math.max(H, 1);
       var key = null, hero = null, gain = 1, uni = null;
       var stoffFlat = 0, stoffDamp = 0, stoffAuf = 0, stoffDraht = 0, stoffRk = 1;
-      var latK = 0, latT = 0, ringK = 0, ringT = 0;
+      var latK = 0, latT = 0, ringK = 0, ringT = 0, fadenK = 0, fadenT = 0;
       if (REG) {
         /* rate() is damp() with a speed limit. The limit is the point: a swipe
            of 1800 px/s is 0.122 u/s, six times reading tempo, and unbounded the
@@ -6787,6 +6873,8 @@ window.addEventListener('scroll', function () {
           latT = uni.uSearchT || 0;
           ringK = uni.uRingK || 0;
           ringT = uni.uRingT || 0;
+          fadenK = uni.uThreadK || 0;
+          fadenT = uni.uThreadT || 0;
           /* Aufgelöst wird nur, wo die Szene, die gerade gilt, eine Laterne
              behauptet. Bei jeder Grenze neu aufgelöst fiele uHitN auf 0, während
              die Blende noch auf halbem Licht stünde — ein Schnitt. So erbt die
@@ -7116,6 +7204,8 @@ window.addEventListener('scroll', function () {
       gl.uniform3fv(uL.uHot, C.hot);
       gl.uniform1f(uL.uWire, stoffDraht);
       gl.uniform1f(uL.uSuchK, latK);
+      gl.uniform1f(uL.uThreadK, fadenK);
+      gl.uniform1f(uL.uThreadT, fadenT);
       gl.uniform1f(uL.uHitLift, LAT.heben);
       gl.uniform1f(uL.uHitN, LAT.n);
       gl.uniform4fv(uL["uHit[0]"], LAT.hit);
@@ -7124,6 +7214,7 @@ window.addEventListener('scroll', function () {
       gl.uniform2f(uL.uRes, PW, PH);
       gl.uniform1f(uL.uHoleN, holeN);
       gl.uniform4fv(hL, HOLES);
+      FADEN.k = fadenK; FADEN.t = fadenT;
       gl.bindVertexArray(vaoL);
       gl.uniform1f(uL.uPkt, 0);
       if (ordN) gl.drawArrays(gl.LINES, 0, ordN);
