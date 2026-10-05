@@ -81,6 +81,10 @@
     --tint:#16202b;
     --node:#2f4157; --node-tx:#f4f1ec;
     --haze:rgba(20,22,26,.02); --haze-2:rgba(20,22,26,.025);
+    /* Grat über der Bühne: die Fläche, in die ein Körper ausläuft, der hinter die
+       Masthead wandert. Dieselbe Farbe wie das Blatt, sonst säße ein Schleier
+       über der Szene. */
+    --mast-a:rgba(246,244,239,.96); --mast-b:rgba(246,244,239,0);
     --haze-3:rgba(20,22,26,.015); --haze-4:rgba(20,22,26,.05);
     --sh-1:0 6px 18px -10px rgba(20,22,26,.24); --sh-2:0 18px 34px -20px rgba(20,22,26,.26); --sh-nav:0 18px 38px -32px rgba(20,22,26,.28); --sh-pop:0 24px 40px -30px rgba(20,22,26,.30);
     --glow:rgba(142,47,47,.28);
@@ -110,6 +114,7 @@
     --tint:#3f5670;
     --node:#3f5670; --node-tx:#eceae4;
     --haze:rgba(255,255,255,.03); --haze-2:rgba(255,255,255,.04);
+    --mast-a:rgba(11,13,16,.94); --mast-b:rgba(11,13,16,0);
     --haze-3:rgba(255,255,255,.025); --haze-4:rgba(255,255,255,.07);
     --sh-1:0 6px 18px -8px rgba(0,0,0,.9); --sh-2:0 18px 36px -22px rgba(0,0,0,.9); --sh-nav:0 20px 44px -34px rgba(0,0,0,.9); --sh-pop:0 24px 40px -30px rgba(0,0,0,.9);
     --glow:rgba(226,112,95,.5);
@@ -251,6 +256,23 @@
     -webkit-backdrop-filter:blur(22px) saturate(180%); backdrop-filter:blur(22px) saturate(180%);
     border-bottom-color:var(--line);
     box-shadow:var(--sh-nav);
+  }
+  /* Über der Bühne ist die Masthead kein Balken, sondern ein Grat. Ein Körper,
+     der bei Szene 2, 3 und 5 nach oben durch das Bild läuft, endete bisher an
+     einer gezeichneten Linie: Scheibe, border-bottom, Schatten — drei Striche,
+     die einen Ausschnitt behaupten, wo die Welt weitergeht. Darum über der
+     Bühne: keine Scheibe, keine Linie, kein Schatten, stattdessen dieselbe
+     Fläche bis auf die Höhe der Zeilen und dann in 118 px stufenlos in die
+     Bühne auslaufend. Die Lesbarkeit bleibt, weil die Fläche bis unter die
+     Links noch dicht ist; nur der Schnitt ist einer. */
+  html.flug header.masthead.pinned{
+    background:transparent; border-bottom-color:transparent; box-shadow:none;
+    -webkit-backdrop-filter:none; backdrop-filter:none;
+  }
+  html.flug header.masthead.pinned::before{
+    content:""; position:absolute; left:0; right:0; top:0; height:190px; z-index:-1;
+    background:linear-gradient(180deg, var(--mast-a) 0, var(--mast-a) 72px, var(--mast-b) 100%);
+    pointer-events:none;
   }
   .masthead-in{display:flex; align-items:center; gap:22px; height:var(--nav-h)}
   .brand{display:flex; align-items:center; gap:11px; color:var(--text); flex:0 0 auto}
@@ -2566,10 +2588,20 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
   {
     id: 1, name: 'Arrival', claim: 'etwas wird gespeichert, auf dem eigenen Rechner',
     u: SPAN[0],
-    hero: 0, second: 1,                       /* Lumen & Co, Hamburg office dahinter */
+    /* Ein Körper, nicht zwei. hero == second lässt die Regie nur eine Kugel
+       nehmen (updateMass dedupliziert über den Namen), und die Ankunft ist die
+       Ankunft einer Notiz — zwei gleich große, gleich schwere Bälle über-
+       einander waren keine Komposition, sondern eine Liste. Hamburg office
+       kommt mit Szene 2 durch das Linsenfenster von selbst in das Bild. */
+    hero: 0, second: 0,
     keys: {
       from: { pos: [40, 250, 1500], look: [0, 0, -100], fov: 0.60, roll: -0.075 },
-      to:   { pos: [150, -30, 930], look: HUB[0], fov: 0.44, roll: 0.010 }
+      /* look ist nicht der Hub. Die Engine stellt das Objekt in die Mitte,
+       wenn man ihr den Hub als Ziel gibt, und ein zentriertes Objekt über einer
+       Schlagzeile ist ein Passfoto. 89 Einheiten links am Körper vorbei zielen
+       legt ihn um 0,20 halbe Breite nach rechts, 14 Einheiten unter ihn vorbei
+       hebt ihn um 0,05 halbe Höhe — die Drittel, nicht die Achse. */
+      to:   { pos: [150, -30, 930], look: [16, -105, -320], fov: 0.44, roll: 0.010 }
     },
     /* Sturz aus der Leere: bei cam.z=1500 liegt die Welt vor der Linse
        komplett im Nichts — der Staub beginnt erst bei z=-40, der erste Ring
@@ -2582,9 +2614,13 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
       'aus dem Knoten, nicht mit der Uhr, und ein Halt zeigt darum einen ' +
       'Knoten, der noch nicht verdrahtet ist. Die Streupositionen aScatter, ' +
       'die index.html für jeden Punkt schon baut (~2886), sind genau dafür da. ' +
-      'Der Kern leuchtet, bevor er Masse hat: uAlphaGain 0 -> 0.35.',
-    uni: { uRevealK: 0.45, uDissolve: 0, uFocus: 0.55, uPlane: 1252, uMotion: 0.35,
-           uBloom: 0.55, uFlat: 0, uWire: 0, uAlphaGain: 0.35, uDensK: 1.15,
+      'Der Kern leuchtet, bevor er Masse hat — aber eine Masse bei 0.35 war ' +
+      'kein Körper, sondern ein Fleck: auf dem gemessenen Hero-Rahmen stand der ' +
+      'Organ bei 0.24 Deckung und las als Seifenblase. 0.62 ist die Hälfte von ' +
+      'Szenen 3 bis 5, nicht ihr Wert: die Ankunft soll schwerer sein als der ' +
+      'Staub, leichter als das Geflecht.',
+    uni: { uRevealK: 0.45, uDissolve: 0, uFocus: 0.55, uPlane: 1259, uMotion: 0.35,
+           uBloom: 0.55, uFlat: 0, uWire: 0, uAlphaGain: 0.62, uDensK: 1.15,
            uSeed: 'n01@Lumen' },
     labels: { hubs: 0, max: 0 },              /* in Szene 1 steht kein Name */
     hud: { step: '[ RETAINER ] 1/7', number: '1 note', ref: 'fakten.md#sz-1' },
@@ -2768,26 +2804,65 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
     u: SPAN[5],
     hero: 6, second: 7,
     keys: {
-      to:   { pos: [1250, 620, 350], look: CENTROID, fov: 0.72, roll: -0.012 },
-      portrait: { pos: [1250, 620, 350], look: CENTROID, fov: 0.80, roll: -0.012 }
+      /* look liegt 383 Einheiten unter der Mitte aller Hubs, nicht auf ihr:
+         auf ihr stand die Karte im gemessenen Bild zwischen y 0,40 und 0,86 —
+         die obere Hälfte des Rahmens war leeres Elfenbein, und die Schlagzeile
+         las auf derselben Linie an den untersten Namen vorbei. Tiefer zielen
+         hebt die Karte um 0,44 halbe Höhe; sie steht dann bei 0,18 bis 0,64,
+         die Namen bleiben alle im Bild, und unter ihnen bleibt das freie Blatt,
+         das der Satz braucht. */
+      to:   { pos: [1250, 620, 350], look: [-5.4, -382, -1496], fov: 0.72, roll: -0.012 },
+      portrait: { pos: [1250, 620, 350], look: [-5.4, -382, -1496], fov: 0.80, roll: -0.012 }
     },
     /* Der große Rückzug: von z=-750 zurück auf z=+350 und hoch auf y=620,
        2317 Einheiten bis zur Mitte aller acht Hubs. Von hier aus fasst die
        halbe Bild-Diagonale (40.7°) alle Hubs — gemessen: 8/8 Namen im Bild.
-       Die Organe sind hier absichtlich OUT: dz zu Hub 6 ist -2686, weit
-       außerhalb des Fensters [-2450,-420]. Die Gestalt wird von den Fäden
-       und dem Staub getragen, nicht von den Körpern; uAlphaGain 0.18. */
+       Die Organe liegen außerhalb des Fensters, in dem der March sie
+       schleifen würde (dz zu Hub 6 ist -2686 gegen [-2450,-420]); sie stehen
+       aber als Hülle im Bild, weil die weiteste Kamera der Seite sie sonst
+       gar nicht mehr zeigt — zur Begründung der Blende unten.
+       Was der Rückzug nicht haben durfte, war ein Bild ohne Vorgang: ohne
+       Skala maß der Bloom-Pass hier 0,0005 % veränderte Pixel, weil ein
+       blasser Wash nichts enthält, was er falten könnte. */
     state: 'als Faden wiederleuchten',
     stateHow: 'Derselbe Faden, jetzt ganz: uThreadT ist bei dieser Station ' +
       'durchgezählt (ende 0,71 liegt vor der Mitte der Spanne), und die große ' +
       'Rückzugskamera zeigt ihn zum ersten Mal zwischen zwei Körpern statt in ' +
-      'einem. Getrieben ist er von u, nicht von uTime — der Packet-Ticker des ' +
+      'einem. Darüber steht die Skala: 112 Tage auf dem Fenster dieser Notiz, ' +
+      'abgelesen an demselben Instrument, mit dem Szene 4 den Verfall zeigt. ' +
+      'Getrieben ist beides von u, nicht von uTime — der Packet-Ticker des ' +
       'LINIEN-Passes läuft über fract(uTime*0.055+ph) und räumt auf diesem ' +
       'einen Faden, solange uThreadK > 0: ein Packet, das weiterläuft, wenn der ' +
       'Leser stillsteht, ist ein Ornament und kein Vorgang.',
     uni: { uRevealK: 1, uDissolve: 0, uFocus: 0.22, uPlane: 2317, uMotion: 0.30,
-           uBloom: 0.45, uFlat: 0, uWire: 0.25, uAlphaGain: 0.18, uDensK: 1.1,
-           uThreadK: 1 },
+           uBloom: 0.45, uFlat: 0, uWire: 0.25, uAlphaGain: 0.55, uDensK: 1.1,
+           uThreadK: 1, uRingK: 1, uSeed: 'n02@Spei',
+           /* uAlphaGain 0,18 ließ die beiden Organe des Bildrands als
+              Wasserflecke stehen. Der Rückzug ist die weiteste Kamera der
+              Seite, und auf 2317 Einheiten ist eine Schale bei 0,18 keine
+              Durchsicht mehr, sondern Abwesenheit; 0,55 stellt sie als
+              Porzellan hin, das hinter der Skala liegt. */
+           /* Der Gegenstand dieser Szene ist die Skala, nicht die Laterne —
+              und der Grund ist eine Messung, kein Geschmack: im Hellen faltet
+              der Hellpass die *dunklen* Pixel (uInvert), und die Schwelle liegt
+              bei 0,38 Lumianz. Ein Haarstrich von 0,24 Deckung über Elfenbein
+              kommt auf 0,74, ein gehobener Knoten von neun Pixeln faltet damit
+              nichts. Was diese Szene braucht, ist eine Fläche. Die Skala ist
+              eine: radius 300 steht bei 2317
+              Einheiten Abstand und 871 Einheiten halber Bildhöhe auf 155
+              Pixeln Radius, also ein Drittel der Rahmenhöhe, und sie ist
+              Tinte. Dieselbe Skala, die Szene 4 für den Verfall stellt, zeigt
+              hier die 112 Tage zwischen dem Setzen und dem Wiederfinden — der
+              Ring ist in beiden Szenen dasselbe Instrument, nur an einem
+              anderen Ende des Fensters abgelesen.
+              Erreicht ist die Marke damit nicht: mit Skala und Porzellan mißt
+              der Lauf 0,0010 % veränderter Pixel gegen 0,0023 % verlangte. Die
+              Blende auf null zu ziehen hätte die Prüfung ausgeschaltet und die
+              Skala im Dunkeln ihrer Glut beraubt; offen stehen lassen heißt
+              hier: die Skala ist Tinte, der Pass sieht sie, und was fehlt, ist
+              Masse. */
+           uRing: { hub: 'Speicherinweg', knoten: 'n02', radius: 300,
+                    dicke: 0.016, vortritt: 96, eintritt: 0.05, ende: 0.24 } },
     labels: { hubs: 'all', max: 8 },
     hud: { step: '[ RETAINER ] 6/7', number: '112 Tage · 1687 Einheiten', ref: 'fakten.md#sz-6' },
     sentence: { slot: 's6', section: 'playground', at: [0.02, 0.94] },
@@ -4297,7 +4372,14 @@ void main() {
          trotz beliebig hellem Restfarbton nichts in den Pass bringen,
        - die Ausgabe bleibt praemultipliziert (s.rgb * w, s.a * w). Die
          Energie, die weiterwandert, skaliert also mit der tatsächlichen
-         Deckung, nicht mit dem theoretischen Farbton. ---- */
+         Deckung, nicht mit dem theoretischen Farbton.
+
+     uInvert (Hell): Tinte auf Papier leuchtet nicht. Dieselbe Kette faehrt
+     hier umgekehrt — die Maske ist die KEHRWERT der Leuchtkraft, nur echtes
+     dichtes Graphit kommt damit ueber die Schwelle, und der Composite zieht
+     das gefaltete Feld ab statt draufzurechnen. Die Farbe, die weiterwandert,
+     bleibt die lokale Tinte (s.rgb), der Abzug ist also ein Schmierefleck
+     desselben Stoffes und kein grauer Schleier. ---- */
   var FS_BRIGHT = `#version 300 es
 precision highp float;
 in vec2 vUv;
@@ -4305,6 +4387,7 @@ uniform sampler2D uScene;
 uniform float uThreshold;
 uniform float uKnee;
 uniform float uGain;
+uniform float uInvert;
 out vec4 frag;
 void main() {
   vec4 s = texture(uScene, vUv);
@@ -4312,6 +4395,7 @@ void main() {
   float luma = dot(c, vec3(0.2126, 0.7152, 0.0722));
   float peak = max(max(c.r, c.g), c.b);
   float l = max(luma, peak * 0.72);
+  l = mix(l, 1.0 - clamp(l, 0.0, 1.0), uInvert);
   float cover = smoothstep(0.02, 0.14, s.a);
   float w = smoothstep(uThreshold, uThreshold + max(uKnee, 1e-4), l) * uGain * cover;
   frag = vec4(s.rgb * w, s.a * w);
@@ -4453,16 +4537,31 @@ void main() {
   }
   if (protect > 0.002) s = mix(s, scharf, min(protect, 1.0));
 
-  /* 3: Leuchten zurueck, mit Papierwache */
+  /* 3: Leuchten zurueck, mit Papierwache. Im Dunkeln ist das Feld Licht, das
+     draufgerechnet wird. Im Hellen kann Tinte auf Papier nicht leuchten —
+     dasselbe gefaltete Feld ist dort ein Schmierefleck: er wird als DECKUNG
+     auf dem noch leeren Papier eingetragen, weil ein Abzug ohne Deckung
+     gesetzwidrig praemultipliziert waere (rgb > 0 bei a = 0) und das
+     Browser-Composite daraus mehr Elfenbein holt, nicht weniger. uCeil gilt
+     beiden Richtungen gleich: nie mehr als diese Leuchtkraft pro Pixel. */
   vec3 add = vec3(0.0);
   float addA = 0.0;
   if (uBloomAmt > 0.0004) {
     vec4 b = texture(uBloom, vUv);
     float g = uBloomAmt * mix(1.0, m, uPaperGuard);
-    add = b.rgb * g;
-    float l = dot(add, vec3(0.3333333));
-    if (l > uCeil) add *= uCeil / l;
-    addA = min(b.a * g * uAlphaFollow, s.a * 0.6);
+    if (uDark > 0.5) {
+      add = b.rgb * g;
+      float l = dot(add, vec3(0.3333333));
+      if (l > uCeil) add *= uCeil / l;
+      addA = min(b.a * g * uAlphaFollow, s.a * 0.6);
+    } else {
+      float d = min(b.a * g * uAlphaFollow, 1.0 - s.a);
+      vec3 ton = b.rgb / max(b.a, 1e-3);
+      float l = d * max(0.0, dot(vec3(1.0) - ton, vec3(0.3333333)));
+      if (l > uCeil) d *= uCeil / l;
+      add = ton * d;
+      addA = d;
+    }
   }
 
   frag = vec4(min(s.rgb + add, vec3(1.0)), min(s.a + addA, 1.0));
@@ -4758,7 +4857,7 @@ void main() {
       if (!S.pBright || !S.pBlur || !S.pComp || !S.pPart) {
         S.reason = 'shader-failed'; S.ok = false; meld(); return false;
       }
-      S.uBright = uni(S.pBright, ['uScene', 'uThreshold', 'uKnee', 'uGain']);
+      S.uBright = uni(S.pBright, ['uScene', 'uThreshold', 'uKnee', 'uGain', 'uInvert']);
       S.uBlur = uni(S.pBlur, ['uSrc', 'uDir']);
       S.uComp = uni(S.pComp, ['uScene', 'uBloom', 'uRes', 'uPx', 'uBloomAmt', 'uAlphaFollow',
         'uCeil', 'uPaperGuard', 'uGuardSharp', 'uDark', 'uCrisp', 'uFocus', 'uFocusR', 'uFocusK',
@@ -4804,7 +4903,16 @@ void main() {
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.enable(gl.BLEND);
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      /* RGB bleibt SRC_ALPHA/ONE_MINUS_SRC_ALPHA, der Alpha-Kanal wird mit
+         ONE/ONE_MINUS_SRC_ALPHA aufaddiert. Der Puffer ist transparent
+        geschwaerzt; die normale Alpha-Gleichung quadriert darin die Deckung
+         (a_out = a_src*a_src), die RGB-Anteile sind nach dem Blend aber
+         laengst praemultipliziert. Der Composite schreibt genau diese Werte
+         auf eine praemultiplizierte Canvas: rgb + (1-a)*Papier. Ist a zu
+         klein, holt die Canvas zu viel Elfenbein zurueck, und duenne Deckung
+         (Halo, Staub, Koerner) wird Heller als das Papier - weisse Wolken. */
+      gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA,
+        gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
       gl.blendEquation(gl.FUNC_ADD);
       gl.disable(gl.DEPTH_TEST);
       gl.disable(gl.CULL_FACE);
@@ -4840,6 +4948,7 @@ void main() {
         gl.uniform1f(S.uBright.uThreshold, o.bloomThreshold == null ? 0.62 : o.bloomThreshold);
         gl.uniform1f(S.uBright.uKnee, o.bloomKnee == null ? 0.18 : o.bloomKnee);
         gl.uniform1f(S.uBright.uGain, o.bloomIntensity == null ? 0.9 : o.bloomIntensity);
+        gl.uniform1f(S.uBright.uInvert, o.dark ? 0 : 1);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
 
         gl.useProgram(S.pBlur);
@@ -5232,6 +5341,31 @@ float hash33(vec3 p) {
   p *= 17.0;
   return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
 }
+/* Wertegerauschen auf dem Gitter: acht Ecken, dreimal glatt interpoliert. */
+float vn3(vec3 p) {
+  vec3 i = floor(p), f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  float x0 = mix(hash33(i + vec3(0.0, 0.0, 0.0)), hash33(i + vec3(1.0, 0.0, 0.0)), f.x);
+  float x1 = mix(hash33(i + vec3(0.0, 1.0, 0.0)), hash33(i + vec3(1.0, 1.0, 0.0)), f.x);
+  float x2 = mix(hash33(i + vec3(0.0, 0.0, 1.0)), hash33(i + vec3(1.0, 0.0, 1.0)), f.x);
+  float x3 = mix(hash33(i + vec3(0.0, 1.0, 1.0)), hash33(i + vec3(1.0, 1.0, 1.0)), f.x);
+  return mix(mix(x0, x1, f.y), mix(x2, x3, f.y), f.z);
+}
+/* Die Faltung. Kein Muster auf dem Körper, sondern die Oberfläche selbst.
+   Der erste Versuch war ein Feld aus drei gerichteten Sinus: die Furche war
+   die Nullinie einer periodischen Funktion, also gleich weit, gleich dick und
+   überall — auf dem Körper standen Gekritzel, keine Windungen.
+   Anatomie entsteht anders: eine glatte Fläche, ihr Absolutwert gegen einen
+   Wert, und die Nullinie mäandert, weil die Fläche mäandert. Zwei Oktaven,
+   damit die Furchen verschiedene Abstände haben.
+   Die Furche ist schmal (bis 0.030 volle Dämpfung) und der Kamm früh erreicht
+   (0.260): eine Windung, die halb so dick ist wie ihr Abstand, ist ein Relief;
+   eine, die so dick ist wie ihr Abstand, ist ein Zebra. */
+float feld(vec3 q) {
+  vec3 s = q * 0.0125;
+  float v = vn3(s) * 0.66 + vn3(s * 2.15 + 7.3) * 0.34;
+  return smoothstep(0.030, 0.260, abs(v - 0.5));
+}
 void main() {
   /* Ein Wert, zweimal gebraucht: die Glut der Halo-Schicht und die der
      Oberfläche altern zusammen, sonst säße über einem entfärbten Körper
@@ -5298,8 +5432,35 @@ void main() {
   vec2 k = vec2(1.0, -1.0);
   vec3 n = normalize(k.xyy * map(p + k.xyy * e) + k.yyx * map(p + k.yyx * e) +
                    k.yxy * map(p + k.yxy * e) + k.xxx * map(p + k.xxx * e));
+  /* Die Faltung verschiebt die Normale, nicht die Silhouette. Das ist der
+     Unterschied zwischen Relief und Aufkleber: eine Furche, die das Licht
+     selbst umlenkt, wirft einen Schatten und eine Kante, dieselbe Furche als
+     aufgemalter Ton ist Tapete. Und die Form bleibt die, die der March
+     geschliffen hat — ein Feld, das die Distanz mitnimmt, müsste für jede
+     Windung steiler laufen als eins, und die 72 Schritte zahlen dafür nicht.
+     Ableitung nur entlang der zwei Tangenten: was sich entlang der Blickrich-
+     tung ändert, liegt hinter dem Punkt, den dieser Pixel sieht. */
+  float f0 = feld(p);
+  vec3 t1 = normalize(cross(n, uF));
+  vec3 t2 = cross(n, t1);
+  float fe = 7.0;
+  vec3 grad = (t1 * (feld(p + t1 * fe) - f0) + t2 * (feld(p + t2 * fe) - f0)) / fe;
+  /* Die Stärke ist eine Höhe in Welteinheiten: 16 Einheiten auf 380 Durch-
+     messer, also vier Zehntel Prozent — genug, um in einer Furche den Termina-
+     tor zu kippen, zu wenig, um die Form des March zu bestreiten.
+     Sichtbar altern lassen muss man sie nach der anderen Seite: die feine
+     Oktave der Faltung ist ~37 Einheiten breit, und sobald die unter ein paar
+     Pixel fällt, wird aus der Furche Funkeln. */
+  float wellenpx = 37.0 * uRes.y * 0.5 / (uTanY * max(hit, 1.0));
+  n = normalize(n - grad * (42.0 * smoothstep(2.0, 7.0, wellenpx)));
   float fres = pow(1.0 - clamp(dot(n, -rd), 0.0, 1.0), 3.0);
-  vec3 L = normalize(vec3(-0.34, 0.66, 0.62));
+  /* Streiflicht, kein Stirnlicht. Die alte Richtung (-0.34, 0.66, 0.62) fiel
+     fast mit der Blickrichtung zusammen: die ganze zugewandte Hemisphäre lag
+     bei dif ~0,9, der Terminator rückte hinter den Rand, und was blieb, war ein
+     heller Ball mit Muster. Steil von der Seite ist die Regel, nach der eine
+     Windung überhaupt erst als Windung gelesen wird — der Schatten in der Furche
+     braucht eine Lichtkante, die über ihn hinweggeht. */
+  vec3 L = normalize(vec3(-0.78, 0.40, 0.16));
   float dif = clamp(dot(n, L), 0.0, 1.0);
   /* A chalk body on ivory has to earn its shape. Every value there is already two
      thirds of the way to paper, so the same relief that reads as modelling on ink
@@ -5314,11 +5475,59 @@ void main() {
   /* the same stone that reads as a body on ivory is barely a lift over black. In
      the dark theme the mass is lit rather than shaded, so the mix goes toward the
      ink and the floor comes up with it; the rim keeps its wax edge either way. */
-  vec3 body = mix(uSlate, uInk, mix(0.40, 0.62, uDark)) *
-    (mix(0.16, 0.74, uDark) + 0.78 * dif) * (0.76 + 0.36 * sky) * (0.78 + 0.22 * ao);
-  vec3 rim = mix(uClay, hot, 0.42);
-  vec3 col = mix(body, rim, fres * 0.34) + rim * pow(fres, 2.4) * 0.16 +
+  /* Ein Kohlestrich, kein Abdruck. Auf Elfenbein maß der Körper 93 Helligkeits-
+     stufen, auf Tinte 190 — dieselbe Rampe, die im Dunkeln als Modellierung
+     lies, blieb auf Papier ein grauer Ballon, weil sie unten nicht tiefer
+     konnte und oben nicht heller. Darum trägt Hell jetzt einen Grundton
+     zwischen Papier und Tinte und eine steile Rampe darauf: die zugewandte
+     Seite reicht bis an das Papier, der Terminator bis an die Kohle. Der
+     Grundton ist gemischt, nicht gesetzt, weil die Welt in derselben Tinte
+     zeichnet wie die Seite — uPaper und uInk sind ihre Pigmente.
+     Dieselbe Rechnung galt umgekehrt im Dunkeln: Grundton nahe am Licht, Rampe
+     bis 1,52, und die zugewandte Hemisphäre stand bei 1,1 — ausgebranntes
+     Porzellan, kein Stoff. Im Dunkeln trägt jetzt die Kante das Licht (rim,
+     halo, spec), der Körper bleibt tief: Grundton nahe am Schiefer, Rampe unter
+     eins, und der Terminator fällt bis auf den Nachthintergrund zurück. */
+  /* Der Körper ist ein Abzug, kein Aufkleber. Der alte Weg war ein Grundton
+     zwischen Papier und Tinte, den eine Rampe multipliziert: die zugewandte
+     Seite konnte nie heller werden als der Grundton selbst, und auf Elfenbein
+     war das ein grauer Ballon — 93 Helligkeitsstufen gegen 190 auf Tinte.
+     Jetzt mischen zwei Farbwerte, und der Abstand zwischen ihnen IST die
+     Modellierung: im Schatten die kühle Tinte des Geflechts, im Licht das
+     warme Blatt, auf das der Abzug gehört. Auf Tinte dieselbe Rechnung in die
+     andere Richtung — Grundton nahe am Schiefer, Licht an der Kante, damit die
+     zugewandte Hemisphäre nicht zu ausgebranntem Porzellan hochläuft. */
+  vec3 tief = mix(mix(uSlate, uPaper, 0.16), mix(uSlate, uInk, 0.42), uDark);
+  vec3 hell = mix(mix(uPaper, hot, 0.12), mix(uSlate, hot, 0.58), uDark);
+  float ramp = mix(0.10 + 1.05 * dif, 0.02 + 0.98 * pow(dif, 0.85), uDark);
+  vec3 body = mix(tief, hell, clamp(ramp, 0.0, 1.0)) *
+    (0.82 + 0.28 * sky) * (0.80 + 0.20 * ao);
+  /* Die Kante ist Kohle und nur dort warm, wo das Licht sie streift. Ein
+     durchgehend wachserner Rand färbte den ganzen Körper rosig: Marmor, kein
+     Organ. */
+  vec3 rim = mix(uSlate, hot, 0.16 + 0.34 * (1.0 - dif));
+  /* Die Furche greift nur im Schatten, und der Kamm trägt Licht: eine Windung,
+     die bloß dunkler gemalt ist, ist ein Fleck. Auf der Lichtseite steht die
+     Windung schon im Streiflicht und wirft selbst; sie dort zusätzlich zu
+     dämpfen ist Schmutz und kein Relief. */
+  float rille = mix(1.0, mix(0.42, 1.14, f0), 0.30 + 0.70 * (1.0 - dif));
+  /* Membran mit Fleisch. Die erste Fassung dieser Schale war innen auf ein
+     Fünftel ihrer Deckung geleert — Ergebnis: zwei Seifenblasen, in denen man
+     das Papier durchsieht und sonst nichts. Eine Membran ohne Inhalt ist keine
+     Durchsicht, sondern ein Mangel. Also bleibt der Körper Tragwerk, und die
+     Schale hält nur den Rand dichter als die Mitte (0.62), damit das Geflecht
+     auf der Rückseite noch zu ahnen ist. */
+  float schale = pow(fres, 1.3);
+  vec3 col = body * rille;
+  /* Die Kontur führt die Windung nicht. Die Faltung über der Silhouette zu
+     dünn laufen zu lassen, zerbrach den Rand in Flecken: oben war das Blatt
+     hell und die Kante weg, und ein Körper ohne Zehe schwimmt. Darum trägt
+     die Schale den Rand überall (0,12 + 0,50), und die Windung regelt nur
+     noch die Wärme darin. */
+  col = mix(col, rim, (0.12 + 0.50 * schale) * (0.70 + 0.30 * f0)) +
+    rim * pow(fres, 2.4) * 0.20 * (0.50 + 0.50 * f0) +
     hot * spec * mix(0.34, 0.10, uDark) * (1.0 - clamp(uFlat, 0.0, 1.0));
+  col += hot * (1.0 - f0) * 0.14 * uDark;
   /* uFlat ist keine Helligkeit, sondern der Entzug der Modellierung: ein
      Bauplan wird nicht flach, weil man ihm die Lichtquelle wegnimmt, sondern
      weil kein Kanal mehr für sich entscheidet. Darum die Leuchtdichte und
@@ -5332,6 +5541,20 @@ void main() {
      silhouette at distance — dissolving it further would only wash out the ink. */
   float fog = 1.0 - exp(-pow(hit * 0.00035, 1.7));
   col = mix(col, uPaper, clamp(fog, 0.0, mix(0.20, 0.30, uDark)));
+  /* Nach oben begrenzt: ein Abzug kann nicht heller sein als das Blatt, auf
+     dem er liegt. Die Decke saß vorher bei 0,64 des Papiers, und das war die
+     halbe Erklärung für den grauen Ballon — sie schnitt die zugewandte
+     Schulter ab, bevor die Rampe dort arbeiten konnte. Der Grund, der sie
+     eingebaut hatte, war der Hellpass, aber der kehrt im Hellen die Lumianz
+     um (uInvert): er faltet die *dunklen* Stellen, ein helles Blatt-Licht
+     faltet nichts. Was er stattdessen faltet, ist der Schattenwurf, und der
+     ist unten begrenzt. */
+  col = mix(col, min(col, uPaper * 0.94), 1.0 - uDark);
+  /* Nach unten: unter 0,42 Papier rutscht ein Pixel in die Faltungsschwelle
+     (1 - l > 0,62) und zieht einen Graphit-Schmierefleck ums Organ. Die
+     Schattenseite darf tief sein, aber nicht schwärzer als die Tinte, die
+     neben ihr steht. */
+  col = mix(max(col, uPaper * 0.44), col, uDark);
   /* The dissolve belongs to the organ, not to the ball. Looking up the nearest of
      the six balls made the alpha a piecewise-constant function of which ball won
      the lookup, and the boundary between two balls' territories is a plane — a
@@ -5345,21 +5568,64 @@ void main() {
     float k = length(uOrg[i].xyz - p) - uOrg[i].w;
     if (k < bk) { bk = k; rs = uOrg[i].w; bdd = length(uOrg[i].xyz - uEye); gf = uOrgF[i]; }
   }
-  /* Der Körper geht in Punkte. Bei uDissolve 0 ist das ein Vergleich, der
-     nie gewinnt — die sechs anderen Szenen kosten damit einen Befehl. */
-  if (uDissolve > 0.0 && hash33(floor(p * 0.25)) < uDissolve) discard;
-  float a = (0.86 + 0.14 * fres) * uAlpha * cm * ef * gf *
+  /* Der Grund für Körnung und Zerfall: eine Scherbasis in Weltkoordinaten, also
+     am Körper fest — ein Korn, das beim Zug der Kamera über das Fleisch
+     kriecht, ist eine kaputte Maske und kein Gewebe. Die Masche ist
+     projektionsbegrenzt: ein Korn unter einem Pixel ist Rauschen und fräße den
+     Körper weg (der ferne Organ war bei 2,4 Welteinheiten Masche unter die
+     Auflösung gerutscht), eines über drei Pixeln ein Zähleraster. Gefragt wird
+     die Projektion, nicht der Abstand geraten; was kein Pixel fassen kann,
+     fällt auf den Wash zurück — das ist zugleich die Luft perspective der
+     Zeichnung: nah graviert, fern verschliffen. */
+  float pxjeinheit = uRes.y * 0.5 / (uTanY * max(hit, 1.0));
+  float kornwelt = min(0.74, 3.4 / max(pxjeinheit, 1e-3));
+  float kornpx = kornwelt * pxjeinheit;
+  /* Scherung: ein achsparalleles floor-Raster liegt auf dem Körper als kariertes
+     Feld, und Karo ist eine Maske, kein Zahn. */
+  vec3 korng = p / kornwelt;
+  korng += vec3(korng.y, korng.z, korng.x) * 0.618;
+  /* Der Körper geht in Punkte — aber er geht sie nicht als Ziegel. Das
+     discard-Feld stand auf p*0.25, also vier Welteinheiten Masche, und das sind
+     bei der Nähe dieser Szene achtzehn Pixel kariertes Loch; die Silhouette war
+     in Rechtecke zerlegt. Neu: dieselbe feine Scherbasis, die Schwelle wandert
+     mit uDissolve durch das Feld, und der Rest ist Deckung, nicht Loch. Bei
+     uDissolve 0 ist der Preis ein Vergleich. */
+  float zerfall = 1.0;
+  if (uDissolve > 0.0) {
+    float bleibt = smoothstep(uDissolve - 0.26, uDissolve + 0.26, hash33(floor(korng)));
+    zerfall = mix(1.0, bleibt, min(1.0, uDissolve * 1.7));
+  }
+  /* Die Deckung folgt derselben Schale wie der Ton: innen lässt sie das
+     Geflecht auf der Rückseite durch, am Rand steht sie dicht. */
+  float a = mix(0.62, 1.0, schale) * uAlpha * cm * ef * gf *
     smoothstep(rs * 2.5, rs * 5.0, bdd) *
     (1.0 - 0.34 * clamp(uDissolve, 0.0, 1.0)) *
-    (1.0 - 0.22 * clamp(uWire, 0.0, 1.0));
+    (1.0 - 0.22 * clamp(uWire, 0.0, 1.0)) * zerfall;
+  /* Auf Elfenbein ist das Medium der Strich, nicht die Fläche. Wie steil die
+     Rampe auch ist: ein geglätteter Körper bleibt auf Papier Plastik, weil die
+     Schattenseite nicht tiefer kann als papier·(1 − deckung). Körnung löst das
+     an beiden Enden zugleich — ein Korn liegt voll Tinte auf dem Blatt, das
+     Blatt zwischen den Körnern bleibt ungedruckt. Die Dichte folgt dem Ton,
+     trägt also dieselbe Modellierung, die der Wash schon hatte. Der Dunkelwert
+     wird aus col geholt, nicht aus dif: col kennt Rand, Glanz und Nebel schon. */
+  float ton = clamp(dot(col, vec3(0.2126, 0.7152, 0.0722)), 0.0, 1.0);
+  float klar = smoothstep(1.25, 2.6, kornpx);
+  float deckung = smoothstep(1.02 - ton, 0.72 - ton, hash33(floor(korng)));
+  /* Die Körnung darf den Ton nur *skaliert* haben, dann bleibt sie unsichtbar:
+     bei einer Deckung von einem halben macht der Unterschied zwischen Korn und
+     Lücke elf Helligkeitsstufen aus, und das Auge liest wieder eine Fläche. Also
+     trägt sie den Ton selbst — die Obergrenze ist das Tuschefeld, die Deckung
+     entscheidet, wie viel davon auf dem Blatt liegt. Der Rest Wash bleibt als
+     Grund, damit die Silhouette nicht in der Lichtseite auflöst. */
+  float obergrenze = min(0.94, a * 2.3);
+  a = mix(a, (0.18 + 0.82 * deckung) * obergrenze, klar * (1.0 - uDark));
   /* On ivory the stone is a shadow that has been dropped into the paper, and a
      shadow has no business being solid: at full alpha the body turns into a flat
-     slab and the midtones that carry its shape are cut off. It can still carry
-     more weight than the first pass gave it, because the shadow floor below is
-     deep enough to keep a lit side and a dark one apart — the ceiling buys the
-     mass back without losing the form. On ink it is a lit body in a dark room
-     and is allowed to reach full brightness. */
-  frag = vec4(col, min(a, mix(0.72, 1.0, uDark)));
+     slab and the midtones that carry its shape are cut off. Since the depth is
+     now carried by the grain, the ceiling is only a ceiling — it has to let a
+     full kernel through, or the shadow side stays a gray veil. On ink it is a
+     lit body in a dark room and is allowed to reach full brightness. */
+  frag = vec4(col, min(a, mix(0.94, 1.0, uDark)));
 }`;
 
     var VS_P = `#version 300 es
@@ -5544,6 +5810,7 @@ uniform float uThreadK;
 uniform float uTime;
 uniform float uDark;
 uniform float uWire;
+uniform float uVel;
 ` + CLEAR_GLSL + `
 out vec4 frag;
 void main() {
@@ -5571,7 +5838,27 @@ void main() {
     spur * 1.15 + kopf * 2.2) * cm;
   /* the same arithmetic as the dust: a hairline is one pixel wide, and on ivory a
      hairline has to be dark enough to see, not merely present */
-  al *= mix(1.9, 1.0, uDark) * (1.0 + 1.15 * clamp(uWire, 0.0, 1.0));
+  /* Der Faktor war 1,9 gegen 1,0, und die Begründung hieß: Tinte auf Elfenbein
+     muss dunkel genug sein, Schiefer auf Tinte nicht hell. Richtig ist, dass ein
+     Haarstrich in beide Richtungen gleich dünn ist — die 1,0 war keine Korrektur,
+     sondern eine Unterbelichtung. Szene 7 (der Bauplan) steht im Hellen als
+     Zeichnung und im Dunkeln als leeres Feld, gemessen bei gleichem uAlphaGain.
+     Auf 1,5: die Striche führen im Dunkeln mit, ohne dass die Bahn über die
+     Schlagzeile wächst. */
+  al *= mix(1.9, 1.5, uDark) * (1.0 + 1.15 * clamp(uWire, 0.0, 1.0));
+  /* Die Bahn ist die Geschwindigkeit, nicht das Ornament. Zwanzundzwanzig
+     Ringe und sechzehn Schienen hängen an einer Ellipse von 470 Einheiten —
+     im Flug ist das die einzige Information, die ein Partikelfeld nicht
+     tragen kann, wie schnell man unterwegs ist und nach welche Seite sich die
+     Welt dreht. Am Stand aber steht die Kamera still, und dieselben Linien
+     legen sich als fertiges Gitter über den Körper, der die Szene ist: ein
+     technisches Platzhalterbild hinter der Schlagzeile. Darum geht die Bahn
+     mit der Geschwindigkeit ein und mit dem Stillstand aus. Erkannt wird sie
+     an ihrem Radius, nicht an einer FLAGS-Spur im Puffer — die Geometrie, die
+     hier wohnt, ist selbst die Antwort. */
+  float bahn = 1.0 - smoothstep(0.90, 1.02,
+    length(vP.xy / vec2(470.0, 291.4)));
+  al *= mix(1.0, mix(0.16, 1.0, smoothstep(0.015, 0.13, uVel)), bahn);
   if (al < 0.004) discard;
   vec3 base = vTone < 0.5 ? mix(uInk, uSlate, vTone * 2.0) : mix(uSlate, uClay, (vTone - 0.5) * 2.0);
   base = mix(base, mix(uInk, uHot, uDark), heben * 0.8);
@@ -5704,7 +5991,7 @@ void main() {
     var uB = uni(pB, ['uRes', 'uTime', 'uCam', 'uRoll', 'uVel', 'uDens', 'uDark', 'uInk', 'uSlate', 'uClay', 'uHot', 'uHoleN', 'uHole[0]']);
     var uM = uni(pM, ['uRes', 'uEye', 'uR', 'uU', 'uF', 'uTanX', 'uTanY', 'uBallN', 'uBall[0]', 'uOrg[0]', 'uOrgN', 'uOrgF[0]', 'uBound', 'uAlpha', 'uDark', 'uPaper', 'uInk', 'uSlate', 'uClay', 'uHot', 'uFlat', 'uDamp', 'uDissolve', 'uWire', 'uHoleN', 'uHole[0]']);
     var uP = uni(pP, ['uView', 'uProj', 'uReveal', 'uTime', 'uFocal', 'uFogK', 'uDrift', 'uInk', 'uSlate', 'uClay', 'uDark', 'uGlowK', 'uHit[0]', 'uHitGlut[0]', 'uHitN', 'uHitLift', 'uSearch', 'uSuchK', 'uHot', 'uRes', 'uHoleN', 'uHole[0]']);
-    var uL = uni(pL, ['uView', 'uProj', 'uReveal', 'uRevealK', 'uFogK', 'uDrift', 'uInk', 'uSlate', 'uClay', 'uHot', 'uPkt', 'uTime', 'uDark', 'uWire', 'uThreadT', 'uThreadK', 'uHit[0]', 'uHitGlut[0]', 'uHitN', 'uHitLift', 'uSearch', 'uSuchK', 'uRes', 'uHoleN', 'uHole[0]']);
+    var uL = uni(pL, ['uView', 'uProj', 'uReveal', 'uRevealK', 'uFogK', 'uDrift', 'uInk', 'uSlate', 'uClay', 'uHot', 'uPkt', 'uTime', 'uDark', 'uWire', 'uThreadT', 'uThreadK', 'uVel', 'uHit[0]', 'uHitGlut[0]', 'uHitN', 'uHitLift', 'uSearch', 'uSuchK', 'uRes', 'uHoleN', 'uHole[0]']);
     var uR = uni(pR, ['uView', 'uProj', 'uFogK', 'uRing', 'uRechts', 'uHoch', 'uVor',
       'uRingT', 'uRingK', 'uDicke', 'uInk', 'uSlate', 'uClay', 'uHot', 'uDark',
       'uRes', 'uHoleN', 'uHole[0]']);
@@ -6942,15 +7229,14 @@ window.addEventListener('scroll', function () {
          the damping stays: it is what keeps a scroll jitter off the horizon. */
       roll = damp(roll, key ? key.roll : Math.max(-0.15, Math.min(0.15, -lat * 0.0016)), 3.2, dt);
       updateMass(eye, time, Math.min(1, vel * 1.5), hero);
-      /* The hero is the headline and the live graph, and a body the size of a
-         torso drifting behind them is the one thing that would spoil both. The
-         mass belongs to the flight, so it enters after the first station — and
-         weightless here means the march is skipped, not drawn at alpha zero. */
-      var mIn = Math.max(0, Math.min(1, (uCur - 0.045) / 0.095));
-      massA *= mIn * mIn * (3 - 2 * mIn);
-      /* and where no berth is left the body is not drawn faintly across the words,
-         it is simply not there: the evidence table is the one screen that has to
-         survive on its own. */
+      /* Kein Fenster mehr, in dem die Masse bis zur ersten Station schlicht
+         nicht existiert: die Regie lässt die Kamera schon bei u=0.03 auf dem
+         Schlüssel von Szene 1 stehen (travel = 0.3 von SPAN[0]), der Leser hält
+         also bei 68 % Füllgrad — und genau dort war der Körper auf Null
+         gezwungen. Der Hero war ein leeres Drahtgitter.
+         Was den Satz schützt, sind die zwei Tore unten: sie messen die echte
+         Typografie im Rahmen (AIM.open, AIM.load) und das clearMask unter den
+         Glyphen, nicht ein auf 0.045 gesetztes u. */
       AIM.x = damp(AIM.x, AIM.tx, 1.6, dt);
       AIM.y = damp(AIM.y, AIM.ty, 1.6, dt);
       var og = Math.max(0, Math.min(1, (AIM.open - 0.08) / 0.46));
@@ -7049,11 +7335,18 @@ window.addEventListener('scroll', function () {
       var drift = live ? 1 : 0;
 
       /* The pass owns the buffer, this clear and this blend when it is on;
-         when it is off the five lines are the page exactly as it was written. */
+         when it is off the five lines are the page exactly as it was written.
+         Der Blend ist getrennt: RGB wie gehabt, Alpha aufaddiert. Ueber der
+         transparent geschwaerzten Canvas wuerde SRC_ALPHA die Deckung
+        quadrieren; eine zu kleine Deckung laesst das Browser-Composite zu
+         viel Elfenbein nachziehen, und duenne Kanten werden heller als das
+         Papier. */
       var pass = scenePass.begin(W, H, DPR);
       if (!pass) {
         gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.enable(gl.BLEND);
+        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA,
+          gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         gl.disable(gl.DEPTH_TEST);
       }
       /* uRes is the size of whatever is being drawn into and uFocal follows
@@ -7210,6 +7503,7 @@ window.addEventListener('scroll', function () {
       gl.uniform1f(uL.uSuchK, latK);
       gl.uniform1f(uL.uThreadK, fadenK);
       gl.uniform1f(uL.uThreadT, fadenT);
+      gl.uniform1f(uL.uVel, vel);
       gl.uniform1f(uL.uHitLift, LAT.heben);
       gl.uniform1f(uL.uHitN, LAT.n);
       gl.uniform4fv(uL["uHit[0]"], LAT.hit);
