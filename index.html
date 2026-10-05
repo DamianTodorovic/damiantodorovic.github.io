@@ -2791,9 +2791,13 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
     labels: { hubs: 'all', max: 8 },
     hud: { step: '[ RETAINER ] 6/7', number: '112 Tage · 1687 Einheiten', ref: 'fakten.md#sz-6' },
     sentence: { slot: 's6', section: 'playground', at: [0.02, 0.94] },
-    /* Der Playground ist die Laterne: die Eingabe schreibt uSearch, die
-     * Antwort ist Bewegung in der Welt. Daten dazu aus Abschnitt 3, Szene 3. */
-    interactive: { input: '#memsearch', drives: ['uSearch', 'uHit'] }
+    /* Laterne, Hero-Suche und Playground sind dieselbe Maschine: alle drei
+       rufen searchEngine(). Verbunden sind sie dadurch nicht — die Eingabe des
+       Lesers (#pgq) schreibt die Liste unter ihr, die Laterne über ihr fragt
+       die uQuery der Regie. Ein Feld, das eine Verbindung behauptet, die
+       niemand zieht, ist ein Wunschzettel, keine Beschreibung. */
+    interactive: { input: '#pgq', drives: ['#pglist', '#pglegs', '#pgms'],
+      engine: 'searchEngine' }
   },
   {
     id: 7, name: 'Proof', claim: 'Zahlen, Belege, Preis',
