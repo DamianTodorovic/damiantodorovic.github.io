@@ -258,18 +258,22 @@
     box-shadow:var(--sh-nav);
   }
   /* Über der Bühne ist die Masthead kein Balken, sondern ein Grat. Ein Körper,
-     der bei Szene 2, 3 und 5 nach oben durch das Bild läuft, endete bisher an
-     einer gezeichneten Linie: Scheibe, border-bottom, Schatten — drei Striche,
-     die einen Ausschnitt behaupten, wo die Welt weitergeht. Darum über der
-     Bühne: keine Scheibe, keine Linie, kein Schatten, stattdessen dieselbe
-     Fläche bis auf die Höhe der Zeilen und dann in 118 px stufenlos in die
-     Bühne auslaufend. Die Lesbarkeit bleibt, weil die Fläche bis unter die
-     Links noch dicht ist; nur der Schnitt ist einer. */
-  html.flug header.masthead.pinned{
+     der bei Szene 2, 3 und 5 nach oben durch das Bild läuft, endete an einer
+     gezeichneten Linie: Scheibe, border-bottom, Schatten — drei Striche, die
+     einen Ausschnitt behaupten, wo die Welt weitergeht. Darum: keine Scheibe,
+     keine Linie, kein Schatten, stattdessen dieselbe Fläche bis auf die Höhe
+     der Zeilen und dann in 118 px stufenlos in die Bühne auslaufend.
+
+     Der Grat gilt, solange die Bühne läuft, nicht nur im Flug. Ab PAPER liest
+     jemand das Papier, und hinter ihm zeichnet die Welt weiter; eine Glasplatte
+     mit harter Kante über einer bewegten Fläche war in Akt 1 der Fehler, und in
+     Akt 2 ist er derselbe. Die Fläche ist oben dichter als die alte Scheibe
+     (0,96 gegen 0,62), die Lesbarkeit gewinnt also, nur die Kante verliert sie. */
+  html:not(.no-3d) header.masthead.pinned{
     background:transparent; border-bottom-color:transparent; box-shadow:none;
     -webkit-backdrop-filter:none; backdrop-filter:none;
   }
-  html.flug header.masthead.pinned::before{
+  html:not(.no-3d) header.masthead.pinned::before{
     content:""; position:absolute; left:0; right:0; top:0; height:190px; z-index:-1;
     background:linear-gradient(180deg, var(--mast-a) 0, var(--mast-a) 72px, var(--mast-b) 100%);
     pointer-events:none;
