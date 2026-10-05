@@ -4317,8 +4317,15 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
          its own opacity a second time and the whole flight renders at alpha squared.
          On ivory that only reads as a faint world; on ink it deleted the organs,
          which are lit bodies on a dark page and came back as a barely-there stain. */
+      /* Die Kante gehört in den Puffer, nicht in den Bildschirm: das Antialiasing
+         des Rahmenwerks würde nur das eine Dreieck glätten, mit dem der Composite
+         auf den Bildschirm zeichnet — das hat keine Geometriekante. Die Kanten,
+         die hier zählen, entstehen im Offscreen-Puffer durch einen mehrfach
+         genommenen Renderbuffer (scenePass, ~4785) mit eigener Sample-Zahl.
+         Mit antialias:true zahlte die Seite auf Retina jeden Frame einen
+         Multisample-Backbuffer und dessen Auflösen für nichts. */
       gl = cv.getContext('webgl2', {
-        alpha: true, depth: false, antialias: true,
+        alpha: true, depth: false, antialias: false,
         premultipliedAlpha: true, powerPreference: 'high-performance'
       });
     } catch (e) { gl = null; }
