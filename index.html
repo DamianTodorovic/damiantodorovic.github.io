@@ -4374,6 +4374,16 @@ var scenePass = (function () {
 uniform vec2 uRes;
 uniform float uHoleN;
 uniform vec4 uHole[16];
+/* uClearK sagt, wie viel von der Schwelle die Löcher noch durchlassen. 0 ist
+   der alte Zustand: das Programm mischt im Loch auf seine Grundzahl hoch, und
+   die Welt behält 34 bis 42 % einer Haarlinie unter den Lettern. Für Akt 1 ist
+   das richtig — dort ist die Welt das Sujet, und ein Faden, der hinter einer
+   Schlagzeile weiterläuft, beweist, dass sie keine Folie ist. Akt 2 erbt diese
+   Werte nur, und dort ist die Welt Wasserzeichen und der Text das Sujet. Also
+   ein Faktor, den die Seite aus derselben Zahl gewinnt, die auch den Akt
+   schaltet: je tiefer im Papier, desto weniger darf die Linie durch die Zeile. */
+uniform float uClearK;
+float clearFloor(float base) { return base * (1.0 - uClearK); }
 float clearMask(vec2 s) {
   float m = 1.0;
   vec2 ar = vec2(uRes.x / max(uRes.y, 1.0), 1.0);
@@ -4688,7 +4698,7 @@ void main() {
      der Kern-Konus bleibt als Rest */
   float a = (1.0 - smoothstep(0.30 + vE * 0.22, 0.64 + vE * 0.20, r)) * 0.78 +
             pow(1.0 - r, 3.0) * 0.62 * (1.0 - vE * 0.62);
-  float al = a * vFog * vGlow * mix(0.34, 1.0, clearMask(gl_FragCoord.xy / uRes * 2.0 - 1.0));
+  float al = a * vFog * vGlow * mix(clearFloor(0.34), 1.0, clearMask(gl_FragCoord.xy / uRes * 2.0 - 1.0));
   al *= mix(2.1, 1.0, uDark);
   al *= mix(1.0, 0.86, vE);
   if (al < 0.004) discard;
@@ -4895,10 +4905,10 @@ void main() {
       S.uBlur = uni(S.pBlur, ['uSrc', 'uDir']);
       S.uComp = uni(S.pComp, ['uScene', 'uBloom', 'uRes', 'uPx', 'uBloomAmt', 'uAlphaFollow',
         'uCeil', 'uPaperGuard', 'uGuardSharp', 'uDark', 'uCrisp', 'uFocus', 'uFocusR', 'uFocusK',
-        'uMaxBlur', 'uAsp', 'uMCenter', 'uMotion', 'uMotionTaps', 'uHoleN', 'uHole[0]']);
+        'uMaxBlur', 'uAsp', 'uMCenter', 'uMotion', 'uMotionTaps', 'uHoleN', 'uHole[0]', 'uClearK']);
       S.uPart = uni(S.pPart, ['uView', 'uProj', 'uFocal', 'uFogK', 'uPhase', 'uSpread', 'uSwirl',
         'uSizeK', 'uOrigin', 'uInk', 'uSlate', 'uClay', 'uHot', 'uDark', 'uHotMix',
-        'uRes', 'uHoleN', 'uHole[0]']);
+        'uRes', 'uHoleN', 'uHole[0]', 'uClearK']);
 
       S.vaoEmpty = gl.createVertexArray();
       S.vaoPart = gl.createVertexArray();
@@ -5045,6 +5055,7 @@ void main() {
       gl.uniform1f(S.uComp.uMotion, S.motionOn && m && o.motion !== false ? Math.max(0, Math.min(1, m.amount || 0)) : 0);
       gl.uniform1f(S.uComp.uMotionTaps, m && m.taps ? m.taps : 6);
       gl.uniform1f(S.uComp.uHoleN, o.holeN || 0);
+      gl.uniform1f(S.uComp.uClearK, o.clearK || 0);
       if (o.holes) gl.uniform4fv(S.uComp['uHole[0]'], o.holes);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
 
@@ -5136,6 +5147,7 @@ void main() {
       gl.uniform1f(S.uPart.uHotMix, o.hotMix == null ? 0.3 : o.hotMix);
       gl.uniform2f(S.uPart.uRes, res[0], res[1]);
       gl.uniform1f(S.uPart.uHoleN, o.holeN || 0);
+      gl.uniform1f(S.uPart.uClearK, o.clearK || 0);
       if (o.holes) gl.uniform4fv(S.uPart['uHole[0]'], o.holes);
       gl.drawArrays(gl.POINTS, first || 0, count);
       gl.bindVertexArray(null);
@@ -5203,6 +5215,16 @@ void main() {
 uniform vec2 uRes;
 uniform float uHoleN;
 uniform vec4 uHole[16];
+/* uClearK sagt, wie viel von der Schwelle die Löcher noch durchlassen. 0 ist
+   der alte Zustand: das Programm mischt im Loch auf seine Grundzahl hoch, und
+   die Welt behält 34 bis 42 % einer Haarlinie unter den Lettern. Für Akt 1 ist
+   das richtig — dort ist die Welt das Sujet, und ein Faden, der hinter einer
+   Schlagzeile weiterläuft, beweist, dass sie keine Folie ist. Akt 2 erbt diese
+   Werte nur, und dort ist die Welt Wasserzeichen und der Text das Sujet. Also
+   ein Faktor, den die Seite aus derselben Zahl gewinnt, die auch den Akt
+   schaltet: je tiefer im Papier, desto weniger darf die Linie durch die Zeile. */
+uniform float uClearK;
+float clearFloor(float base) { return base * (1.0 - uClearK); }
 float clearMask(vec2 s) {
   /* The feather is an absolute distance, not a fraction of the rectangle. With a
      proportional one a text line — a box a twentieth of the frame tall — gets a
@@ -5291,7 +5313,7 @@ void main() {
      Feeding it the aspect-stretched s below was a silent bug, and so was reading
      vUv as if it ran to 2: every hole came out half as wide as its sentence and
      a quarter of a frame off toward the top-right corner. */
-  float a = m * uDens * mix(0.34, 1.0, clearMask(vUv * 2.0 - 1.0));
+  float a = m * uDens * mix(clearFloor(0.34), 1.0, clearMask(vUv * 2.0 - 1.0));
   if (a < 0.003) discard;
   vec3 light = mix(uSlate, uInk, smoothstep(0.15, 0.85, m));
   /* The densest part of a wash on paper is not a deeper shadow, it is where the
@@ -5440,7 +5462,7 @@ void main() {
      is a theme decision. On ink a body at three tenths still lifts off black; on
      ivory the same three tenths is a pale wash, and the stone lost all of its
      weight exactly where no sentence is standing to be protected. */
-  float cm = mix(mix(0.52, 0.30, uDark), 1.0, clearMask(ndc));
+  float cm = mix(clearFloor(mix(0.52, 0.30, uDark)), 1.0, clearMask(ndc));
   float tm = max(iv.x, 1.5);
   float hit = -1.0;
   if (iv.y > 0.0) {
@@ -5750,7 +5772,7 @@ void main() {
   float a = (1.0 - smoothstep(0.30, 0.64, r)) * 0.78 + pow(1.0 - r, 3.0) * 0.62;
   /* Die Maske gilt auch für die Hebung. Ein Knoten hinter dem Satz ist Welt
      und keine Ebene über ihr: die Leserebene räumt, auch vor einem Fund. */
-  float cm = mix(0.34, 1.0, clearMask(gl_FragCoord.xy / uRes * 2.0 - 1.0));
+  float cm = mix(clearFloor(0.34), 1.0, clearMask(gl_FragCoord.xy / uRes * 2.0 - 1.0));
   float heben = clamp(vLift + vGlut * 0.7 + vLit * 0.45, 0.0, 1.0) * cm;
   float al = a * vFog * (vGlow + heben * 0.55) * cm;
   /* A one-pixel mark at five hundredths is a glimmer against ink and nothing at all
@@ -5864,7 +5886,7 @@ void main() {
   float tt = clamp(uThreadT, 0.0, 1.0);
   float spur = (1.0 - smoothstep(tt, tt + 0.05, vS)) * f;
   float kopf = exp(-pow((vS - tt) * 11.0, 2.0)) * f;
-  float cm = mix(0.42, 1.0, clearMask(gl_FragCoord.xy / uRes * 2.0 - 1.0));
+  float cm = mix(clearFloor(0.42), 1.0, clearMask(gl_FragCoord.xy / uRes * 2.0 - 1.0));
   float heben = clamp(vLift + vGlut * 0.7, 0.0, 1.0) * cm;
   /* spur und kopf gehen NICHT durch uPkt: der gelegte Faden ist ein Zustand,
      keine Animation, und ein Standbild ohne ihn wäre ein anderes Bild. */
@@ -5978,7 +6000,7 @@ void main() {
   float kant = max(band * vergangen, spur * (1.0 - vergangen));
   /* Auch die Skala räumt der Schrift: ein Zeiger, der durch einen Satz
      liegt, ist eine Linie über einem Wort. */
-  float cm = mix(0.42, 1.0, clearMask(gl_FragCoord.xy / uRes * 2.0 - 1.0));
+  float cm = mix(clearFloor(0.42), 1.0, clearMask(gl_FragCoord.xy / uRes * 2.0 - 1.0));
   float al = (kant * 0.9 + marke * 0.75 + punkt) * cm *
     clamp(uRingK, 0.0, 1.0) * mix(0.62, 1.0, vNeb);
   al *= mix(1.25, 1.0, uDark);
@@ -6022,13 +6044,13 @@ void main() {
     var pB = program(VS_B, FS_B), pM = program(VS_B, FS_M), pP = program(VS_P, FS_P), pL = program(VS_L, FS_L);
     var pR = program(VS_R, FS_R);
     if (!pB || !pM || !pP || !pL || !pR) { off(); return; }
-    var uB = uni(pB, ['uRes', 'uTime', 'uCam', 'uRoll', 'uVel', 'uDens', 'uDark', 'uInk', 'uSlate', 'uClay', 'uHot', 'uHoleN', 'uHole[0]']);
-    var uM = uni(pM, ['uRes', 'uEye', 'uR', 'uU', 'uF', 'uTanX', 'uTanY', 'uBallN', 'uBall[0]', 'uOrg[0]', 'uOrgN', 'uOrgF[0]', 'uBound', 'uAlpha', 'uDark', 'uPaper', 'uInk', 'uSlate', 'uClay', 'uHot', 'uFlat', 'uDamp', 'uDissolve', 'uWire', 'uHoleN', 'uHole[0]']);
-    var uP = uni(pP, ['uView', 'uProj', 'uReveal', 'uTime', 'uFocal', 'uFogK', 'uDrift', 'uInk', 'uSlate', 'uClay', 'uDark', 'uGlowK', 'uHit[0]', 'uHitGlut[0]', 'uHitN', 'uHitLift', 'uSearch', 'uSuchK', 'uHot', 'uRes', 'uHoleN', 'uHole[0]']);
-    var uL = uni(pL, ['uView', 'uProj', 'uReveal', 'uRevealK', 'uFogK', 'uDrift', 'uInk', 'uSlate', 'uClay', 'uHot', 'uPkt', 'uTime', 'uDark', 'uWire', 'uThreadT', 'uThreadK', 'uVel', 'uHit[0]', 'uHitGlut[0]', 'uHitN', 'uHitLift', 'uSearch', 'uSuchK', 'uRes', 'uHoleN', 'uHole[0]']);
+    var uB = uni(pB, ['uRes', 'uTime', 'uCam', 'uRoll', 'uVel', 'uDens', 'uDark', 'uInk', 'uSlate', 'uClay', 'uHot', 'uHoleN', 'uHole[0]', 'uClearK']);
+    var uM = uni(pM, ['uRes', 'uEye', 'uR', 'uU', 'uF', 'uTanX', 'uTanY', 'uBallN', 'uBall[0]', 'uOrg[0]', 'uOrgN', 'uOrgF[0]', 'uBound', 'uAlpha', 'uDark', 'uPaper', 'uInk', 'uSlate', 'uClay', 'uHot', 'uFlat', 'uDamp', 'uDissolve', 'uWire', 'uHoleN', 'uHole[0]', 'uClearK']);
+    var uP = uni(pP, ['uView', 'uProj', 'uReveal', 'uTime', 'uFocal', 'uFogK', 'uDrift', 'uInk', 'uSlate', 'uClay', 'uDark', 'uGlowK', 'uHit[0]', 'uHitGlut[0]', 'uHitN', 'uHitLift', 'uSearch', 'uSuchK', 'uHot', 'uRes', 'uHoleN', 'uHole[0]', 'uClearK']);
+    var uL = uni(pL, ['uView', 'uProj', 'uReveal', 'uRevealK', 'uFogK', 'uDrift', 'uInk', 'uSlate', 'uClay', 'uHot', 'uPkt', 'uTime', 'uDark', 'uWire', 'uThreadT', 'uThreadK', 'uVel', 'uHit[0]', 'uHitGlut[0]', 'uHitN', 'uHitLift', 'uSearch', 'uSuchK', 'uRes', 'uHoleN', 'uHole[0]', 'uClearK']);
     var uR = uni(pR, ['uView', 'uProj', 'uFogK', 'uRing', 'uRechts', 'uHoch', 'uVor',
       'uRingT', 'uRingK', 'uDicke', 'uInk', 'uSlate', 'uClay', 'uHot', 'uDark',
-      'uRes', 'uHoleN', 'uHole[0]']);
+      'uRes', 'uHoleN', 'uHole[0]', 'uClearK']);
     var hP = uP['uHole[0]'], hL = uL['uHole[0]'], hB = uB['uHole[0]'], hM = uM['uBall[0]'], hMh = uM['uHole[0]'];
     if (!hP || !hL || !hB || !hM || !hMh) { off(); return; }
     scenePass.init({ gl: gl, canvas: cv, reduced: reduce });
@@ -7387,7 +7409,14 @@ window.addEventListener('scroll', function () {
          it, so both read the buffer when there is one and the canvas when
          there is not. quality stays 1 until the frame budget says otherwise. */
       var PW = pass ? pass.w : W, PH = pass ? pass.h : H;
-      var OPTS = { dt: dt, dark: C.dark, holeN: holeN, holes: HOLES };
+      /* Die Schwelle der Löcher wächst mit demselben PAPER, das auch den Akt
+         schaltet. Zwei Zahlen, die jemand getrennt pflegt, driften. Bis zur
+         Grenze bleibt der Faktor 0 und die Welt behält ihre alten 34 bis 42 %
+         unter den Lettern; über den letzten acht Prozent der Kamerazeit fährt er
+         hoch, sodass im Papier kaum eine Linie mehr durch eine Zeile zeichnet. */
+      var klar = Math.max(0, Math.min(1,
+        (uCur - REG.PAPER) / Math.max(0.001, 1 - REG.PAPER))) * 0.86;
+      var OPTS = { dt: dt, dark: C.dark, holeN: holeN, holes: HOLES, clearK: klar };
       if (uni && !reduce) {
         /* Die Projektung geht durch mView, also durch dieselbe Achse, die die
            Roll mitdreht — in Szene 7, die den up-Vektor auf z legt, wäre ein
@@ -7446,6 +7475,7 @@ window.addEventListener('scroll', function () {
       gl.uniform3fv(uB.uClay, C.clay);
       gl.uniform3fv(uB.uHot, C.hot);
       gl.uniform1f(uB.uHoleN, holeN);
+      gl.uniform1f(uB.uClearK, klar);
       gl.uniform4fv(hB, HOLES);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
 
@@ -7487,6 +7517,7 @@ window.addEventListener('scroll', function () {
         gl.uniform1f(uM.uDissolve, stoffAuf);
         gl.uniform1f(uM.uWire, stoffDraht);
         gl.uniform1f(uM.uHoleN, holeN);
+      gl.uniform1f(uM.uClearK, klar);
         gl.uniform4fv(hMh, HOLES);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
       }
@@ -7516,6 +7547,7 @@ window.addEventListener('scroll', function () {
       gl.uniform4fv(uP.uSearch, LAT.licht);
       gl.uniform2f(uP.uRes, PW, PH);
       gl.uniform1f(uP.uHoleN, holeN);
+      gl.uniform1f(uP.uClearK, klar);
       gl.uniform4fv(hP, HOLES);
       gl.bindVertexArray(vaoP);
       gl.drawArrays(gl.POINTS, 0, nP);
@@ -7545,6 +7577,7 @@ window.addEventListener('scroll', function () {
       gl.uniform4fv(uL.uSearch, LAT.licht);
       gl.uniform2f(uL.uRes, PW, PH);
       gl.uniform1f(uL.uHoleN, holeN);
+      gl.uniform1f(uL.uClearK, klar);
       gl.uniform4fv(hL, HOLES);
       FADEN.k = fadenK; FADEN.t = fadenT;
       gl.bindVertexArray(vaoL);
@@ -7577,6 +7610,7 @@ window.addEventListener('scroll', function () {
         gl.uniform1f(uR.uDark, C.dark);
         gl.uniform2f(uR.uRes, PW, PH);
         gl.uniform1f(uR.uHoleN, holeN);
+      gl.uniform1f(uR.uClearK, klar);
         gl.uniform4fv(uR["uHole[0]"], HOLES);
         gl.bindVertexArray(vaoR);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
