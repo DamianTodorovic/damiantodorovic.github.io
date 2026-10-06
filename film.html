@@ -618,7 +618,7 @@ var NS=ST.length;
 /* Wie weit der Körper gebaut ist, und wie das Blatt belichtet wird.
    Die Adern sind an den Haltepunkten schmal — dort gehört der Rahmen dem Text —
    und schwellen im Flug an: der Körper atmet mit der Geschwindigkeit. */
-var ZUST=[0.30,0.36,0.44,0.38,0.33,0.28];
+var ZUST=[0.52,0.62,0.74,0.66,0.58,0.48];
 var BEL =[1.00,0.988,1.028,0.996,0.986,1.020];
 for(var s0=0;s0<NS;s0++){
   ST[s0].z=-s0*ABST;
@@ -794,7 +794,7 @@ function licht(){
   var VS="attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}";
   var FS=[
   "precision highp float;",
-  "uniform vec2 uR;uniform vec3 uC;uniform float uAsp,uRoll,uT,uV,uZ,uM,uB;",
+  "uniform vec2 uR;uniform vec3 uC;uniform float uAsp,uRoll,uT,uV,uZ,uM,uB,uKorn;",
   "float h1(float n){return fract(sin(n)*43758.5453123);}",
   "float h21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}",
   "vec3 h3(float n){return fract(sin(vec3(n,n+1.7,n+3.3))*vec3(43758.5453,12345.678,23421.63));}",
@@ -807,56 +807,109 @@ function licht(){
   /* EIN Körper für den ganzen Film: zwei verseilte Adern auf einer wandernden
      Achse, die die Kamera entlangfliegt. Kein Monument steht je hinter dem
      Text fest — die Adern ziehen durchs Bild und wieder heraus. */
+  /* Farbraum: gemalt wird in sRGB, gerechnet in linear, am Ende die Kurve und
+     erst dann die Kodierung. Wer das überspringt, mischt auf einer Skala, die
+     near black zerdrückt — das ist das Streifenziehen in den dunklen Ecken. */
+  "vec3 s2l(vec3 c){return pow(c,vec3(2.2));}",
+  "float e2f(float c){return c<=0.0031308?c*12.92:1.055*pow(c,0.41666)-0.055;}",
+  "vec3 l2s(vec3 c){return vec3(e2f(c.r),e2f(c.g),e2f(c.b));}",
+
   "float sminw(float a,float b,float k){float q=clamp(.5+.5*(b-a)/k,0.,1.);return mix(b,a,q)-k*q*(1.-q);}",
   "float korper(vec3 p,float cid){",
   " float z=p.z, b=.24+.76*uZ;",
   " vec2 a1=vec2(sin(z*.0016)*300.,cos(z*.0011)*170.);",
-  " float r1=(78.+58.*sin(z*.0034)+26.*sin(z*.0091+1.7))*b;",
-  " float d=length(p.xy-a1)-max(r1,7.);",
+  " float r1=(74.+46.*sin(z*.0034)+22.*sin(z*.0091+1.7))*b;",
+  " float d=length(p.xy-a1)-max(r1,4.);",
   " vec2 a2=vec2(sin(z*.0016+2.1)*300.,cos(z*.0011+2.1)*170.);",
-  " float r2=(33.+22.*sin(z*.0052+.6))*b;",
-  " d=sminw(d,length(p.xy-a2)-max(r2,5.),96.);",
+  " float r2=(34.+21.*sin(z*.0052+.6))*b;",
+  " d=sminw(d,length(p.xy-a2)-max(r2,3.),74.);",
   " vec2 a3=vec2(sin(z*.0016+4.2)*300.,cos(z*.0011+4.2)*170.);",
-  " float r3=(24.+17.*sin(z*.0067+2.));",
-  " d=sminw(d,length(p.xy-a3)-max(r3*b,4.),78.);",
+  " float r3=(25.+16.*sin(z*.0067+2.));",
+  " d=sminw(d,length(p.xy-a3)-max(r3*b,2.5),62.);",
   " return d;}",
   "float map(vec3 p){return korper(p,0.);}",
   "vec3 norm(vec3 p){vec2 e=vec2(1.7,0.);",
   " return normalize(vec3(map(p+e.xyy)-map(p-e.xyy),map(p+e.yxy)-map(p-e.yxy),map(p+e.yyx)-map(p-e.yyx)));}",
+  /* Weicher Schatten aus dem March selbst: der kleinste Wert von Höhe /
+     Entfernung entlang des Lichtwegs ist die Halbschattenbreite. Das ist der
+     stärkste einzelne Unterschied zwischen „CG" und „fotografiert". */
+  "float weich(vec3 p,vec3 L){",
+  " float t=9.,res=1.;",
+  " for(int i=0;i<16;i++){",
+  "  float h=map(p+L*t);",
+  "  res=min(res,13.*h/t);",
+  "  t+=max(h,11.);",
+  "  if(res<0.004||t>1100.)break;}",
+  " res=clamp(res,0.,1.);",
+  " float s=0.25*(1.+res)*(1.+res)*(2.-res);",
+  " return 0.16+0.84*s;}",
   "void main(){",
   " vec2 sp=(gl_FragCoord.xy-.5*uR)/uR.y;",
   " vec3 rd=normalize(vec3(sp.x,sp.y,-uAsp));",
   " float cr=cos(uRoll),sr=sin(uRoll);rd.xy=mat2(cr,-sr,sr,cr)*rd.xy;",
   " vec3 L=normalize(vec3(cos(uT*.13)*.85,.52+.26*sin(uT*.09),sin(uT*.13)*.85-.35));",
-  " vec3 papier=mix(vec3(.966,.958,.939),vec3(.921,.906,.874),smoothstep(.04,.96,length(sp*vec2(.95,1.))));",
+  " vec3 papier=s2l(mix(vec3(.966,.958,.939),vec3(.921,.906,.874),smoothstep(.04,.96,length(sp*vec2(.95,1.)))));",
   " papier*=.988+.012*sin(gl_FragCoord.x*.07)*sin(gl_FragCoord.y*.061);",
-  " float t=8.,glo=0.;float hit=0.;",
+  /* Der Welt-Fußabstand eines Bildpunkts wächst mit der Entfernung; daraus
+     folgt die Kante — ohne raten und ohne Überabtastung. uAsp*uR.y ist die
+     Brennweite in Gerätenpixeln. */
+  " float t=8.,cov=0.;vec3 ph=uC;",
   " for(int i=0;i<46;i++){",
   "  vec3 p=uC+rd*t;float d=map(p);",
-  "  float adv=max(d,7.);",
-  "  glo+=exp(-max(d,0.)/72.)*adv*.016;",
-  "  if(d<2.2){hit=1.;break;}",
-  "  t+=adv;if(t>3600.)break;}",
+  "  float pix=t/(uAsp*uR.y);",
+  /* Schwelle und Kantenband sind dieselbe Größe: die Kugelverfolgung hält
+     an, sobald die Distanz unter einen halben Bildpunkt fällt, und die
+     Deckung ist genau dieser Rest. Ein Boden, der größer ist als der
+     Bildpunkt, ließ bei hoher Stufe alles durchsichtig werden. */
+  "  float rand=max(pix*.5,0.3);",
+  /* Kein Leuchten aus dem March: eine Aufweitung ohne räumliche Unterstützung
+     liest als Halo und — geometrisch abgetastet — als konzentrische Ringe.
+     echtes Leuchten braucht einen eigenen Pass über die fertige Fläche. */
+  "  float vor=max(d*.72,rand);",
+    /* Die Deckung darf nicht aus der Restdistanz kommen: die Konvergenz des
+     March ist geometrisch, ihre Werte springen um Faktor drei — das ergibt
+     konzentrische Banden, keine Kante. Scharf getroffen ist getroffen. */
+  "  if(d<rand){ph=p;cov=1.;break;}",
+  /* Vorschreiten nach der Distanz selbst, nicht nach der Schwelle: die
+     Distanzfeld-Schrittweite ist das, was den March schnell macht. */
+  /* Die Achse wandert mit der Tiefe, das Feld ist deshalb kein exaktes
+     Distanzfeld: sein Gradient beträgt bis zu 1,3. Ohne diesen Dämpfer
+     springt die Verfolgung über die Fläche hinweg und es entstehen Ringe
+     statt einer Haut. */
+  "  t+=vor;if(t>3600.)break;}",
   " vec3 col=papier;",
-  " if(hit>.5){",
-  "  vec3 p=uC+rd*t;vec3 n=norm(p);",
-  "  float dif=max(dot(n,L),0.);",
-  "  float ao=clamp(1.-glo*.62,.30,1.);",
+  " if(cov>0.002){",
+  "  vec3 n=norm(ph);",
+  "  float sh=weich(ph+n*5.,L);",
+  "  float dif=max(dot(n,L),0.)*sh;",
+  "  float ao=0.70+0.30*sh;",
   "  float rim=pow(1.-max(dot(n,-rd),0.),2.3);",
-  "  float spe=pow(max(dot(reflect(rd,n),L),0.),34.);",
-  "  float adern=pow(max(.28+.34*(sin(p.x*.019+p.y*.013)+sin(p.z*.021-uT*.5)),0.),2.2);",
-  "  vec3 grund=mix(vec3(.048,.055,.070),vec3(.205,.098,.094),.22+.5*adern);",
-  "  col=grund*(.10+1.15*dif*ao)+vec3(1.12,1.08,1.0)*spe*1.25*ao;",
-  "  col+=vec3(.70,.16,.14)*rim*(.50+.5*ao)*(.45+.55*uZ);",
-  "  col+=vec3(.94,.70,.46)*adern*(.05+.40*uZ)*ao;",
-  "  col=mix(papier,col,1.-smoothstep(800.,3600.,t));",
+  "  float spe=pow(max(dot(reflect(rd,n),L),0.),34.)*sh;",
+  "  float adern=pow(max(.28+.34*(sin(ph.x*.019+ph.y*.013)+sin(ph.z*.021-uT*.5)),0.),2.2);",
+  "  vec3 grund=s2l(mix(vec3(.048,.055,.070),vec3(.205,.098,.094),.22+.5*adern));",
+  "  vec3 c=grund*(.10+1.30*dif*ao)+vec3(1.30,1.25,1.15)*spe*1.6*ao;",
+  "  c+=s2l(vec3(.70,.16,.14))*rim*(.50+.5*ao)*(.45+.55*uZ);",
+  "  c+=s2l(vec3(.94,.70,.46))*adern*(.05+.40*uZ)*ao;",
+  "  col=mix(papier,c,(1.-smoothstep(800.,3600.,t))*cov);",
   " }",
-  " col+=vec3(1.04,.94,.78)*min(glo,.22)*(.18+.55*uZ);",
-  " col+=vec3(1.02,.92,.76)*pow(max(dot(rd,L),0.),30.)*.26*(.4+.6*uZ);",
-  " float maske=uM*(1.-smoothstep(.10,.86,length(sp*vec2(.74,1.06))));",
-  " col=mix(col,papier,maske*.62);",
+  " col+=vec3(1.06,.94,.78)*pow(max(dot(rd,L),0.),30.)*.30*(.4+.6*uZ);",
+  " float maske=uM*(1.-smoothstep(.06,.66,length(sp*vec2(.70,1.02))));",
+  " col=mix(col,papier,maske*.50);",
   " col*=uB;",
-  " col*=1.-(.034+.062*uV)*(.26+.74*h21(floor(gl_FragCoord.xy)+vec2(uT*11.,uT*7.)));",
+  /* Gerollt wird nur, was über das Papier hinausleuchtet. Alles darunter ist
+     Tinte und bleibt, wie es gemalt wurde — sonst wird aus Elfenbein Grau. */
+  " vec3 ueb=max(col-papier,vec3(0.));",
+  " col=min(col,papier)+ueb/(1.0+ueb);",
+  " col=l2s(col);",
+  /* Dithering direkt vor der Quantisierung — der Rahmen kann 8 Bit je Kanal,
+     ein glatter Verlauf über mehrere Stufen zeigt sonst Treppen. Das Korn
+     kommt danach, sonst würde es gleich mit entzerrt. Es steht in
+     Gerätenpixeln, damit es auf jedem Schirm gleich grob ist. */
+  " col+=(h21(gl_FragCoord.xy+vec2(uT*11.,uT*7.))-.5)/255.;",
+  " float zell=max(uKorn,1.);",
+  " float ko=h21(floor(gl_FragCoord.xy/zell)+vec2(uT*13.,uT*5.));",
+  " float dunkel=1.-clamp(dot(col,vec3(.3333))*1.55,0.,1.);",
+  " col*=1.-(.022+.050*uV)*(.22+1.05*dunkel)*(.30+.70*ko);",
   " col*=1.-.105*smoothstep(.50,1.06,length(sp*vec2(1.02,.98)));",
   " gl_FragColor=vec4(col,1.);",
   "}"].join("\n");
@@ -880,27 +933,53 @@ function licht(){
       uAsp:ctx.getUniformLocation(prog,"uAsp"),uRoll:ctx.getUniformLocation(prog,"uRoll"),
       uT:ctx.getUniformLocation(prog,"uT"),uV:ctx.getUniformLocation(prog,"uV"),
       uZ:ctx.getUniformLocation(prog,"uZ"),uM:ctx.getUniformLocation(prog,"uM"),
-      uB:ctx.getUniformLocation(prog,"uB"),cv:cv,bw:0,bh:0};
+      uB:ctx.getUniformLocation(prog,"uB"),uKorn:ctx.getUniformLocation(prog,"uKorn"),
+      cv:cv,bw:0,bh:0};
   return true;
 }
 /* Der Körper ist weich; der Rahmen rechnet bei 50 % der Gerätepixel und der
    Browser skaliert hoch — ununterscheidbar, aber die Hälfte der Bilder. */
-function lichtMass(){
-  if(!GL) return;
-  /* ?skala= ist ein Messhaken der QA, kein Gestaltungsmittel: er erlaubt,
-     den Preis echter Gerätepixel und des Überabtastens zu fahren, bevor eine
-     Zahl im Plan behauptet wird. Ohne Parameter bleibt der Zug sichtbar. */
+/* Die Auflösung ist kein fester Wert mehr, sondern eine Stufe, die mit der
+   Kamera geht: im Flug rechnet die Bühne kleiner, weil ein bewegtes Bild seine
+   Kante verliert, bevor das Auge sie zählt — im Halt fährt sie auf 4K hoch,
+   wo das Bild stillsteht und jede Kante sichtbar ist. Umschalten kostet eine
+   Neuzuweisung, also nur an der Stufengrenze und mit Zeitfenster. */
+var STUFE=1, STUFEN_NAME='', STUFEN_WEG=0, SKALA_GESETZT=null;
+function stufen(){
   var g=window.URLSearchParams?new URLSearchParams(location.search).get('skala'):null;
-  var f=g?Math.max(0.2,Math.min(+g,4)):0.8;
+  if(g){var f=Math.max(0.2,Math.min(+g,6));return {fahrt:f,ruhe:f};}
+  /* „Mindestens 4K" heißt für eine Seite nicht, mehr Pixel zu rechnen als der
+     Schirm hat — unsichtbar und teuer. Es heißt: nie hochskalieren. Angezeigt
+     wird in native Gerätenpixeln (auf einem 4K-Schirm also 4K), im Flug etwas
+     darunter, weil eine bewegte Fläche ihre Kante verliert, bevor das Auge sie
+     zählt. Was ein 1440er-Fenster an 8K rechnen würde, ist Diashow: gemessen. */
+  var dpr=Math.min(window.devicePixelRatio||1,2);
+  return {fahrt:dpr*0.7, ruhe:dpr};
+}
+function lichtMass(erzwingen){
+  if(!GL) return;
+  var f=STUFE;
   var bw=CX(2,RR(ww*f)), bh=CX(2,RR(hh*f));
-  if(bw===GL.bw&&bh===GL.bh) return;
+  bw=Math.min(bw,8192); bh=Math.min(bh,8192);
+  if(!erzwingen&&bw===GL.bw&&bh===GL.bh) return;
   GL.bw=bw;GL.bh=bh;GL.cv.width=bw;GL.cv.height=bh;
   GL.ctx.viewport(0,0,bw,bh);
+}
+function stufeWechseln(neu,ruhe){
+  if(Math.abs(neu-STUFE)<0.02){STUFEN_WEG=0;return;}
+  STUFEN_WEG+=1;
+  if(STUFEN_WEG<50) return;   /* eine neue Fläche kostet Bilder: Umschalten darf
+     nicht in die Ankunft fallen, sondern erst danach scharf stellen */
+  STUFEN_WEG=0;STUFE=neu;
+  STUFEN_NAME=(ruhe?'ruhe':'fahrt')+' '+neu.toFixed(2);
+  lichtMass(true);
 }
 function lichtMalen(vel,zeit,zust,maske,bel){
   if(!GL) return;
   var c=GL.ctx;
   c.uniform2f(GL.uR,GL.bw,GL.bh);
+  c.uniform1f(GL.uKorn,STUFE);   /* ein Kornfeld ist ein CSS-Pixel groß, egal
+                                    auf welcher Stufe gerade gerechnet wird */
   c.uniform3f(GL.uC,K.x,K.y,K.z);
   c.uniform1f(GL.uAsp,BRENNE/hh);
   c.uniform1f(GL.uRoll,-K.r*0.0174533);
@@ -1081,6 +1160,7 @@ function hauteMalen(){
 
 /* ---------- der Takt ---------- */
 var pganz=0,pziel=0,vorher=0,vv=0,zeit=0,lastms=-1;
+var SKALA_GESETT=null,SKALA_MIN=1,SKALA_MAX=2;
 var MX=0,MY=0,MXT=0,MYT=0;
 var AKTE=[],SCHLEIER=null,FORT=null,ZEITEL=null,HINW=null,RICK=null,RAIL=null;
 var RICKZ=-1;
@@ -1110,6 +1190,9 @@ function frame(ms){
   for(var i=0;i<AKTE.length;i++) aktShow(AKTE[i],pganz,ST[i],vv,zeit);
   var maske=0;
   for(var m2=0;m2<AKTE.length;m2++) if(AKTE[m2]._a>maske) maske=AKTE[m2]._a;
+  if(!SKALA_GESETT){SKALA_GESETT=stufen();SKALA_MIN=SKALA_GESETT.fahrt;SKALA_MAX=SKALA_GESETT.ruhe;}
+  var ruhe=vv<0.05&&maske>0.985;
+  stufeWechseln(ruhe?SKALA_MAX:SKALA_MIN,ruhe);
   hauteMalen(); staubMalen(zeit);
   lichtMalen(vv,zeit,K.zust+(1.0-K.zust)*vv*0.85,maske,K.bel);
 
