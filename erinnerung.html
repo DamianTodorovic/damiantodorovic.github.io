@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KEPTA — Sie fragt. Es antwortet.</title>
+<meta name="description" content="KEPTA ist das Gedächtnis für KI-Assistenten. Lokal, verschlüsselt, mit einer Audit-Kette, die ein Dritter nachrechnet. Core frei, Enterprise nach Vertrag.">
+<meta name="theme-color" content="#eef0f2">
+<meta property="og:title" content="KEPTA — Sie fragt. Es antwortet.">
+<meta property="og:description" content="Gedächtnis für KI-Assistenten. Lokal, verschlüsselt, nachrechenbar.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2314171a'/%3E%3Cpath d='M10 8v16M10 16l8-8M10 16l8 8' stroke='%23fbfbf9' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+/* ==========================================================================
+   KEPTA — ein Bildschirm, der den Akt des Erinnerns zeigt
+
+   Der Held ist nicht eine Form, sondern das, was das Produkt tut: eine Frage
+   stellen und die richtige Erinnerung in der richtigen Reihenfolge
+   zurückgeben. Das ist zugleich kinematografisch und echt — nichts hier ist
+   Dekoration über einem leeren Raum.
+
+   null Anfragen nach draußen: keine Web Fonts, keine CDN, keine Bibliotheken,
+   keine Bilder. Ein File. Der Grund ist ein analytischer Canvas, die Karten
+   sind DOM im selben Raum.
+   ========================================================================== */
+
+:root{
+  color-scheme:light;
+
+  /* Ein Leseraum, kein Sonnenlicht: kühles Papier, damit das warme Weiß der
+     Karte selbst die hellste Sache im Bild ist. Creme wäre die erste
+     naheliegende Wahl gewesen, und die erste naheliegende Wahl ist in dieser
+     Kategorie schon auf jeder zweiten Seite. */
+  --raum:#e9ecef;
+  --raum-tief:#d8dde3;
+  --blatt:#fcfcfa;
+  --blatt-fuss:#eceae2;
+
+  --grafit:#14171a;         /* 14,4:1 auf raum */
+  --grafit-2:#333940;       /*  9,1:1 */
+  --still:#5d6570;          /*  5,3:1 */
+  --stahl:#2c4a63;          /* Arbeitsfarbe: Rang, Zahl, Faden — 7,9:1 */
+  --rost:#9c2f2a;           /* der eine Akzent: Treffer, Siegel, Fehler — 6,8:1 */
+  --linie:rgba(20,23,26,.14);
+  --linie-2:rgba(20,23,26,.28);
+
+  /* Drei Rollen, drei Herkunften.
+     Display = Humanist-Grotesk in großer Schnittpixelgröße: die Stimme der
+     Ansage.  Inhalt = Palatino/Iowan, der Satzspiegel eines Dokuments: die
+     Stimme der Erinnerung.  Nutzen = Mono: die Stimme des Protokolls.
+     Ein Slab wäre der griffige Weg gewesen; er ist schon die andere Seite. */
+  --display:'Avenir Next','Segoe UI Variable Display','Segoe UI',system-ui,-apple-system,'Helvetica Neue',sans-serif;
+  --inhalt:'Iowan Old Style','Palatino Linotype','Book Antiqua',Palatino,Georgia,'Times New Roman',serif;
+  --mono:ui-monospace,'SF Mono','Cascadia Mono','Roboto Mono',Menlo,Consolas,monospace;
+
+  --gutter:clamp(20px,5vw,88px);
+  --fs-ansage:clamp(46px,10.2vw,168px);
+  --fs-akt:clamp(38px,7.4vw,116px);
+  --fs-karte:clamp(17px,1.5vw,25px);
+
+  /* Bewegungs-Persönlichkeit Premium, projektweit, nie gemischt. */
+  --sig:cubic-bezier(.4,0,.2,1);
+  --ein:cubic-bezier(.05,.7,.1,1);
+  --aus:cubic-bezier(.4,0,1,1);
+  --quick:220ms; --standard:420ms; --slow:680ms;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+
+body{
+  margin:0;background:var(--raum);color:var(--grafit);
+  font-family:var(--display);font-weight:400;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
+
+.skip{position:fixed;left:var(--gutter);top:-90px;z-index:90;background:var(--blatt);color:var(--grafit);
+  padding:10px 16px;font:600 13px/1 var(--mono);letter-spacing:.06em;text-decoration:none;
+  border:1px solid var(--grafit);transition:top var(--quick) var(--sig)}
+.skip:focus{top:14px}
+:focus-visible{outline:2px solid var(--rost);outline-offset:3px}
+
+/* ---------- der Grund: ein Lichtfeld, kein Bild ----------
+   Eine weiche Pfütze, die mit der Lage wandert, und Korn darüber. Kein
+   Farbverlauf als Selbstzweck: die Pfütze ist dieselbe Lampe, nach der die
+   Karten ihren Schatten werfen. */
+#grund{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:block;pointer-events:none}
+.korn{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.30;mix-blend-mode:soft-light;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* ---------- Marke und Stand ---------- */
+.marke{position:fixed;left:var(--gutter);top:clamp(16px,2.6svh,30px);z-index:40;display:flex;align-items:baseline;gap:14px}
+.marke b{font:700 clamp(17px,1.5vw,21px)/1 var(--display);letter-spacing:.13em;color:var(--grafit)}
+.marke span{font:500 10.5px/1 var(--mono);letter-spacing:.17em;text-transform:uppercase;color:var(--still)}
+@media (max-width:620px){.marke span{display:none}}
+
+/* Die Schiene: wie weit, which Akt. Kein Text, eine Linie. */
+.schiene{position:fixed;right:clamp(12px,1.8vw,28px);top:50%;transform:translateY(-50%);z-index:40;
+  display:flex;flex-direction:column;gap:13px}
+.schiene a{display:block;width:26px;height:2px;background:var(--linie-2);transition:width var(--standard) var(--sig),background var(--standard) var(--sig)}
+.schiene a[aria-current="true"]{width:46px;background:var(--grafit)}
+@media (max-width:780px){.schiene{display:none}}
+
+/* ---------- der Raum ---------- */
+main{position:relative;z-index:2}
+.akt{position:relative;height:210svh;height:210vh}
+.akt.kurz{height:150svh;height:150vh}
+.buehne{position:sticky;top:0;height:100svh;height:100vh;overflow:hidden;isolation:isolate}
+html:not(.js) .akt,html:not(.js) .akt.kurz{height:auto}
+html:not(.js) .buehne{position:relative;height:auto;min-height:100svh;padding:120px 0}
+
+/* ---------- die Karten: DOM im selben Raum wie das Licht ---------- */
+.feld{position:absolute;inset:0;perspective:1500px;perspective-origin:50% 44%}
+.karten{position:absolute;inset:0;transform-style:preserve-3d;pointer-events:none}
+.karte{position:absolute;left:0;top:0;transform-origin:50% 50%;will-change:transform,opacity;opacity:0;
+  width:var(--kw,232px);
+  background:linear-gradient(158deg,var(--blatt) 0%,#f5f4ef 46%,var(--blatt-fuss) 100%);
+  border:1px solid rgba(20,23,26,.30);border-radius:2px;
+  padding:1.05em 1em 1.15em;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.96),
+             .85em 1.25em 1.9em -.85em rgba(20,23,26,.40),
+             .05em .09em .18em -.02em rgba(20,23,26,.32)}
+.karte .herkunft{display:block;font:600 9.5px/1.3 var(--mono);letter-spacing:.15em;text-transform:uppercase;color:var(--still)}
+.karte .titel{display:block;margin-top:.55em;font-family:var(--inhalt);font-weight:600;
+  font-size:var(--fs-karte);line-height:1.15;letter-spacing:-.012em;color:var(--grafit)}
+.karte .rang{display:block;margin-top:.9em;height:2px;border-radius:2px;background:rgba(44,74,99,.16);overflow:hidden}
+.karte .rang i{display:block;height:100%;width:var(--rang,50%);background:var(--stahl);
+  transform:scaleX(0);transform-origin:0 50%;will-change:transform}
+.karte .wert{display:block;margin-top:.5em;font:500 10.5px/1 var(--mono);letter-spacing:.05em;color:var(--stahl)}
+.karte .wert b{font-weight:600;color:var(--grafit)}
+/* Der Treffer: als Einzige trägt sie das Siegel und die Herkunft in Rost. */
+.karte.treffer{border-color:rgba(156,47,42,.42)}
+.karte.treffer .herkunft{color:var(--rost)}
+.siegel{position:absolute;width:2.15em;height:1.95em;right:.75em;top:.7em;transform:scale(var(--press,1));
+  background:radial-gradient(62% 58% at 38% 34%,#b45452 0%,var(--rost) 52%,#6d2020 100%);
+  border-radius:47% 53% 56% 44% / 52% 47% 53% 48%;
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.34),.1em .14em .3em -.1em rgba(20,23,26,.5)}
+.siegel::after{content:"";position:absolute;left:.5em;top:.55em;width:1.05em;height:.78em;border-radius:50%;
+  border:.09em solid rgba(255,255,255,.42);border-top-color:transparent}
+
+/* ---------- der Suchstrahl ---------- */
+.strahl{position:absolute;top:6%;bottom:6%;width:clamp(2px,.28vw,4px);z-index:5;pointer-events:none;
+  background:linear-gradient(180deg,rgba(156,47,42,0),rgba(156,47,42,.62) 22%,rgba(156,47,42,.85) 50%,rgba(156,47,42,.62) 78%,rgba(156,47,42,0));
+  box-shadow:0 0 34px 8px rgba(156,47,42,.20);opacity:0;will-change:transform,opacity}
+
+/* ---------- die Ansage ---------- */
+.ansage{position:absolute;left:var(--gutter);right:var(--gutter);top:var(--an,20%);z-index:8;
+  transform:translate3d(0,-50%,0);will-change:transform,opacity;pointer-events:none}
+.ansage h1,.ansage h2{margin:0;font-family:var(--display);font-weight:700;line-height:.92;letter-spacing:-.045em}
+.ansage h1{font-size:var(--fs-ansage)}
+.ansage h2{font-size:var(--fs-akt)}
+.ansage .w{display:inline-block;will-change:transform,opacity}
+.ansage .rot{color:var(--rost)}
+.ansage .stahl{color:var(--stahl)}
+/* Die Frage, die das System stellt: Mono, klein, mit Cursor. */
+.frage{margin:0 0 clamp(14px,2.2svh,30px);font:500 clamp(12px,1.45vw,17px)/1.4 var(--mono);
+  letter-spacing:.02em;color:var(--stahl)}
+.frage .q{display:inline-block;white-space:pre-wrap}
+.frage .cur{display:inline-block;width:.55em;height:1.05em;vertical-align:-.16em;background:var(--rost);opacity:.85}
+
+/* ---------- der Belegstreifen ---------- */
+.beleg{position:absolute;left:var(--gutter);right:var(--gutter);bottom:clamp(24px,4.4svh,52px);z-index:9;
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(14px,2.3vw,40px);
+  padding-top:13px;border-top:1px solid var(--linie);
+  background:linear-gradient(180deg,rgba(233,236,239,0) 0%,rgba(233,236,239,.93) 36%);
+  font-family:var(--mono);pointer-events:none}
+.beleg p{margin:0;display:flex;flex-direction:column;gap:5px;max-width:none}
+.beleg b{font:600 10.5px/1.2 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--grafit)}
+.beleg span{font:400 11px/1.5 var(--mono);color:var(--still)}
+.beleg .befehl b{color:var(--rost);letter-spacing:.05em;text-transform:none;font-size:12px}
+@media (max-width:1080px){.beleg{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px 26px}}
+@media (max-width:620px){.beleg{display:none}}
+
+/* ---------- Akt 2 und 3: Text und Beweis, nicht Stimmung ---------- */
+.satzbau{position:absolute;left:var(--gutter);right:var(--gutter);top:50%;transform:translate3d(0,-50%,0);z-index:8;
+  display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:clamp(28px,5vw,80px);align-items:start}
+@media (max-width:900px){.satzbau{grid-template-columns:minmax(0,1fr);gap:34px}}
+.satzbau .text{max-width:34em}
+.satzbau h2{margin:0 0 .5em;font-size:clamp(30px,4.6vw,62px);font-weight:700;line-height:.98;letter-spacing:-.035em}
+.satzbau p{margin:0 0 1.05em;font-family:var(--inhalt);font-size:clamp(15.5px,1.5vw,20px);line-height:1.55;color:var(--grafit-2)}
+.satzbau p.lede{font-size:clamp(17px,1.85vw,24px);line-height:1.45;color:var(--grafit)}
+.satzbau .kz{margin:0;font:500 11px/1.7 var(--mono);letter-spacing:.05em;color:var(--still)}
+
+/* Die Kette: echte Einträge, wie das Protokoll sie ausspuckt. */
+.kette{border-top:1px solid var(--linie-2)}
+.kette .z{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:baseline;
+  padding:12px 0;border-bottom:1px solid var(--linie);font-family:var(--mono)}
+.kette .z code{font-size:11.5px;letter-spacing:.01em;color:var(--grafit-2);overflow-wrap:anywhere}
+.kette .z code i{font-style:normal;color:var(--rost)}
+.kette .z span{font-size:10.5px;letter-spacing:.09em;color:var(--still);white-space:nowrap}
+.kette .z.punkt code{color:var(--stahl)}
+
+/* ---------- Akt 4: Angebot ---------- */
+.tafel{position:absolute;left:50%;top:50%;transform:translate3d(-50%,-50%,0);z-index:8;
+  width:min(1000px,88vw);will-change:transform,opacity}
+.tafel-flaeche{position:relative;background:linear-gradient(168deg,var(--blatt) 0%,#f6f5f0 54%,#eae7de 100%);
+  border:1px solid rgba(20,23,26,.26);border-radius:2px;
+  padding:clamp(26px,3.4vw,52px) clamp(22px,3.2vw,50px) clamp(22px,2.8vw,44px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.96),0 46px 78px -50px rgba(20,23,26,.5),0 4px 12px -8px rgba(20,23,26,.28)}
+.tafel-flaeche::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,var(--rost),rgba(156,47,42,0) 74%)}
+.eyebrow{margin:0 0 clamp(10px,1.4vw,18px);font:600 10.5px/1 var(--mono);letter-spacing:.24em;text-transform:uppercase;color:var(--rost)}
+.titel{margin:0 0 clamp(16px,2.2vw,30px);font-family:var(--display);font-weight:700;
+  font-size:clamp(28px,4.2vw,58px);line-height:.98;letter-spacing:-.035em;color:var(--grafit)}
+.titel em{font-style:normal;color:var(--stahl)}
+.stufen{border-top:1px solid var(--linie)}
+.stufe{display:grid;grid-template-columns:minmax(150px,1.1fr) minmax(78px,auto) minmax(0,2.1fr);
+  gap:clamp(14px,2.4vw,38px);align-items:start;padding:clamp(16px,2.2vw,26px) 0;border-bottom:1px solid var(--linie)}
+.stufe .n{font-family:var(--display);font-weight:700;font-size:clamp(19px,2.1vw,29px);letter-spacing:-.025em;line-height:1.08}
+.stufe .p{font:600 12px/1.5 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--stahl);text-align:right}
+.stufe .d{font-family:var(--inhalt);font-size:clamp(14px,1.35vw,17.5px);line-height:1.55;color:var(--grafit-2);max-width:38em}
+.stufe .p .s{display:inline-block;width:1.15em;height:1.05em;vertical-align:-.14em;margin-right:.45em;
+  background:radial-gradient(62% 58% at 38% 34%,#b45452 0%,var(--rost) 52%,#6d2020 100%);
+  border-radius:47% 53% 56% 44% / 52% 47% 53% 48%}
+@media (max-width:760px){.stufe{grid-template-columns:minmax(0,1fr);gap:8px}.stufe .p{text-align:left}}
+.handlung{display:flex;flex-wrap:wrap;align-items:center;gap:clamp(14px,1.8vw,26px);margin-top:clamp(20px,2.6vw,34px)}
+.knopf{position:relative;display:inline-flex;align-items:center;gap:11px;
+  padding:14px 22px;background:var(--grafit);color:#fbfbf9;text-decoration:none;
+  font:600 13.5px/1 var(--mono);letter-spacing:.05em;border-radius:2px;overflow:hidden;
+  transition:transform 120ms var(--sig),box-shadow var(--standard) var(--sig)}
+.knopf::before{content:"";position:absolute;inset:0;background:var(--stahl);transform:scaleY(0);transform-origin:0 100%;
+  transition:transform var(--standard) var(--sig)}
+.knopf span{position:relative}
+.knopf:hover::before,.knopf:focus-visible::before{transform:scaleY(1)}
+.knopf:active{transform:scale(.985)}
+.knopf .s{position:relative;width:1.15em;height:1.05em;
+  background:radial-gradient(62% 58% at 38% 34%,#b45452 0%,var(--rost) 52%,#6d2020 100%);
+  border-radius:47% 53% 56% 44% / 52% 47% 53% 48%}
+.link{position:relative;font:600 13.5px/1 var(--mono);letter-spacing:.04em;color:var(--grafit);text-decoration:none}
+.link::after{content:"";position:absolute;left:0;right:0;bottom:-4px;height:1px;background:currentColor;
+  transform:scaleX(0);transform-origin:0 50%;transition:transform 140ms var(--aus)}
+.link:hover::after,.link:focus-visible::after{transform:scaleX(1)}
+.link{transition:color var(--quick) var(--sig)}
+.zeile{margin:clamp(16px,2vw,24px) 0 0;font:500 11.5px/1.6 var(--mono);letter-spacing:.03em;color:var(--still)}
+.zeile b{color:var(--grafit);font-weight:600}
+
+/* ---------- Fuß ---------- */
+.schluss{position:relative;z-index:2;background:var(--raum-tief);border-top:1px solid var(--linie-2);
+  padding:clamp(40px,6vw,78px) var(--gutter) clamp(30px,4vw,50px)}
+.schluss .gr{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:clamp(24px,4vw,60px)}
+.schluss h3{margin:0 0 12px;font:600 10.5px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--still)}
+.schluss a,.schluss p{display:block;margin:0 0 8px;font-size:14px;line-height:1.5;color:var(--grafit-2);text-decoration:none}
+.schluss a:hover{color:var(--rost)}
+.schluss .k{margin-top:clamp(26px,4vw,48px);padding-top:16px;border-top:1px solid var(--linie);
+  font:500 11px/1.7 var(--mono);letter-spacing:.04em;color:var(--still)}
+
+/* ---------- Zustände ohne Skript, ohne WebGL, mit reduzierter Bewegung ---------- */
+@keyframes heben{from{opacity:0;transform:translate3d(0,26px,0)}to{opacity:1;transform:none}}
+html:not(.js) .ansage,html:not(.js) .satzbau,html:not(.js) .tafel,html:not(.js) .beleg{opacity:1!important;transform:none!important}
+html:not(.js) .ansage .w,html:not(.js) .frage .q{opacity:1!important;transform:none!important}
+html:not(.js) .karte{position:relative;opacity:1!important;transform:none!important;margin:0 auto 18px;width:min(320px,84vw)}
+html:not(.js) .feld,html:not(.js) .strahl,html:not(.js) .schiene,html:not(.js) #grund{display:none}
+html:not(.js) .buehne{display:block;padding:90px 0}
+html:not(.js) .karte .rang i{transform:scaleX(1)!important}
+
+@media (prefers-reduced-motion: reduce){
+  .karte,.ansage,.tafel,.strahl,.schiene a,.knopf,.knopf::before,.link,.link::after,.karte .rang i{
+    transition:opacity 120ms var(--sig)!important;animation:none!important}
+  .strahl{display:none}
+  /* Ruhelage: jede Karte an ihrem Ort, jede Zahl sichtbar, keine Fahrt. */
+  .karte{opacity:1!important;transform:none!important}
+  .karte .rang i{transform:scaleX(1)!important}
+  .ansage .w{opacity:1!important;transform:none!important}
+  .frage .cur{animation:none!important;opacity:.85}
+}
+@media (max-width:620px){
+  .ansage h1{font-size:clamp(38px,11.5vw,64px)}
+  .feld{display:none}
+  .buehne{perspective:none}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#angebot">Zum Angebot springen</a>
+<canvas id="grund" aria-hidden="true"></canvas>
+<div class="korn" aria-hidden="true"></div>
+
+<div class="marke"><b>KEPTA</b><span>Gedächtnis für KI-Assistenten</span></div>
+
+<nav class="schiene" aria-label="Akte">
+  <a href="#abfrage" data-nav="0" aria-label="Akt 1: Abfrage"></a>
+  <a href="#beleg" data-nav="1" aria-label="Akt 2: Beleg"></a>
+  <a href="#aufenthalt" data-nav="2" aria-label="Akt 3: Aufenthalt"></a>
+  <a href="#angebot" data-nav="3" aria-label="Akt 4: Angebot"></a>
+</nav>
+
+<main>
+
+<!-- ================================================== 1 · DIE ABFRAGE -->
+<section class="akt" id="abfrage"><div class="buehne" data-bu="0">
+  <div class="feld">
+    <div class="strahl" data-strahl aria-hidden="true"></div>
+    <div class="karten" data-karten="0">
+      <article class="karte treffer" data-karte="0,0">
+        <span class="herkunft">var-b.md · 02.09.</span>
+        <span class="titel">Variante B, freigegeben</span>
+        <span class="rang" aria-hidden="true"><i></i></span>
+        <span class="wert">Rang <b>0.94</b> · 3 Belege</span>
+        <span class="siegel" aria-hidden="true"></span>
+      </article>
+      <article class="karte" data-karte="0,1"><span class="herkunft">mail-7c11.eml · 28.08.</span><span class="titel">Termin umgeworfen</span><span class="rang" aria-hidden="true"><i></i></span><span class="wert">Rang <b>0.71</b></span></article>
+      <article class="karte" data-karte="0,2"><span class="herkunft">konsole.tsx · 30.08.</span><span class="titel">Die Konsole zieht</span><span class="rang" aria-hidden="true"><i></i></span><span class="wert">Rang <b>0.58</b></span></article>
+      <article class="karte" data-karte="0,3"><span class="herkunft">notiz-2f9.md · 21.06.</span><span class="titel">Fundnotiz, alt</span><span class="rang" aria-hidden="true"><i></i></span><span class="wert">Rang <b>0.33</b></span></article>
+      <article class="karte" data-karte="0,4"><span class="herkunft">var-a.md · 14.06.</span><span class="titel">Variante A</span><span class="rang" aria-hidden="true"><i></i></span><span class="wert">Rang <b>0.12</b> · ersetzt</span></article>
+    </div>
+
+    <div class="ansage" style="--an:29%">
+      <p class="frage"><span class="q" data-frage>Welche Variante haben wir freigegeben?</span><span class="cur" aria-hidden="true"></span></p>
+      <h1><span class="z"><span class="w">Sie</span> <span class="w">fragt.</span></span><br><span class="z"><span class="w">Es</span> <span class="w">antwortet.</span></span></h1>
+    </div>
+    <!-- Der Streifen ist ein Kind der Bühne, nicht der Ansage: sonst hängt sein
+         Boden am Kasten einer Zeile, die ihn sonst halb deckt. -->
+    <div class="beleg" aria-label="Was sich nachprüfen lässt">
+      <p><b>lokal</b><span>AES-256, Schlüssel außerhalb der Datendatei</span></p>
+      <p><b>nachrechenbar</b><span>die Kette prüft ein Dritter ohne unseren Code</span></p>
+      <p><b>Schleuse</b><span>ein Agent schreibt erst nach menschlicher Freigabe</span></p>
+      <p class="befehl"><b>npx kepta-mcp</b><span>Core ist frei und source-available</span></p>
+    </div>
+  </div>
+</div></section>
+
+<!-- ================================================== 2 · DER BELEG -->
+<section class="akt kurz" id="beleg"><div class="buehne" data-bu="1">
+  <div class="satzbau" data-bu-in="1">
+    <div class="text">
+      <h2>Nicht <span class="stahl">behauptet</span>,<br>sondern vorgerechnet.</h2>
+      <p class="lede">Jede Änderung an einer Erinnerung hinterlässt einen Eintrag, und die Einträge greifen ineinander: wer den letzten hat, kann den ganzen Weg zurück prüfen.</p>
+      <p>Ein Prüfer braucht dafür keinen Zugang zu KEPTA und kein Vertrauen in uns. Er braucht die Datei und einen Hash. Genau so legt ein Revisionsbericht eine Prüfsumme aus.</p>
+      <p class="kz">Der Nachlauf auf diesem Bestand: 108 Einträge, 105–110 ms. Kein Zielbestandsversprechen — eine Messung mit Rechner und Datum.</p>
+    </div>
+    <div class="kette" aria-label="Die letzten Einträge der Kette">
+      <div class="z"><code>#107 · <i>9f2c…</i> ← 2a17 · var-b.md freigegeben</code><span>02.09.2026 14:07</span></div>
+      <div class="z"><code>#106 · <i>2a17…</i> ← c4e0 · Schleuse: freigegeben von D.T.</code><span>02.09.2026 14:07</span></div>
+      <div class="z"><code>#105 · <i>c4e0…</i> ← 81bb · var-b.md angelegt (Agent)</code><span>02.09.2026 13:52</span></div>
+      <div class="z"><code>#104 · <i>81bb…</i> ← 5d31 · var-a.md ersetzt durch var-b.md</code><span>02.09.2026 13:52</span></div>
+      <div class="z punkt"><code>#103 · <i>5d31…</i> ← 0000 · Kette begonnen</code><span>14.06.2026 09:18</span></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ============================================ 3 · DER AUFENTHALT -->
+<section class="akt kurz" id="aufenthalt"><div class="buehne" data-bu="2">
+  <div class="satzbau" data-bu-in="2">
+    <div class="text">
+      <h2>Es bleibt, wo<br>deine <span class="stahl">Akten</span> sind.</h2>
+      <p class="lede">KEPTA läuft auf deiner Hardware. Die Erinnerungen verlassen den Rechner des Mandanten nicht — auch dann nicht, wenn das Modell in der Cloud rechnet.</p>
+      <p>Der Schlüssel liegt neben den Daten, nicht darin. Ein Agent darf lesen, aber erst ein Mensch entscheidet, dass etwas gilt. Und weil alles lokal ist, ist auch die Wiederherstellung lokal: ein Zeitpunkt, eine Datei, fertig.</p>
+      <p class="kz">Container auf eigener Hardware, air-gap möglich. AVV und §203-Nachweis auf Anfrage.</p>
+    </div>
+    <div class="kette" aria-label="Was lokal bleibt">
+      <div class="z"><code>~/.kepta/kepta.db</code><span>verschlüsselt</span></div>
+      <div class="z"><code>~/.kepta/key</code><span>außerhalb, 0600</span></div>
+      <div class="z"><code>audit.jsonl</code><span>anhängbar, prüfbar</span></div>
+      <div class="z"><code>writePolicy: review</code><span>Menschenschleuse</span></div>
+      <div class="z punkt"><code>asOf("2026-09-02T14:07")</code><span>Wiederherstand</span></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ================================================== 4 · DAS ANGEBOT -->
+<section class="akt kurz" id="angebot"><div class="buehne" data-bu="3">
+  <div class="tafel" data-tafel>
+    <div class="tafel-flaeche">
+      <p class="eyebrow">Angebot</p>
+      <h2 class="titel">Zwei Stufen.<br><em>Eine Erinnerung, die bleibt.</em></h2>
+      <div class="stufen">
+        <div class="stufe">
+          <div class="n">KEPTA Core</div>
+          <div class="p">0 €</div>
+          <div class="d">Die App und der Memory-Layer für Claude, Cursor und jeden MCP-Client. Tageslimiten, source-available, alles bleibt auf deinem Rechner.</div>
+        </div>
+        <div class="stufe">
+          <div class="n">KEPTA Enterprise</div>
+          <div class="p"><span class="s" aria-hidden="true"></span>nach Vertrag</div>
+          <div class="d">Mandanten, fortgeschriebene Audit-Kette, Menschenschleuse vor jedem Agent-Schreibzugriff, Wiederherstand auf einen Zeitpunkt. Container auf eigener Hardware, air-gap möglich.</div>
+        </div>
+      </div>
+      <div class="handlung">
+        <a class="knopf" href="https://github.com/DamianTodorovic/kepta/releases/latest" rel="noopener">
+          <span class="s" aria-hidden="true"></span><span>App herunterladen</span>
+        </a>
+        <a class="link" href="trust.html">Enterprise anfragen</a>
+      </div>
+      <p class="zeile">oder <b>npx kepta-mcp</b> — ein Befehl, die Memory kommt auf deinem Rechner hoch</p>
+    </div>
+  </div>
+</div></section>
+
+</main>
+
+<footer class="schluss">
+  <div class="gr">
+    <div><h3>Produkt</h3><a href="#abfrage">Abfrage</a><a href="#beleg">Audit-Kette</a><a href="#aufenthalt">Aufenthalt</a><a href="#angebot">Preise</a></div>
+    <div><h3>Technik</h3><a href="https://github.com/DamianTodorovic/kepta" rel="noopener">Quelltext</a><a href="https://www.npmjs.com/package/kepta-mcp" rel="noopener">npm · kepta-mcp</a><a href="trust.html">Trust Center</a></div>
+    <div><h3>Firma</h3><a href="trust.html">Compliance</a><a href="#angebot">Kontakt</a></div>
+  </div>
+  <p class="k">KEPTA · Busl-1.1 · Messwerte mit Rechner, Stichprobe und Datum. Diese Seite lädt nichts von außen: ein File, keine Web Fonts, keine Bibliothek.</p>
+</footer>
+
+<script>
+(function(){
+"use strict";
+var R=document.documentElement; R.classList.add("js");
+var MQ=window.matchMedia?window.matchMedia("(prefers-reduced-motion: reduce)"):{matches:false};
+var REDUCE=MQ.matches;
+
+function cl(v,a,b){return v<a?a:(v>b?b:v);}
+function seg(p,a,b){return cl((p-a)/Math.max(b-a,1e-6),0,1);}
+function mix(a,b,t){return a+(b-a)*t;}
+/* Premium: Signatur in beide Enden mit null Geschwindigkeit auslaufend,
+   Eingang verzögernd, Ausgang beschleunigend. Kein Überschwingen, nirgends. */
+function K_SIG(t){t=cl(t,0,1);return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;}
+function K_EIN(t){t=cl(t,0,1);return 1-Math.pow(1-t,4);}
+function K_AUS(t){t=cl(t,0,1);return t*t;}
+function K_SCH(t){t=cl(t,0,1);return .5-.5*Math.cos(Math.PI*t);}
+
+/* ==================================================== DER GRUND (WebGL2)
+   Eine Pfütze warmen Lichts auf kühlem Papier, die mit der Lage wandert, und
+   ein Horizont, der sich senkt. Analytisch, eine Zeichnung, keine Textur —
+   dasselbe Licht, nach dem die Karten ihren Schatten werfen. */
+var cvs=document.getElementById("grund"), gl=null, prog=null, U={}, ok=false, DPR=1, W=1, H=1;
+var VS="#version 300 es\nvoid main(){vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&2));gl_Position=vec4(p*2.0-1.0,0.0,1.0);}";
+var FS=[
+"#version 300 es","precision highp float;","out vec4 O;",
+"uniform vec2 uRes;","uniform vec2 uLamp;","uniform float uPool;","uniform float uHoriz;","uniform float uKalt;",
+"float hash(vec2 p){p=fract(p*vec2(233.34,851.73));p+=dot(p,p+23.45);return fract(p.x*p.y);}",
+"void main(){",
+"  vec2 uv=gl_FragCoord.xy/uRes;",
+"  float asp=uRes.x/max(uRes.y,1.0);",
+"  vec2 d=(uv-uLamp)*vec2(asp,1.0);",
+"  float pool=exp(-dot(d,d)/max(uPool*uPool,0.0004));",
+   /* zwei tiefe kühle Lagen statt eines Verlaufs: das Papier darf oben
+      kälter sein als unten, sonst wirkt die Fläche ausgeleuchtet wie ein
+      Produktfoto. */
+"  vec3 base=mix(vec3(0.847,0.867,0.886),vec3(0.925,0.933,0.945),pow(uv.y,0.75));",
+"  base=mix(base,vec3(0.976,0.976,0.965),pool*0.72);",
+"  float h=smoothstep(0.30,0.62,uv.y+uHoriz);",
+"  base=mix(base,base*vec3(0.988,0.992,1.005),h*uKalt);",
+"  float g=hash(gl_FragCoord.xy)*0.017-0.0085;",
+"  O=vec4(base+g,1.0);",
+"}"].join("\n");
+
+function sh(t,src){var s=gl.createShader(t);gl.shaderSource(s,src);gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){throw new Error(gl.getShaderInfoLog(s));}return s;}
+function start(){
+  try{gl=cvs.getContext("webgl2",{antialias:false,alpha:false,depth:false,stencil:false,powerPreference:"high-performance"});}catch(e){gl=null;}
+  if(!gl){ok=false;return;}
+  try{
+    var p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,VS));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,FS));
+    gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));
+    prog=p;gl.useProgram(p);gl.bindVertexArray(gl.createVertexArray());
+    ["uRes","uLamp","uPool","uHoriz","uKalt"].forEach(function(n){U[n]=gl.getUniformLocation(p,n);});
+    ok=true;
+  }catch(e){ok=false;gl=null;}
+}
+function zeichnen(){
+  if(!ok)return;
+  gl.viewport(0,0,cvs.width,cvs.height);
+  gl.uniform2f(U.uRes,cvs.width,cvs.height);
+  gl.uniform2f(U.uLamp,lampx,1-lampy);
+  gl.uniform1f(U.uPool,pool);
+  gl.uniform1f(U.uHoriz,horiz);
+  gl.uniform1f(U.uKalt,kalt);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+}
+function groesse(){
+  DPR=Math.min(window.devicePixelRatio||1,2);
+  W=cvs.clientWidth||window.innerWidth; H=cvs.clientHeight||window.innerHeight;
+  cvs.width=Math.max(1,Math.round(W*DPR)); cvs.height=Math.max(1,Math.round(H*DPR));
+  zeichnen();
+}
+
+/* =============================================================== DER TAKT
+   Eine Zahl pro Akt, aus der Dokumentlage. Alles, was sich bewegt, ist eine
+   Funktion davon — nichts hier spielt eine Animation ab, wenn eine Schwelle
+   überschritten wird. */
+var akte=[].slice.call(document.querySelectorAll(".akt"));
+var ST=akte.map(function(a){return a.offsetTop;});
+var HOEHE=akte.map(function(a){return Math.max(1,a.offsetHeight-window.innerHeight);});
+function lage(){
+  var y=window.pageYOffset||R.scrollTop||0, out=[];
+  /* Der Weg einer Bühne ist nicht ihre Höhe, sondern ihre KLAMMERLÄNGE: eine
+     Bühne von 210 Bildschirmen hält 100 fest und wandert die letzten 110 mit.
+     Über die Höhe gerechnet lief die Choreografie bis zum Ende des Akts, während
+     die Bühne selbst schon ab 990 px nach oben davon zog — die Karten sind im
+     Bild verschwunden, obwohl ihr Takt noch bei 0,46 stand. */
+  var vh=window.innerHeight;
+  for(var i=0;i<4;i++){
+    var a=(i<3?ST[i+1]-ST[i]:Math.max(1,R.scrollHeight-ST[i]))-vh;
+    out.push(cl((y-ST[i])/Math.max(a,1),0,1));
+  }
+  return out;
+}
+
+/* ---------- die Karten von Akt 1 ----------
+   Fünf Erinnerungen stehen im Raum. Der Suchstrahl wandert von links nach
+   rechts; was er passiert hat, hebt sich, bekommt Rang und Balken. Die
+   Erstplatzierte rückt zuletzt nach vorn und dreht sich zur Leserin — das ist
+   die ganze Geschichte des Produkts, und sie braucht keinen Erklärungstext.
+
+   Die Wege stehen als Maß da, nicht als Welttiefe: eine Projektion, die
+   jemand nachrechnen muss, ist hier kein Gewinn, sondern eine Quelle für
+   abgeschnittene Karten. fx, Maß und Mitte lassen sich direkt lesen. */
+var KARTE=[
+  {fx:.500,s0:.34,s1:1.00,y0:.498,y1:.672,rot:-0.8,treffer:1,breit:330},
+  {fx:.112,s0:.26,s1:.56,y0:.490,y1:.556,rot:-5.0,breit:214},
+  {fx:.286,s0:.22,s1:.47,y0:.484,y1:.530,rot:-2.4,breit:204},
+  {fx:.714,s0:.22,s1:.47,y0:.484,y1:.530,rot: 2.4,breit:204},
+  {fx:.888,s0:.26,s1:.56,y0:.490,y1:.556,rot: 5.0,breit:214}
+];
+var KNOTEN=[].slice.call(document.querySelectorAll('[data-karte^="0,"]'));
+KNOTEN.forEach(function(el,i){
+  var s=KARTE[i]; if(!s){el._s=null;return;}
+  el._s=s;
+  el.style.setProperty("--kw",s.breit+"px");
+  el._balk=el.querySelector(".rang i");
+});
+/* Maß und Größe einmal messen, nicht im Takt: ein offsetWidth pro Bild am
+   skalierten Knoten erzwingt ein Layout, und das ist genau die Zahl, die
+   später als „die Seite leistet sich 1,1 Layouts pro Bild" wieder auftaucht. */
+function ausmessen(){
+  for(var i=0;i<KNOTEN.length;i++){
+    var el=KNOTEN[i];
+    el._w=el.offsetWidth; el._h=el.offsetHeight;
+  }
+}
+var STRAHL=document.querySelector("[data-strahl]");
+
+function stellen(el,s,q,an){
+  if(!s||!el._w)return;
+  var ww=window.innerWidth, hh=window.innerHeight;
+  var e=REDUCE?1:K_SCH(cl(q*1.25,0,1));
+  var sk=mix(s.s0,s.s1,e);
+  var yc=mix(s.y0,s.y1,e);
+  /* Heben ist der Moment, in dem der Strahl vorüber ist: die Karte steigt aus
+     dem Tisch, ihre Kante richtet sich auf, der Balken läuft. */
+  var lift=an==null?1:K_EIN(cl(an,0,1));
+  var rot=s.rot*mix(1,.25,lift);
+  var x=s.fx*ww-el._w/2, y=yc*hh-el._h/2-lift*12;
+  el.style.transform="translate3d("+x.toFixed(1)+"px,"+y.toFixed(1)+"px,0) scale("+
+    sk.toFixed(4)+") rotateZ("+rot.toFixed(2)+"deg)";
+  el.style.opacity=(cl(q*3.4,0,1)*mix(.30,1,lift)).toFixed(3);
+  if(el._balk) el._balk.style.transform="scaleX("+K_SIG(cl(lift*1.15,0,1)).toFixed(4)+")";
+}
+
+/* ---------- die Ansage ----------
+   Die Frage tippt; die Zeile steht darunter und wird von der Fahrt durchfahren. */
+var WORTE=[];
+[].slice.call(document.querySelectorAll(".ansage .z")).forEach(function(z){
+  [].slice.call(z.querySelectorAll(".w")).forEach(function(w){WORTE.push(w);});
+});
+var FRAGE=document.querySelector("[data-frage]");
+var FRAGE_TEXT=FRAGE?FRAGE.textContent:"";
+var TAFEL=document.querySelector("[data-tafel]");
+
+function ansage(q){
+  if(FRAGE){
+    var n=REDUCE?FRAGE_TEXT.length:Math.round(cl(q/0.16,0,1)*FRAGE_TEXT.length);
+    var t=FRAGE_TEXT.slice(0,n);
+    if(FRAGE._t!==t){FRAGE._t=t;FRAGE.textContent=t;}
+  }
+  if(REDUCE) return;
+  /* Wort für Wort, 46 ms Abstand, auf die Lage umgerechnet: eine monotone
+     Kurve mit fester Phasenverschiebung, also überholt sich kein Wort. */
+  for(var i=0;i<WORTE.length;i++){
+    var a=K_EIN(cl((q-0.10-i*0.035)/0.20,0,1));
+    WORTE[i].style.opacity=a.toFixed(3);
+    WORTE[i].style.transform=a>=1?"translate3d(0,0,0)":"translate3d(0,"+mix(24,0,a).toFixed(2)+"px,0)";
+  }
+}
+
+var lampx=0.5,lampy=0.42,pool=0.55,horiz=0,kalt=0;
+
+function malen(L){
+  var q0=L[0], q1=L[1], q2=L[2], q3=L[3];
+
+  /* Akt 1: Lampe folgt dem Strahl, der Strahl wandert über das Feld. */
+  var sweep=REDUCE?1:K_SCH(cl((q0-0.14)/0.40,0,1));
+  lampx=mix(0.16,0.84,sweep); lampy=0.40; pool=mix(0.40,0.62,K_SCH(q0));
+  horiz=mix(0,.09,K_SCH(q0)); kalt=cl(q0,0,1)*.6;
+
+  if(STRAHL){
+    var sw=REDUCE?0:(q0>0.10&&q0<0.62?1:0);
+    STRAHL.style.opacity=(sw*mix(0,.9,K_SCH(cl((q0-0.10)/0.06,0,1)))*mix(1,0,cl((q0-0.50)/0.12,0,1))).toFixed(3);
+    STRAHL.style.transform="translate3d("+((0.16+sweep*0.68)*window.innerWidth).toFixed(1)+"px,0,0)";
+  }
+
+  for(var i=0;i<KNOTEN.length;i++){
+    var s=KNOTEN[i]._s; if(!s)continue;
+    /* Der Treffer wird zuletzt berührt und hebt am längsten: der Strahl geht
+       von links nach rechts, die Mitte kommt aus der Tiefe. */
+    var an=REDUCE?1:K_SCH(cl((sweep-(s.fx<.4?.62:s.fx<.6?.78:.5))/0.34,0,1));
+    stellen(KNOTEN[i],s,q0,an);
+  }
+  ansage(q0);
+
+  /* Akt 2 und 3: der Text steigt, die Kette zieht sich Zeile für Zeile auf. */
+  [[q1,1],[q2,2]].forEach(function(pa){
+    var bau=document.querySelector('[data-bu-in="'+pa[1]+'"]'); if(!bau)return;
+    var zz=[].slice.call(bau.querySelectorAll(".kette .z"));
+    var ein=REDUCE?1:K_EIN(cl((pa[0]-0.06)/0.26,0,1));
+    bau.style.opacity=ein.toFixed(3);
+    bau.style.transform="translate3d(0,"+mix(34,0,ein).toFixed(1)+"px,0) scale("+mix(.985,1,ein).toFixed(4)+")";
+    bau.style.transformOrigin="50% 50%";
+    for(var j=0;j<zz.length;j++){
+      var a=REDUCE?1:K_EIN(cl((pa[0]-0.14-j*0.055)/0.22,0,1));
+      zz[j].style.opacity=a.toFixed(3);
+      zz[j].style.transform="translate3d("+mix(REDUCE?0:18,0,a).toFixed(1)+"px,0,0)";
+    }
+  });
+
+  /* Akt 4: die Tafel trägt ihre eigene Fahrt, vier Lagen, verschiedene Wege. */
+  if(TAFEL){
+    var e=REDUCE?1:K_EIN(cl((q3-0.02)/0.30,0,1));
+    var fahrt=REDUCE?0:K_SCH(cl(q3/1.02,0,1));
+    TAFEL.style.opacity=e.toFixed(3);
+    TAFEL.style.transform="translate3d(-50%,calc(-50% + "+mix(38,-22,e).toFixed(1)+"px),0) scale("+mix(.93,1,K_SCH(cl(q3/1.02,0,1))).toFixed(4)+")";
+    var lag=[[".eyebrow",-13],[".titel",-7],[".handlung",6],[".zeile",9]];
+    for(var k=0;k<lag.length;k++){
+      var el=TAFEL.querySelector(lag[k][0]); if(!el)continue;
+      el.style.transform="translate3d(0,"+(lag[k][1]*fahrt).toFixed(2)+"px,0)";
+    }
+    var zl=TAFEL.querySelectorAll(".stufe");
+    for(var z2=0;z2<zl.length;z2++){
+      var a2=REDUCE?1:K_EIN(cl((q3-0.16-z2*0.10)/0.28,0,1));
+      zl[z2].style.opacity=a2.toFixed(3);
+      zl[z2].style.transform="translate3d(0,"+mix(26,0,a2).toFixed(1)+"px,0)";
+    }
+  }
+  zeichnen();
+}
+
+/* ---------- die Schiene ---------- */
+var navs=[].slice.call(document.querySelectorAll("[data-nav]"));
+function schiene(L){
+  var i=0; for(var k=1;k<4;k++) if(L[k]>0.5||L[k]>L[i]) i=k;
+  for(var n=0;n<navs.length;n++){
+    if(n===i){if(navs[n].getAttribute("aria-current")!=="true")navs[n].setAttribute("aria-current","true");}
+    else navs[n].removeAttribute("aria-current");
+  }
+}
+
+/* ---------- der Loop ---------- */
+var raf=0, letzter=0;
+function takt(now){
+  raf=0;
+  var dt=letzter?Math.min(now-letzter,50):16; letzter=now;
+  var L=lage(); malen(L); schiene(L);
+  if(!fertig(L)) kick();
+}
+function fertig(L){
+  /* Der Takt steht, wenn nichts mehr zieht: nach dem letzten Scroll bleibt
+     genau ein Auslaufen, dann ist Ruhe im Bild und der Rechner darf schlafen. */
+  return true;
+}
+function kick(){ if(!raf) raf=requestAnimationFrame(takt); }
+
+start(); groesse(); ausmessen();
+window.addEventListener("scroll",function(){kick();},{passive:true});
+window.addEventListener("resize",function(){groesse();ausmessen();kick();},{passive:true});
+var L0=lage(); malen(L0); schiene(L0);
+
+if(MQ.addEventListener) MQ.addEventListener("change",function(e){REDUCE=e.matches;kick();});
+if(!ok){document.body.classList.add("no-3d");}
+})();
+</script>
+</body>
+</html>
