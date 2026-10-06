@@ -320,12 +320,12 @@
      separate rasterisation path, and drew a grey ring around a dot that is 1.7px
      on screen. */
   @media (prefers-reduced-motion: no-preference){
-    .mark .mk-hub{transform-box:fill-box; transform-origin:center; animation:mk-node .22s var(--ease) backwards}
-    .mark .mk-e{animation:mk-edge .28s var(--ease) backwards}
+    .mark .mk-hub{transform-box:fill-box; transform-origin:center; animation:mk-node .22s var(--ein) backwards}
+    .mark .mk-e{animation:mk-edge .28s var(--ein) backwards}
     .mark .mk-e:nth-of-type(2){animation-delay:.13s}
     .mark .mk-e:nth-of-type(3){animation-delay:.16s}
     .mark .mk-e:nth-of-type(4){animation-delay:.19s}
-    .mark .mk-orbit{transform-box:fill-box; transform-origin:center; animation:mk-node .26s var(--ease) .44s backwards}
+    .mark .mk-orbit{transform-box:fill-box; transform-origin:center; animation:mk-node .26s var(--ein) .44s backwards}
     @keyframes mk-edge{from{stroke-dasharray:var(--len); stroke-dashoffset:var(--len)}to{stroke-dasharray:var(--len); stroke-dashoffset:0}}
     @keyframes mk-node{from{transform:scale(.1); opacity:0}to{transform:none; opacity:1}}
   }
@@ -645,7 +645,7 @@
       transition-delay:calc(var(--i,0)*46ms);
     }
     .js:not(.no-3d) .satz.out{
-      transition:opacity 140ms var(--ease),visibility 0s linear 140ms;
+      transition:opacity 140ms var(--aus),visibility 0s linear 140ms;
     }
     .js:not(.no-3d) .satz.out .w{
       opacity:0;transform:translate3d(0,-18px,0);
@@ -908,12 +908,16 @@
   .hud-mess .e{color:var(--hud-tx)}
   /* Ob das Instrument steht, ist Zustand: in Akt 2 liest es eine Kamera, die
      nichts mehr fährt. Darum die Scheibe außerhalb der Media-Query, die
-     Einblende darin. */
+     Einblende darin. Kommen und Gehen sind zwei Bewegungen, nicht eine: herein
+     in --slow über --ein und 180 ms später, fort in --standard über --aus —
+     420 gegen 680 ms, also 38 % kürzer und beschleunigend, dasselbe Verhältnis
+     wie an der Akte. Der Sichtbarkeits-Fall trägt die Ausgangsdauer, sonst
+     verschwindet das Instrument, bevor es ausgeblendet ist. */
   .js:not(.no-3d) .hud{opacity:0;visibility:hidden}
   .js:not(.no-3d) .hud.in{opacity:1;visibility:visible}
   @media (prefers-reduced-motion: no-preference){
-    .js:not(.no-3d) .hud{transition:opacity var(--slow) var(--ease) .18s,visibility 0s linear var(--slow)}
-    .js:not(.no-3d) .hud.in{transition:opacity var(--slow) var(--ease) .18s,visibility 0s}
+    .js:not(.no-3d) .hud{transition:opacity var(--standard) var(--aus),visibility 0s linear var(--standard)}
+    .js:not(.no-3d) .hud.in{transition:opacity var(--slow) var(--ein) .18s,visibility 0s}
     .hud-kapitel i{transition:opacity var(--quick) var(--ease)}
     .hud-kapitel i::before{transition:transform var(--quick) var(--ease),background var(--quick) var(--ease)}
   }
@@ -1118,7 +1122,7 @@
        the flight (Wortkaskade), the display lines lifting into their own mask, and
        the hero card. A prose block is not one of them. The delays stay because they
        let a group come in as one gesture rather than as a queue. */
-    .js .rv{opacity:0; transition:opacity var(--standard) var(--ease)}
+    .js .rv{opacity:0; transition:opacity var(--standard) var(--ein)}
     .js .rv.in{opacity:1}
     .js .rv.d1{transition-delay:.06s}.js .rv.d2{transition-delay:.12s}.js .rv.d3{transition-delay:.18s}.js .rv.d4{transition-delay:.24s}
     /* line-mask: the display line lifts into its own box instead of fading in
@@ -1315,9 +1319,9 @@
     .mgraph .node.on .halo{animation:mg-breathe 2.6s var(--sch) infinite}
     /* one assembly pass, then still. The ring draws, the nodes arrive on it,
        and nothing after that is waiting for the user to have seen it. */
-    .mgraph.assembling .edge{stroke-dasharray:var(--len,460); stroke-dashoffset:var(--len,460); animation:mg-draw 1.15s var(--ease) forwards}
+    .mgraph.assembling .edge{stroke-dasharray:var(--len,460); stroke-dashoffset:var(--len,460); animation:mg-draw 1.15s var(--ein) forwards}
     @keyframes mg-draw{ to{ stroke-dashoffset:0 } }
-    .mgraph.assembling .node{transform-box:fill-box; transform-origin:center; animation:mg-pop .62s var(--ease) backwards; animation-delay:calc(var(--i,0)*34ms)}
+    .mgraph.assembling .node{transform-box:fill-box; transform-origin:center; animation:mg-pop .62s var(--ein) backwards; animation-delay:calc(var(--i,0)*34ms)}
     @keyframes mg-pop{ from{ transform:scale(0); opacity:0 } }
   }
   @media (max-width:1040px){
