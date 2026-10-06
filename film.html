@@ -887,7 +887,11 @@ function licht(){
    Browser skaliert hoch — ununterscheidbar, aber die Hälfte der Bilder. */
 function lichtMass(){
   if(!GL) return;
-  var f=0.8;
+  /* ?skala= ist ein Messhaken der QA, kein Gestaltungsmittel: er erlaubt,
+     den Preis echter Gerätepixel und des Überabtastens zu fahren, bevor eine
+     Zahl im Plan behauptet wird. Ohne Parameter bleibt der Zug sichtbar. */
+  var g=window.URLSearchParams?new URLSearchParams(location.search).get('skala'):null;
+  var f=g?Math.max(0.2,Math.min(+g,4)):0.8;
   var bw=CX(2,RR(ww*f)), bh=CX(2,RR(hh*f));
   if(bw===GL.bw&&bh===GL.bh) return;
   GL.bw=bw;GL.bh=bh;GL.cv.width=bw;GL.cv.height=bh;
