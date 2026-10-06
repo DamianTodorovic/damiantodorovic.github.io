@@ -504,12 +504,17 @@ function lage(){
    jemand nachrechnen muss, ist hier kein Gewinn, sondern eine Quelle für
    abgeschnittene Karten. fx, Maß und Mitte lassen sich direkt lesen. */
 var KARTE=[
-  {fx:.500,s0:.34,s1:1.00,y0:.498,y1:.672,rot:-0.8,treffer:1,breit:330},
-  {fx:.112,s0:.26,s1:.56,y0:.490,y1:.556,rot:-5.0,breit:214},
-  {fx:.286,s0:.22,s1:.47,y0:.484,y1:.530,rot:-2.4,breit:204},
-  {fx:.714,s0:.22,s1:.47,y0:.484,y1:.530,rot: 2.4,breit:204},
-  {fx:.888,s0:.26,s1:.56,y0:.490,y1:.556,rot: 5.0,breit:214}
+  {fx:.500,s0:.34,s1:1.00,y0:.498,y1:.672,rot:-0.8,treffer:1,breit:330,atem:0.92,ph:0.0},
+  {fx:.112,s0:.26,s1:.56,y0:.490,y1:.556,rot:-5.0,breit:214,atem:1.24,ph:1.7},
+  {fx:.286,s0:.22,s1:.47,y0:.484,y1:.530,rot:-2.4,breit:204,atem:1.05,ph:3.1},
+  {fx:.714,s0:.22,s1:.47,y0:.484,y1:.530,rot: 2.4,breit:204,atem:1.36,ph:4.6},
+  {fx:.888,s0:.26,s1:.56,y0:.490,y1:.556,rot: 5.0,breit:214,atem:1.12,ph:5.9}
 ];
+/* Die Brennebene liegt beim Maß des Treffers: was davon weg ist — ob ferne
+   Vorgeschichte oder schon wieder entfernte Nachbarkarte — fällt unscharf ab. */
+var BRENNE=1.00;
+/* Zeigernähe und die eine Uhr, die nie stillsteht. */
+var MX=0,MY=0,MXT=0,MYT=0,ZEIT=0;
 var KNOTEN=[].slice.call(document.querySelectorAll('[data-karte^="0,"]'));
 KNOTEN.forEach(function(el,i){
   var s=KARTE[i]; if(!s){el._s=null;return;}
@@ -528,21 +533,52 @@ function ausmessen(){
 }
 var STRAHL=document.querySelector("[data-strahl]");
 
-function stellen(el,s,q,an){
+/* ---------- die Karte ----------
+   Drei Dinge machen den Unterschied zwischen einem lebendigen Bild und einem
+   stehenden, und alle drei sind hier:
+     atmen  — jede Karte kippt und steigt auf einer eigenen, langsamen Sinus-
+              zeit. Nichts kommt je zur Ruhe; ein Bild, das anhält und auf den
+              nächsten Scroll wartet, ist eine Diashow.
+     atmen  — die Nähe bewegt sich mehr als die Ferne, und der Zeiger neigt
+              das ganze Feld. Wer die Hand bewegt, bewegt den Raum.
+     scharf — Schärfentiefe: nur, was in der Brennebene steht, ist klar. Der
+              Treffer zieht die Schärfe an sich, wenn er nach vorn kommt. */
+function stellen(el,s,q,an,zeit){
   if(!s||!el._w)return;
   var ww=window.innerWidth, hh=window.innerHeight;
   var e=REDUCE?1:K_SCH(cl(q*1.25,0,1));
   var sk=mix(s.s0,s.s1,e);
   var yc=mix(s.y0,s.y1,e);
-  /* Heben ist der Moment, in dem der Strahl vorüber ist: die Karte steigt aus
-     dem Tisch, ihre Kante richtet sich auf, der Balken läuft. */
+  /* Heben ist der Moment, in dem der Strahl vorüber ist. */
   var lift=an==null?1:K_EIN(cl(an,0,1));
   var rot=s.rot*mix(1,.25,lift);
   var x=s.fx*ww-el._w/2, y=yc*hh-el._h/2-lift*12;
+
+  if(!REDUCE){
+    /* Die Atmung: 0,55° Kippen und 5 px Steigen über 4 bis 6 Sekunden. Klein
+       genug, dass niemand sie als Bewegung liest, groß genug, dass das Bild
+       nie stehen bleibt. */
+    var at=Math.sin(zeit*s.atem+s.ph);
+    rot+=at*0.55;
+    y +=at*5;
+    x +=at*3;
+    /* Zeigernähe: die vordere Karte wandert am weitesten — perspektivisch
+       richtig, weil dieselbe Windeviation in der Nähe mehr Bildpixel kostet. */
+    var hebe=(1.15-sk);
+    x +=MX*26*hebe;  y +=MY*16*hebe;
+  }
+
   el.style.transform="translate3d("+x.toFixed(1)+"px,"+y.toFixed(1)+"px,0) scale("+
     sk.toFixed(4)+") rotateZ("+rot.toFixed(2)+"deg)";
   el.style.opacity=(cl(q*3.4,0,1)*mix(.30,1,lift)).toFixed(3);
   if(el._balk) el._balk.style.transform="scaleX("+K_SIG(cl(lift*1.15,0,1)).toFixed(4)+")";
+
+  /* Schärfentiefe, in halben Pixeln gestuft: ein filter, der jeden Bild neu
+     gerechnet wird, wäre ein Paint pro Bild — gestuft ändert er sich ein
+     handful Mal pro Sekunde und die Kante bleibt weich. */
+  var uns=REDUCE?0:Math.min(7,Math.abs(sk-BRENNE)*7.6);
+  var bq=Math.round(uns*2)/2;
+  if(el._bf!==bq){el._bf=bq; el.style.filter=bq?"blur("+bq+"px)":"none";}
 }
 
 /* ---------- die Ansage ----------
@@ -578,7 +614,12 @@ function malen(L){
 
   /* Akt 1: Lampe folgt dem Strahl, der Strahl wandert über das Feld. */
   var sweep=REDUCE?1:K_SCH(cl((q0-0.14)/0.40,0,1));
-  lampx=mix(0.16,0.84,sweep); lampy=0.40; pool=mix(0.40,0.62,K_SCH(q0));
+  /* Die Lampe steht nie: sie wandert langsam weiter, auch wenn niemand scrollt.
+     Ein Licht, das anhält, ist eine Ausleuchtung; ein Licht, das driftet, ist
+     ein Raum. */
+  lampx=mix(0.16,0.84,sweep)+Math.sin(ZEIT*0.13)*0.035;
+  lampy=0.40+Math.cos(ZEIT*0.11)*0.022;
+  pool=mix(0.40,0.62,K_SCH(q0))+Math.sin(ZEIT*0.17)*0.022;
   horiz=mix(0,.09,K_SCH(q0)); kalt=cl(q0,0,1)*.6;
 
   if(STRAHL){
@@ -587,12 +628,20 @@ function malen(L){
     STRAHL.style.transform="translate3d("+((0.16+sweep*0.68)*window.innerWidth).toFixed(1)+"px,0,0)";
   }
 
+  /* Das ganze Feld neigt sich dem Zeiger zu — eine Bewegung, die die Karten
+     nicht einzeln machen müssen, und die den Raum als Körper liest. */
+  var FELDER=[].slice.call(document.querySelectorAll("[data-karten]"));
+  for(var fd=0;fd<FELDER.length;fd++){
+    FELDER[fd].style.transform=REDUCE?"":
+      "rotateY("+(MX*2.4).toFixed(2)+"deg) rotateX("+(-MY*1.9).toFixed(2)+"deg)";
+  }
+
   for(var i=0;i<KNOTEN.length;i++){
     var s=KNOTEN[i]._s; if(!s)continue;
     /* Der Treffer wird zuletzt berührt und hebt am längsten: der Strahl geht
        von links nach rechts, die Mitte kommt aus der Tiefe. */
     var an=REDUCE?1:K_SCH(cl((sweep-(s.fx<.4?.62:s.fx<.6?.78:.5))/0.34,0,1));
-    stellen(KNOTEN[i],s,q0,an);
+    stellen(KNOTEN[i],s,q0,an,ZEIT);
   }
   ansage(q0);
 
@@ -642,27 +691,50 @@ function schiene(L){
   }
 }
 
-/* ---------- der Loop ---------- */
-var raf=0, letzter=0;
+/* ---------- der Takt ----------
+   Zwei Dinge, die zusammen den Unterschied zwischen „lebhaft" und „stehend"
+   machen:
+     Trägheit  — die Lage wird nicht gelesen, sie wird gedämpft erreicht. Ein
+                 Radimpuls lässt das Bild nachrollen, statt an der Zahl
+                 stehen zu bleiben. Das ist das Gefühl, das alle diese Seiten
+                 haben und das sich nicht aus CSS ergibt.
+     eine Uhr  — der Takt läuft durch, auch ohne Scroll. Was atmet, braucht
+                 eine Zeit; ein Loop, der nur bei Bewegung läuft, ist per
+                 Definition eine Diashow.
+   Im Hintergrund stoppt der Takt von selbst: ein Bild, das niemand sieht,
+   soll keinen Rechner warm halten. */
+var raf=0, letzter=0, L=[0,0,0,0];
 function takt(now){
-  raf=0;
-  var dt=letzter?Math.min(now-letzter,50):16; letzter=now;
-  var L=lage(); malen(L); schiene(L);
-  if(!fertig(L)) kick();
+  raf=requestAnimationFrame(takt);
+  if(document.hidden){letzter=0;return;}
+  var dt=letzter?Math.min((now-letzter)/1000,0.05):0.016; letzter=now;
+  ZEIT+=dt;
+  var roh=lage(), a=REDUCE?1:(1-Math.exp(-dt/0.105));
+  for(var i=0;i<4;i++){
+    L[i]+=(roh[i]-L[i])*a;
+    if(Math.abs(roh[i]-L[i])<2e-5) L[i]=roh[i];
+  }
+  var pa=REDUCE?1:(1-Math.exp(-dt/0.16));
+  MX+=(MXT-MX)*pa; MY+=(MYT-MY)*pa;
+  malen(L); schiene(L);
 }
-function fertig(L){
-  /* Der Takt steht, wenn nichts mehr zieht: nach dem letzten Scroll bleibt
-     genau ein Auslaufen, dann ist Ruhe im Bild und der Rechner darf schlafen. */
-  return true;
+function startTakt(){ if(!raf) raf=requestAnimationFrame(takt); }
+
+/* Zeigernähe nur mit feiner Spitze: auf einem Telefon ist die Berührung die
+   Fahrt, und ein zweiter Eingabekanal würde gegen den Scroll kämpfen. */
+if(window.matchMedia&&window.matchMedia("(pointer: fine)").matches){
+  window.addEventListener("pointermove",function(e){
+    MXT=(e.clientX/window.innerWidth)*2-1;
+    MYT=(e.clientY/window.innerHeight)*2-1;
+  },{passive:true});
 }
-function kick(){ if(!raf) raf=requestAnimationFrame(takt); }
 
 start(); groesse(); ausmessen();
-window.addEventListener("scroll",function(){kick();},{passive:true});
-window.addEventListener("resize",function(){groesse();ausmessen();kick();},{passive:true});
-var L0=lage(); malen(L0); schiene(L0);
+L=lage();
+window.addEventListener("resize",function(){groesse();ausmessen();},{passive:true});
+startTakt();
 
-if(MQ.addEventListener) MQ.addEventListener("change",function(e){REDUCE=e.matches;kick();});
+if(MQ.addEventListener) MQ.addEventListener("change",function(e){REDUCE=e.matches;});
 if(!ok){document.body.classList.add("no-3d");}
 })();
 </script>
