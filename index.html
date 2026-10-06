@@ -266,6 +266,36 @@
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
   }
   html[data-theme="dark"] .grain{mix-blend-mode:overlay; opacity:.16}
+
+  /* ---------- luft: staub im raum zwischen kamera und satz ----------
+     Die Welt fährt, der Satz fährt — aber die Luft zwischen beiden stand noch
+     still, und Luft ist genau das, was ein Bild bewohnt statt nur zeigt.
+     Sechsundzwanzig Partikel hängen an DREI Zahlen auf dem Träger; die Rate --r
+     sitzt am Partikel selbst und CSS rechnet sie gegeneinander, also kostet das
+     Feld drei Stil-Schreibungen pro Bild und keine Messung im Takt.
+
+     AN und nicht AUS: .flug gilt nur, solange eine Szene das Bild hat. Im Papier
+     (Akt 2) gibt es keine Luft, weil ein staubender Hintergrund hinter
+     transluzenten Karten und Argumenttext die kontrastmessende Wirkung eines
+     Überzugs bekäme — dieselbe Grenze, die .grain über den Glyphen verbietet.
+     Kein mix-blend-mode: die Partikel malen, sie mischen sich nicht in etwas,
+     dessen Kontrast gemessen wird. */
+  #luft{position:fixed; inset:0; z-index:1; pointer-events:none; overflow:hidden;
+    contain:layout paint style; display:none}
+  html.flug #luft{display:block}
+  #luft i{position:absolute; display:block;
+    left:calc(var(--x,0)*100%); top:calc(var(--y,0)*100%);
+    width:var(--b,2px); height:var(--b,2px); border-radius:50%;
+    background:var(--c,var(--text-2)); opacity:var(--o,.1); will-change:transform;
+    transform:translate3d(calc(var(--r,1)*var(--px,0px)),calc(var(--r,1)*var(--py,0px)),0)
+              scale(calc(.72 + var(--r,1)*var(--pw,0)*.62))}
+  /* Die Faser: kein Punkt, sondern ein Stückchen Papier, das im Licht steht. */
+  #luft i.f{height:.9px; width:calc(var(--b,2px)*7); border-radius:99px;
+    transform:translate3d(calc(var(--r,1)*var(--px,0px)),calc(var(--r,1)*var(--py,0px)),0)
+              rotate(calc(var(--dr,0deg) + var(--pw,0)*var(--rr,0deg)))}
+  html.no-3d #luft{display:none}
+  @media (prefers-reduced-motion: reduce){#luft{display:none!important}}
+  @media (max-width:640px){#luft{display:none}}
   .rule-top{position:fixed; top:0; left:0; right:0; height:1px; z-index:60; background:linear-gradient(90deg, transparent, var(--line-3), transparent)}
   main, footer{position:relative; z-index:2}
 
@@ -654,7 +684,7 @@
      Die Reihenfolge .in vor .out ist Verabredung mit der Regie: beide haben
      dieselbe Specificity, und wer absteigend schreibt, sieht den Übergang statt
      des Aufleuchtens der Grundregel. */
-  .js:not(.no-3d) .satz{visibility:hidden;opacity:0}
+  .js:not(.no-3d) .satz{visibility:hidden;opacity:0;will-change:transform}
   .js:not(.no-3d) .satz .w{opacity:0;transform:translate3d(0,28px,0);transition:opacity .12s var(--ease)}
   .js:not(.no-3d) .satz.in{visibility:visible;opacity:1}
   .js:not(.no-3d) .satz.in .w{opacity:1;transform:none}
@@ -1974,6 +2004,7 @@
 <div id="waypoints" aria-hidden="true"></div>
 <div class="rail" aria-hidden="true"><div class="rail-track"><b class="rail-dot"><span class="rail-name"><em>00</em><i>Surface</i></span></b></div></div>
 <div class="grain" aria-hidden="true"></div>
+<div id="luft" aria-hidden="true"></div>
 <div class="rule-top" aria-hidden="true"></div>
 <header class="masthead" id="masthead">
   <div class="wrap masthead-in">
@@ -7292,20 +7323,111 @@ var typo = (function () {
     kapitel(sc, i);
   }
 
+  /* DER SATZ ALS EBENE IM KORRIDOR. q.s ist die Lage zwischen zwei Stationen —
+     dieselbe Zahl, die die Kamera führt. Bis hierhin ging an ihr nur die Blende
+     vorbei: stand der Leser mitten in einer Szene, stand die Typo völlig still,
+     und ein Dokument mit Effekten ist genau das, was die Referenzfilme nicht
+     sind. Also kommt die Zeile aus der Tiefe und wächst, während man sie
+     durchfährt.
+
+     Die Amplitude ist nach OBEN begrenzt: 1,00 ist die Ruhelage und wird nie
+     überschritten. Das Maß der Zeile ist am gemessenen Schnitt der längsten
+     freien Zeile festgemacht — darüber hinaus würde sie im Vorbeifahren
+     abgeschnitten, und eine Schlagzeile, die den Rand frisst, ist kein
+     Kamerateam, sondern ein Bug. Der Weg beginnt bei 0,84 Maß und 64 px unter
+     der Endlage: eine Fahrt, die man sieht, in einem Maß, das der Rahmen immer
+     trägt. Zwei Anläufe dieser Sonde sind hier notiert, weil beide gelehrt
+     haben: ±4,5 % waren zu wenig, um im Bild überhaupt aufzufallen.
+
+     Nur transform, nie Deckkraft. Eine Maschine liest die Deckkraft des
+     Satz-Knotens und verlangt, dass genau ein Satz das Bild hält; eine Kurve,
+     die daran rührt, ändert den Vertrag. Blende bleibt Zustand, Fahrt ist
+     Bewegung — zwei Achsen, die einander nicht in die Quere kommen. */
+  var FLUG_A = 0.84, FLUG_Y = 64;
+  function flieg(el, s) {
+    /* Der Kalkül braucht sein Operatorzeichen von außen: „calc(-50% 15px)" ist
+       kein Ausdruck, sondern kaputtes CSS, und ein kaputter Wert wird still
+       verworfen — der Knoten behält die Grundregel und niemand merkt es. Also
+       Vorzeichen und Betrag getrennt gesetzt, gemessen am gerenderten Wert und
+       nicht am gebauten String. */
+    var y = FLUG_Y * (1 - s);
+    var wert = 'translate3d(0,calc(-50% + ' + y.toFixed(2) + 'px),0) scale(' +
+               (FLUG_A + (1 - FLUG_A) * s).toFixed(4) + ')';
+    /* Die Entstörung hängt AM ELEMENT, nicht global: ein Wert, der für den
+       alten Satz schon geschrieben war, gilt nicht für den neuen, und eine
+       geteilte Erinnerung ließe die kommende Ebene auf dem Maß der Grundregel
+       stehen statt auf ihrem eigenen Anfang. */
+    if (el._flug === wert) return;
+    el._flug = wert;
+    el.style.transform = wert;
+  }
+
+  /* DIE LUFT. Staub zwischen Kamera und Satz, an drei Zahlen auf einem Träger;
+     die Rate sitzt am Partikel selbst und CSS rechnet sie gegeneinander, also
+     kostet das Feld drei Schreibungen pro Bild und keine Messung im Takt.
+     Getrieben wird es von u — derselben Zahl, die die Kamera führt. Die Luft
+     zieht also, solange sich die Welt bewegt, und steht, wenn der Leser steht.
+     Akt 2 hat keine Luft: .flug ist dort ab, und die CSS-Regel entscheidet
+     allein, ohne dass hier eine zweite Meinung über denselben Zustand entsteht. */
+  var LUFT = document.getElementById('luft');
+  function schreib(el, name, wert) {
+    if (!el._c) el._c = {};
+    if (el._c[name] === wert) return;
+    el._c[name] = wert;
+    el.style.setProperty(name, wert);
+  }
+  function luft(u) {
+    if (!LUFT) return;
+    schreib(LUFT, '--px', ((u - 0.5) * 220).toFixed(1) + 'px');
+    schreib(LUFT, '--py', (-u * 380).toFixed(1) + 'px');
+    schreib(LUFT, '--pw', u.toFixed(4));
+  }
+
   function frame(u) {
     var q = S.sceneAt(u);
     /* Akt 2 hat keine Szene, die das Bild hat: alles geht ab, die Welt wird
        Wasserzeichen hinter dem Papier. */
     var key = q.paper ? -1 : q.i;
-    if (key === lastKey) return;
-    lastKey = key;
-    zeig(q.i, q.paper);
+    if (key !== lastKey) { lastKey = key; zeig(q.i, q.paper); }
+    /* Stehende Szene, stehender Satz: wer Ruhe verlangt, sieht die Ebene an
+       ihrem Ort, nicht auf dem Weg dorthin. */
+    if (an && !reduce) flieg(an, q.s);
+    if (!reduce) luft(q.paper ? 1 : u);
   }
 
   if (!S) {
     document.documentElement.classList.add('no-3d');
     return { frame: function () {}, off: true };
   }
+  /* Die Partikel werden EINMAL gebaut, nie im Takt. Hier, nach der Wache auf
+     die Szenenregie: ohne Regie gibt es keinen Flug, und ein Feld aus 26 Knoten
+     für eine Welt, die nicht zeichnet, ist totes Gewicht im Baum.
+
+     Die Plätze sind gezogen, nicht gewürfelt — ein fester Startwert liefert bei
+     jedem Laden denselben Staub, wer zurückscrollt sieht denselben Raum, und
+     zwei Messläufe bleiben vergleichbar. */
+  if (LUFT) (function staub(){
+    var z = 20261006;
+    function w(){ z = (z*1664525 + 1013904223) >>> 0; return z/4294967296; }
+    function zw(a,b){ return (a + (b-a)*w()).toFixed(3); }
+    function feld(n, fn){
+      var f = document.createDocumentFragment();
+      for(var i=0;i<n;i++){ var e=document.createElement('i'); fn(e,i); f.appendChild(e); }
+      LUFT.appendChild(f);
+    }
+    /* Zwanzig Punkte, sechs Fasern. Die Rate hält die Seitwärtsfahrt klein und
+       die Ferne blass — zwei Werte über einem Gesetz, nicht zwei Sonderfälle. */
+    feld(20, function(e){
+      e.style.cssText = '--x:'+zw(0,1)+';--y:'+zw(0,1)+';--b:'+zw(1.2,2.6)+'px;'+
+        '--r:'+zw(.25,.85)+';--o:'+zw(.05,.16);
+    });
+    feld(6, function(e){
+      e.className = 'f';
+      e.style.cssText = '--x:'+zw(0,1)+';--y:'+zw(0,1)+';--b:'+zw(2,4)+'px;'+
+        '--r:'+zw(.5,1)+';--o:'+zw(.06,.13)+';--dr:'+zw(-40,40)+'deg;--rr:'+zw(-26,26)+'deg';
+    });
+  })();
+
   return { frame: frame, nodes: { satz: satz, akte: akte, hud: hud } };
 })();
 
