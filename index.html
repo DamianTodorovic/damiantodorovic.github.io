@@ -296,6 +296,45 @@
   html.no-3d #luft{display:none}
   @media (prefers-reduced-motion: reduce){#luft{display:none!important}}
   @media (max-width:640px){#luft{display:none}}
+
+  /* ---------- tiefe: ebenen, die an der linse vorbeiziehen ----------
+     Das vierte von sieben Regeln der Referenzfilme, die uns fehlten: da stand
+     ein Subjekt, das man durchfährt, aber nichts zog NAHE an der Kamera vorbei.
+     Genau dieser Unterschied macht aus einer Diashow einen Film — mehrere
+     Ebenen mit deutlich verschiedenen Geschwindigkeiten.
+
+     Vier Notizebenen, dieselbe Handschrift wie die Akten im Papierakt: Kopf-
+     zeile in Mono, ein Wort in Display. Sie stehen links und rechts außerhalb
+     der Satzachse, wachsen von 0,34 auf das 2,6-fache und löschen am Rand wie-
+     der aus — das ist eine Bahn durchs Bild, kein Aufblenden.
+
+     Die Unschärfe ist PRO EBENE FEST gesetzt und wird nie im Takt geändert.
+     Eine animierte filter()-Schicht auf einer Fläche dieser Größe wäre ein
+     Paint pro Bild, und die Seite hält 60 Hz nur, weil im Takt ausschließlich
+     transform und opacity bewegt werden. Vage nahe an der Linse ist auch ohne
+     live berechnete Tiefenschärfe als solche zu lesen. */
+  #tiefe{position:fixed; inset:0; z-index:1; pointer-events:none; overflow:hidden;
+    contain:layout paint style; display:none}
+  html.flug #tiefe{display:block}
+  html.no-3d #tiefe,html:not(.js) #tiefe{display:none}
+  #tiefe i{position:absolute; display:block; left:var(--lx,50%); top:var(--ly,50%);
+    width:var(--w,300px); height:calc(var(--w,300px)*1.3);
+    margin:calc(var(--w,300px)*-0.65) 0 0 calc(var(--w,300px)*-0.5);
+    background:linear-gradient(158deg,rgba(252,250,245,.92),rgba(236,232,219,.86));
+    border:1px solid var(--line); border-radius:2px; padding:14px 15px;
+    box-shadow:0 26px 54px -30px rgba(21,23,27,.5);
+    opacity:0; will-change:transform,opacity; transform-origin:50% 50%;
+    transform:translate3d(var(--dx,0px),var(--dy,0px),0) scale(var(--s,.34))}
+  #tiefe i b{display:block;font:600 10px/1 var(--mono);letter-spacing:.2em;
+    text-transform:uppercase;color:var(--text-3)}
+  #tiefe i em{display:block;margin-top:10px;font-family:var(--serif);font-style:normal;
+    font-weight:400;font-size:30px;line-height:1.05;letter-spacing:-.02em;color:var(--text)}
+  /* Nahe an der Linse heißt: größer im Bild, härter am Rand, mehr Unschärfe. */
+  #tiefe i.n1{filter:blur(1.2px)} #tiefe i.n2{filter:blur(3px)} #tiefe i.n3{filter:blur(6px)}
+  @media (prefers-reduced-motion: reduce){#tiefe{display:none!important}}
+  @media (max-width:640px){#tiefe{display:none}}
+  html[data-theme="dark"] #tiefe i{background:linear-gradient(158deg,rgba(30,34,40,.94),rgba(17,20,25,.9));
+    border-color:var(--line-2)}
   .rule-top{position:fixed; top:0; left:0; right:0; height:1px; z-index:60; background:linear-gradient(90deg, transparent, var(--line-3), transparent)}
   main, footer{position:relative; z-index:2}
 
@@ -2005,6 +2044,7 @@
 <div class="rail" aria-hidden="true"><div class="rail-track"><b class="rail-dot"><span class="rail-name"><em>00</em><i>Surface</i></span></b></div></div>
 <div class="grain" aria-hidden="true"></div>
 <div id="luft" aria-hidden="true"></div>
+<div id="tiefe" aria-hidden="true"></div>
 <div class="rule-top" aria-hidden="true"></div>
 <header class="masthead" id="masthead">
   <div class="wrap masthead-in">
@@ -7398,7 +7438,7 @@ var typo = (function () {
     /* Stehende Szene, stehender Satz: wer Ruhe verlangt, sieht die Ebene an
        ihrem Ort, nicht auf dem Weg dorthin. */
     if (an && !reduce) flieg(an, q.s);
-    if (!reduce) luft(q.paper ? 1 : u);
+    if (!reduce) { luft(q.paper ? 1 : u); tiefe(u); }
   }
 
   if (!S) {
@@ -7435,6 +7475,82 @@ var typo = (function () {
         '--r:'+zw(.5,1)+';--o:'+zw(.10,.20)+';--dr:'+zw(-40,40)+'deg;--rr:'+zw(-26,26)+'deg';
     });
   })();
+
+  /* DIE TIEFE. Sechs Notizebenen, die an der Linse vorbeiziehen — die Regel aus
+     den Referenzfilmen, die uns fehlte: ein Subjekt, das man durchfährt, ist
+     noch kein Film, wenn nichts NAHE vorbeigeht. Verschiedene Geschwindigkeiten
+     pro Tiefe sind der Unterschied zwischen Diashow und Kamera.
+
+     Der Text auf den Ebenen ist echter Produkttext (Kopf in Mono, ein Wort in
+     Display), kein Platzhalter — eine Ebene, die man nicht lesen kann, weil sie
+     zu schnell und zu groß wird, ist Dekoration, und eine, die nach Platzhalter
+     aussieht, ist Verrat an einem Produkt, das Beweise verkauft. */
+  var TIEFE = document.getElementById('tiefe');
+  var EBENEN = [];
+  if (TIEFE) (function ebenenBauen(){
+    var noten = [
+      ['Akte 4a17f', 'Variante B'], ['Person', 'Todorovic'], ['Projekt', 'Konsole'],
+      ['Standort', 'Rechner'], ['Vertrag', 'BUSL-1.1'], ['Frist', '14 Tage']
+    ];
+    /* Links, rechts, links, rechts — und die Höhe gestaffelt, damit nie zwei
+       Ebenen denselben Streifen Bild belegen. Kein Randplatz liegt in der
+       Satzachse: der steht frei, weil die Zeile z 4 über dieser Ebene liegt. */
+    var lage = [[13,34],[88,58],[11,72],[90,26],[16,54],[85,78]];
+    var breite = [210, 250, 180, 270, 200, 230];
+    var unscharf = ['', ' n1', ' n2', ' n3', ' n1', ' n2'];
+    for (var i = 0; i < noten.length; i++) {
+      var e = document.createElement('i');
+      e.className = 'ebene' + unscharf[i];
+      e.style.cssText = '--lx:' + lage[i][0] + '%;--ly:' + lage[i][1] + '%;--w:' + breite[i] + 'px';
+      var k = document.createElement('b'); k.textContent = noten[i][0];
+      var t = document.createElement('em'); t.textContent = noten[i][1];
+      e.appendChild(k); e.appendChild(t);
+      TIEFE.appendChild(e);
+      /* Jede Ebene zieht in einem anderen Moment und mit einem anderen Vor-
+       zeichen seitlich aus dem Bild — sonst atmet das Ganze im Takt, und ein
+       Takt ist ein Karussell, keine Kamera. */
+      EBENEN.push({ el: e, ph: i * 0.17, seite: (i % 2 ? 1 : -1), periode: 0.30 + (i % 3) * 0.05 });
+    }
+  })();
+
+  /* p ist die Lage EINER Ebene auf ihrer Bahn, 0 am Horizont, 1 hinter der
+     Kamera. Das Maß wächst mit p², weil eine gleichförmige Fahrt durch einen
+     Raum im Bild gerade nicht gleichförmig größer wird — sie zieht erst spät
+     davon. Das ist dasselbe 1/Z-Gesetz, nach dem die Welt zeichnet. */
+  function ebene(o, p) {
+    var s = 0.34 * Math.pow(7.65, p * p);
+    var o_in = Math.min(1, p / 0.16), o_out = Math.min(1, (1 - p) / 0.30);
+    var op = o_in * o_out * 0.9;
+    var dx = o.seite * (30 + p * p * 340);
+    var dy = -70 + p * 150;
+    var t = 'translate3d(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px,0) scale(' + s.toFixed(3) + ')';
+    if (o.el._t !== t) { o.el._t = t; o.el.style.transform = t; }
+    var v = op.toFixed(3);
+    if (o.el._o !== v) { o.el._o = v; o.el.style.opacity = v; }
+  }
+
+  function tiefe(u) {
+    if (!TIEFE || !EBENEN || !EBENEN.length) return;
+    /* Wo eine Akte im Bild ist, gibt es keine Tiefobenen. Nicht aus Geschmack,
+       sondern aus Messbarkeit: die Akte ist transluzent, und eine helle Fläche
+       hinter ihr verändert den gerenderten Kontrast ihres Textes — genau die
+       Wirkung, die der .grain-Regel über Glyphen verboten ist. Eine Ebene, die
+       nur in vier von sieben Szenen stört, ist kein Effekt, sondern eine
+       unberechenbare Größe in der Kontrastrechnung. */
+    var akteImBild = !!(ae && parseFloat(ae.style.opacity || '1') > 0.05);
+    for (var i = 0; i < EBENEN.length; i++) {
+      var o = EBENEN[i];
+      var p = (u + o.ph) / o.periode;
+      p = p - Math.floor(p);
+      /* Unter 0,02 ist die Ebene kleiner als ein Pixelkorn und trotzdem ein
+         Style-Schreiber pro Bild — also aus, bis sie wirklich etwas ist. */
+      if (p < 0.02 || akteImBild) {
+        if (o.el._o !== '0') { o.el._o = '0'; o.el.style.opacity = '0'; }
+        continue;
+      }
+      ebene(o, p);
+    }
+  }
 
   return { frame: frame, nodes: { satz: satz, akte: akte, hud: hud } };
 })();
