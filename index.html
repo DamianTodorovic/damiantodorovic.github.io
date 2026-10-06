@@ -7334,16 +7334,22 @@ var typo = (function () {
      überschritten. Das Maß der Zeile ist am gemessenen Schnitt der längsten
      freien Zeile festgemacht — darüber hinaus würde sie im Vorbeifahren
      abgeschnitten, und eine Schlagzeile, die den Rand frisst, ist kein
-     Kamerateam, sondern ein Bug. Der Weg beginnt bei 0,84 Maß und 64 px unter
-     der Endlage: eine Fahrt, die man sieht, in einem Maß, das der Rahmen immer
-     trägt. Zwei Anläufe dieser Sonde sind hier notiert, weil beide gelehrt
-     haben: ±4,5 % waren zu wenig, um im Bild überhaupt aufzufallen.
+     Kamerateam, sondern ein Bug.
+
+     Der Weg ist NACH DEM SEHEN bemessen, nicht nach der Zahl, und das ist hier
+     notiert, weil zweimal hintereinander anders entschieden wurde. Versuch eins:
+     ±4,5 % — die Sonde meldete Bewegung, das Auge sah nichts. Versuch zwei:
+     0,84 Maß und 64 px über eine Szene von 2190 px Scroll — jede Prüfung grün,
+     und der Eigentümer sagte „absolut gar kein Unterschied". Die Zahl dahinter:
+     2,9 px Versatz pro 100 px Scroll. Eine Bewegung, die in vier Standbildern
+     nicht durchgeht, ist keine Bewegung, egal wie monoton ihre Kurve ist. Also
+     0,72 → 1,00 (28 %) und 130 px Steigen, das sind 6 px pro 100 px.
 
      Nur transform, nie Deckkraft. Eine Maschine liest die Deckkraft des
      Satz-Knotens und verlangt, dass genau ein Satz das Bild hält; eine Kurve,
      die daran rührt, ändert den Vertrag. Blende bleibt Zustand, Fahrt ist
      Bewegung — zwei Achsen, die einander nicht in die Quere kommen. */
-  var FLUG_A = 0.84, FLUG_Y = 64;
+  var FLUG_A = 0.72, FLUG_Y = 130;
   function flieg(el, s) {
     /* Der Kalkül braucht sein Operatorzeichen von außen: „calc(-50% 15px)" ist
        kein Ausdruck, sondern kaputtes CSS, und ein kaputter Wert wird still
@@ -7415,16 +7421,18 @@ var typo = (function () {
       for(var i=0;i<n;i++){ var e=document.createElement('i'); fn(e,i); f.appendChild(e); }
       LUFT.appendChild(f);
     }
-    /* Zwanzig Punkte, sechs Fasern. Die Rate hält die Seitwärtsfahrt klein und
-       die Ferne blass — zwei Werte über einem Gesetz, nicht zwei Sonderfälle. */
+    /* Zwanzig Punkte, sechs Fasern. Die Deckkraft ist zweimal nach oben gesetzt
+       worden, weil die erste Fassung über einer Welt steht, die selbst aus
+       hundert Knoten besteht: was dort unter 10 % bleibt, ist kein Staub,
+       sondern Kompressionsartefakt. */
     feld(20, function(e){
-      e.style.cssText = '--x:'+zw(0,1)+';--y:'+zw(0,1)+';--b:'+zw(1.2,2.6)+'px;'+
-        '--r:'+zw(.25,.85)+';--o:'+zw(.05,.16);
+      e.style.cssText = '--x:'+zw(0,1)+';--y:'+zw(0,1)+';--b:'+zw(2,4.2)+'px;'+
+        '--r:'+zw(.25,.85)+';--o:'+zw(.10,.26);
     });
     feld(6, function(e){
       e.className = 'f';
-      e.style.cssText = '--x:'+zw(0,1)+';--y:'+zw(0,1)+';--b:'+zw(2,4)+'px;'+
-        '--r:'+zw(.5,1)+';--o:'+zw(.06,.13)+';--dr:'+zw(-40,40)+'deg;--rr:'+zw(-26,26)+'deg';
+      e.style.cssText = '--x:'+zw(0,1)+';--y:'+zw(0,1)+';--b:'+zw(3,6)+'px;'+
+        '--r:'+zw(.5,1)+';--o:'+zw(.10,.20)+';--dr:'+zw(-40,40)+'deg;--rr:'+zw(-26,26)+'deg';
     });
   })();
 
