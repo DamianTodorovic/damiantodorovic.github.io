@@ -68,13 +68,16 @@ ul{list-style:none}
   background:
     radial-gradient(120% 90% at 50% 42%,var(--licht) 0%,var(--papier) 58%,#efece4 100%);
 }
-#welt{position:absolute;inset:0;z-index:2;will-change:transform}
+#welt{position:absolute;inset:0;z-index:2}
 #spur{height:var(--spur-h);pointer-events:none}
 
-/* ---------- Farbe auf dem Papier (WebGL, Multiplikation) ---------- */
+/* ---------- das Licht: der Shader besitzt den Rahmen ----------
+   Keine Lasur über dem Papier, sondern das Papier selbst: Ein Pass rechnet
+   Elfenbein, Körper, Key-Licht, Glühen, Belichtung und Korn. Nur so gibt es
+   Stellen, die heller sind als das Papier — also Licht. */
 #licht{
   position:absolute;inset:0;z-index:1;display:block;width:100%;height:100%;
-  mix-blend-mode:multiply;opacity:.72;pointer-events:none;
+  pointer-events:none;
 }
 html.no-3d #licht{display:none}
 html.no-3d #buehne::after{
@@ -86,14 +89,17 @@ html.no-3d #buehne::after{
     radial-gradient(46% 50% at 52% 88%,rgba(93,90,81,.16),transparent 74%);
 }
 
-/* ---------- Nachbearbeitung über den ganzen Rahmen ---------- */
+/* ---------- Nachbearbeitung über den ganzen Rahmen ----------
+   Keine mix-blend-mode-Ebene über dem laufend gemalten Canvas: eine gemischte
+   Vollfläche zwingt den Kompositor, bei jedem Bild den ganzen Rahmen neu zu
+   bauen. Korn und Belichtung rechnet der Shader selbst; was hier liegt, sind
+   einfache, unveränderte Deckflächen. */
 #schleier,#saum,#rand{position:absolute;inset:0;pointer-events:none}
 #schleier{
   z-index:4;opacity:0;
   background:
-    linear-gradient(90deg,rgba(47,65,87,.34),rgba(47,65,87,0) 16%,rgba(142,47,47,0) 84%,rgba(142,47,47,.32)),
-    linear-gradient(0deg,rgba(47,65,87,.2),transparent 22%,transparent 78%,rgba(142,47,47,.18));
-  mix-blend-mode:multiply;
+    linear-gradient(90deg,rgba(47,65,87,.30),rgba(47,65,87,0) 16%,rgba(142,47,47,0) 84%,rgba(142,47,47,.28)),
+    linear-gradient(0deg,rgba(20,22,26,.16),transparent 22%,transparent 78%,rgba(142,47,47,.14));
 }
 #saum{
   z-index:5;
@@ -104,11 +110,6 @@ html.no-3d #buehne::after{
   z-index:6;
   background:linear-gradient(180deg,rgba(20,22,26,.10),transparent 15%,transparent 85%,rgba(20,22,26,.11));
 }
-#korn{
-  position:absolute;inset:-50%;z-index:7;pointer-events:none;
-  background-repeat:repeat;mix-blend-mode:multiply;
-  will-change:transform;opacity:.5;
-}
 
 /* ---------- Tiefe: Staub und Membranen ---------- */
 #luft,#haute{position:absolute;inset:0;pointer-events:none}
@@ -118,7 +119,7 @@ html.no-3d #buehne::after{
   position:absolute;left:0;top:0;width:760px;height:520px;
   border:1px solid rgba(20,22,26,.72);
   box-shadow:inset 0 0 0 1px rgba(20,22,26,.16), inset 0 0 90px rgba(20,22,26,.05);
-  opacity:0;will-change:transform,opacity;
+  opacity:0;
 }
 .haut::before,.haut::after{
   content:"";position:absolute;width:30px;height:30px;border:1px solid rgba(20,22,26,.8);
@@ -127,7 +128,7 @@ html.no-3d #buehne::after{
 .haut::after{right:-13px;bottom:-13px;border-left:0;border-top:0}
 .stueb{
   position:absolute;left:0;top:0;width:3px;height:3px;border-radius:50%;
-  background:rgba(20,22,26,.55);will-change:transform,opacity;
+  background:rgba(20,22,26,.55);
 }
 
 /* ---------- die Stationen ---------- */
@@ -315,6 +316,13 @@ html.no-3d #buehne::after{
   display:flex;align-items:center;padding:0 clamp(16px,3vw,34px);
   pointer-events:none;
 }
+/* Der Körper darf bis in die Ecken reichen: hinter der Navigation liegt immer
+   Papier, sonst verschwindet ein Link hinter einer Ader. */
+#mast::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:calc(var(--nav) + 26px);
+  background:linear-gradient(180deg,rgba(246,244,239,.94) 0%,rgba(246,244,239,.82) 52%,rgba(246,244,239,0) 100%);
+  z-index:-1;pointer-events:none;
+}
 #mast>*{pointer-events:auto}
 .marke{display:flex;align-items:center;gap:11px}
 .marke svg{width:26px;height:26px;display:block;border-radius:6px}
@@ -399,7 +407,7 @@ html.no-3d #buehne::after{
 /* ---------- reduzierte Bewegung: eigene ruhende Zustände ---------- */
 @media (prefers-reduced-motion:reduce){
   :root{--standard:120ms;--slow:120ms}
-  #korn,#luft,#haute,#schleier{display:none}
+  #luft,#haute,#schleier{display:none}
   .akt{transition:opacity 120ms linear}
   #hinweis .fall::after{animation:none}
   .knopf:hover{transform:none}
@@ -531,7 +539,6 @@ html.no-3d #buehne::after{
   <div id="schleier"></div>
   <div id="saum"></div>
   <div id="rand"></div>
-  <div id="korn"></div>
 </div>
 
 <div id="fortschritt"></div>
@@ -564,7 +571,7 @@ html.no-3d #buehne::after{
   html.flug{overflow:visible}
   #buehne{position:static;height:auto;background:var(--papier)}
   #welt{position:static}
-  #spur,#luft,#haute,#korn,#schleier,#saum,#rand,#licht,#mast,#spur-nav,#hinweis,#lade,#fortschritt{display:none}
+  #spur,#luft,#haute,#schleier,#saum,#rand,#licht,#mast,#spur-nav,#hinweis,#lade,#fortschritt{display:none}
   .akt{position:static;opacity:1!important;transform:none!important;filter:none!important;width:auto;max-width:1080px;margin:0 auto;padding:72px 6vw}
 </style></noscript>
 
@@ -608,6 +615,11 @@ var ST=[
  {id:"a5", x:  0, y:  0, roll: 0.0, pk:0.934, nm:"Ende", ziel:true}
 ];
 var NS=ST.length;
+/* Wie weit der Körper gebaut ist, und wie das Blatt belichtet wird.
+   Die Adern sind an den Haltepunkten schmal — dort gehört der Rahmen dem Text —
+   und schwellen im Flug an: der Körper atmet mit der Geschwindigkeit. */
+var ZUST=[0.30,0.36,0.44,0.38,0.33,0.28];
+var BEL =[1.00,0.988,1.028,0.996,0.986,1.020];
 for(var s0=0;s0<NS;s0++){
   ST[s0].z=-s0*ABST;
   ST[s0].kz=ST[s0].z+BRENNE;
@@ -632,6 +644,8 @@ function Kamera(p){
   K.r   = mix(ST[i].roll,ST[n].roll,e);
   /* die Fokusebene liegt immer auf der Station, die gerade scharf ist */
   K.plan= mix(K.z-ST[i].z, K.z-ST[n].z, e);
+  K.zust=mix(ZUST[i],ZUST[n],e);
+  K.bel =mix(BEL[i], BEL[n], e);
   K.seg = e; K.i = i;
 }
 
@@ -720,7 +734,7 @@ function weltzeug(){
   if(!luft||!haute) return;
   luft.innerHTML=""; haute.innerHTML="";
   STAEUB=[]; HAUTE=[];
-  var n=ww<780?22:58, tiefe=ABST*(NS-1);
+  var n=ww<780?20:46, tiefe=ABST*(NS-1);
   for(var i=0;i<n;i++){
     var e=D.createElement("i"); e.className="stueb";
     var g=0.6+((i*7919)%100)/100*3.4;
@@ -733,7 +747,7 @@ function weltzeug(){
       z:BRENNE+520-P(i+13)*(tiefe+1500),
       v:0.13+P(i+7)*0.4, ph:P(i+31)*6.28, dr:5+P(i+57)*26});
   }
-  var m=ww<780?8:13, schritt=(tiefe+1500)/m;
+  var m=ww<780?7:12, schritt=(tiefe+1500)/m;
   for(var j=0;j<m;j++){
     var h=D.createElement("div"); h.className="haut";
     haute.appendChild(h);
@@ -780,23 +794,70 @@ function licht(){
   var VS="attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}";
   var FS=[
   "precision highp float;",
-  "uniform vec2 uR;uniform float uT,uP,uV;",
-  "float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}",
+  "uniform vec2 uR;uniform vec3 uC;uniform float uAsp,uRoll,uT,uV,uZ,uM,uB;",
+  "float h1(float n){return fract(sin(n)*43758.5453123);}",
+  "float h21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}",
+  "vec3 h3(float n){return fract(sin(vec3(n,n+1.7,n+3.3))*vec3(43758.5453,12345.678,23421.63));}",
+  "float nz(vec3 x){vec3 p=floor(x),f=fract(x);f=f*f*(3.-2.*f);float n=p.x+p.y*157.+113.*p.z;",
+  " return mix(mix(mix(h1(n),h1(n+1.),f.x),mix(h1(n+157.),h1(n+158.),f.x),f.y),",
+  "            mix(mix(h1(n+113.),h1(n+114.),f.x),mix(h1(n+270.),h1(n+271.),f.x),f.y),f.z);}",
+  "float smin(float a,float b,float k){float q=clamp(.5+.5*(b-a)/k,0.,1.);return mix(b,a,q)-k*q*(1.-q);}",
+  /* Ein Körper, nicht sechs Kulissen: dieselbe Struktur wiederholt sich alle
+     1800 Welteinheiten auf der Achse, die die Kamera durchfliegt. */
+  /* EIN Körper für den ganzen Film: zwei verseilte Adern auf einer wandernden
+     Achse, die die Kamera entlangfliegt. Kein Monument steht je hinter dem
+     Text fest — die Adern ziehen durchs Bild und wieder heraus. */
+  "float sminw(float a,float b,float k){float q=clamp(.5+.5*(b-a)/k,0.,1.);return mix(b,a,q)-k*q*(1.-q);}",
+  "float korper(vec3 p,float cid){",
+  " float z=p.z, b=.24+.76*uZ;",
+  " vec2 a1=vec2(sin(z*.0016)*300.,cos(z*.0011)*170.);",
+  " float r1=(78.+58.*sin(z*.0034)+26.*sin(z*.0091+1.7))*b;",
+  " float d=length(p.xy-a1)-max(r1,7.);",
+  " vec2 a2=vec2(sin(z*.0016+2.1)*300.,cos(z*.0011+2.1)*170.);",
+  " float r2=(33.+22.*sin(z*.0052+.6))*b;",
+  " d=sminw(d,length(p.xy-a2)-max(r2,5.),96.);",
+  " vec2 a3=vec2(sin(z*.0016+4.2)*300.,cos(z*.0011+4.2)*170.);",
+  " float r3=(24.+17.*sin(z*.0067+2.));",
+  " d=sminw(d,length(p.xy-a3)-max(r3*b,4.),78.);",
+  " return d;}",
+  "float map(vec3 p){return korper(p,0.);}",
+  "vec3 norm(vec3 p){vec2 e=vec2(1.7,0.);",
+  " return normalize(vec3(map(p+e.xyy)-map(p-e.xyy),map(p+e.yxy)-map(p-e.yxy),map(p+e.yyx)-map(p-e.yyx)));}",
   "void main(){",
-  " vec2 uv=(gl_FragCoord.xy-.5*uR)/uR.y;",
-  " float t=uT*.041;",
-  " vec3 k1=vec3(.80,.84,.91),k2=vec3(.94,.84,.73),k3=vec3(.90,.77,.76);",
-  " vec3 tint=mix(mix(k1,k2,smoothstep(.0,.48,uP)),k3,smoothstep(.42,1.,uP));",
-  " float f=0.;",
-  " f+=smoothstep(.62,.02,length(uv-vec2(sin(t*.73)*.42-.18,cos(t*.51)*.30+.06)));",
-  " f+=.82*smoothstep(.55,.02,length(uv-vec2(cos(t*.61)*.40+.30,sin(t*.83)*.26-.22)));",
-  " f+=.72*smoothstep(.70,.05,length(uv-vec2(sin(t*.44+2.)*.55,.28+sin(t*.37)*.18)));",
-  " f+=.55*smoothstep(.48,.02,length(uv-vec2(-.44+cos(t*.29)*.1,-.40+sin(t*.41)*.1)));",
-  " float k=clamp(f*.42,0.,.9);",
-  " vec3 col=mix(vec3(1.),tint,k);",
-  " float g=h(floor(gl_FragCoord.xy*.9)+vec2(uT*11.,uT*7.));",
-  " col*=1.-(0.030+0.055*uV)*(.30+.70*g);",
-  " col*=1.-.10*smoothstep(.55,1.05,length(uv*vec2(1.05,1.)));",
+  " vec2 sp=(gl_FragCoord.xy-.5*uR)/uR.y;",
+  " vec3 rd=normalize(vec3(sp.x,sp.y,-uAsp));",
+  " float cr=cos(uRoll),sr=sin(uRoll);rd.xy=mat2(cr,-sr,sr,cr)*rd.xy;",
+  " vec3 L=normalize(vec3(cos(uT*.13)*.85,.52+.26*sin(uT*.09),sin(uT*.13)*.85-.35));",
+  " vec3 papier=mix(vec3(.966,.958,.939),vec3(.921,.906,.874),smoothstep(.04,.96,length(sp*vec2(.95,1.))));",
+  " papier*=.988+.012*sin(gl_FragCoord.x*.07)*sin(gl_FragCoord.y*.061);",
+  " float t=8.,glo=0.;float hit=0.;",
+  " for(int i=0;i<46;i++){",
+  "  vec3 p=uC+rd*t;float d=map(p);",
+  "  float adv=max(d,7.);",
+  "  glo+=exp(-max(d,0.)/72.)*adv*.016;",
+  "  if(d<2.2){hit=1.;break;}",
+  "  t+=adv;if(t>3600.)break;}",
+  " vec3 col=papier;",
+  " if(hit>.5){",
+  "  vec3 p=uC+rd*t;vec3 n=norm(p);",
+  "  float dif=max(dot(n,L),0.);",
+  "  float ao=clamp(1.-glo*.62,.30,1.);",
+  "  float rim=pow(1.-max(dot(n,-rd),0.),2.3);",
+  "  float spe=pow(max(dot(reflect(rd,n),L),0.),34.);",
+  "  float adern=pow(max(.28+.34*(sin(p.x*.019+p.y*.013)+sin(p.z*.021-uT*.5)),0.),2.2);",
+  "  vec3 grund=mix(vec3(.048,.055,.070),vec3(.205,.098,.094),.22+.5*adern);",
+  "  col=grund*(.10+1.15*dif*ao)+vec3(1.12,1.08,1.0)*spe*1.25*ao;",
+  "  col+=vec3(.70,.16,.14)*rim*(.50+.5*ao)*(.45+.55*uZ);",
+  "  col+=vec3(.94,.70,.46)*adern*(.05+.40*uZ)*ao;",
+  "  col=mix(papier,col,1.-smoothstep(800.,3600.,t));",
+  " }",
+  " col+=vec3(1.04,.94,.78)*min(glo,.22)*(.18+.55*uZ);",
+  " col+=vec3(1.02,.92,.76)*pow(max(dot(rd,L),0.),30.)*.26*(.4+.6*uZ);",
+  " float maske=uM*(1.-smoothstep(.10,.86,length(sp*vec2(.74,1.06))));",
+  " col=mix(col,papier,maske*.62);",
+  " col*=uB;",
+  " col*=1.-(.034+.062*uV)*(.26+.74*h21(floor(gl_FragCoord.xy)+vec2(uT*11.,uT*7.)));",
+  " col*=1.-.105*smoothstep(.50,1.06,length(sp*vec2(1.02,.98)));",
   " gl_FragColor=vec4(col,1.);",
   "}"].join("\n");
   function sh(t,src){var s=ctx.createShader(t);ctx.shaderSource(s,src);ctx.compileShader(s);
@@ -815,41 +876,38 @@ function licht(){
   ctx.useProgram(prog);
   var la=ctx.getAttribLocation(prog,"a");
   ctx.enableVertexAttribArray(la);ctx.vertexAttribPointer(la,2,ctx.FLOAT,false,0,0);
-  GL={ctx:ctx,prog:prog,uR:ctx.getUniformLocation(prog,"uR"),
-      uT:ctx.getUniformLocation(prog,"uT"),uP:ctx.getUniformLocation(prog,"uP"),
-      uV:ctx.getUniformLocation(prog,"uV"),cv:cv,bw:0,bh:0};
+  GL={ctx:ctx,prog:prog,uR:ctx.getUniformLocation(prog,"uR"),uC:ctx.getUniformLocation(prog,"uC"),
+      uAsp:ctx.getUniformLocation(prog,"uAsp"),uRoll:ctx.getUniformLocation(prog,"uRoll"),
+      uT:ctx.getUniformLocation(prog,"uT"),uV:ctx.getUniformLocation(prog,"uV"),
+      uZ:ctx.getUniformLocation(prog,"uZ"),uM:ctx.getUniformLocation(prog,"uM"),
+      uB:ctx.getUniformLocation(prog,"uB"),cv:cv,bw:0,bh:0};
   return true;
 }
+/* Der Körper ist weich; der Rahmen rechnet bei 50 % der Gerätepixel und der
+   Browser skaliert hoch — ununterscheidbar, aber die Hälfte der Bilder. */
 function lichtMass(){
   if(!GL) return;
-  var f=Math.min(window.devicePixelRatio||1,1.4);
-  var bw=RR(ww*f), bh=RR(hh*f);
+  var f=0.8;
+  var bw=CX(2,RR(ww*f)), bh=CX(2,RR(hh*f));
   if(bw===GL.bw&&bh===GL.bh) return;
   GL.bw=bw;GL.bh=bh;GL.cv.width=bw;GL.cv.height=bh;
   GL.ctx.viewport(0,0,bw,bh);
 }
-function lichtMalen(p,vel,zeit){
+function lichtMalen(vel,zeit,zust,maske,bel){
   if(!GL) return;
   var c=GL.ctx;
   c.uniform2f(GL.uR,GL.bw,GL.bh);
-  c.uniform1f(GL.uT,zeit);c.uniform1f(GL.uP,p);c.uniform1f(GL.uV,cl(vel,0,1));
+  c.uniform3f(GL.uC,K.x,K.y,K.z);
+  c.uniform1f(GL.uAsp,BRENNE/hh);
+  c.uniform1f(GL.uRoll,-K.r*0.0174533);
+  c.uniform1f(GL.uT,zeit);c.uniform1f(GL.uV,cl(vel,0,1));
+  c.uniform1f(GL.uZ,zust);c.uniform1f(GL.uM,maske);c.uniform1f(GL.uB,bel);
   c.drawArrays(c.TRIANGLES,0,3);
 }
 
-/* ---------- Korn: ein echtes Raster, verrückt pro Bild ---------- */
-var KORNBILD="";
-function korn(){
-  var c=D.createElement("canvas"); c.width=c.height=176;
-  var x=c.getContext("2d"), img=x.createImageData(176,176), d=img.data;
-  for(var i=0;i<d.length;i+=4){
-    var v=Math.random();
-    d[i]=20;d[i+1]=22;d[i+2]=26;
-    d[i+3]= v>0.9875? 118 : v>0.94? 40 : 0;
-  }
-  x.putImageData(img,0,0);
-  KORNBILD="url("+c.toDataURL("image/png")+")";
-  var el=W("#korn"); if(el) el.style.backgroundImage=KORNBILD;
-}
+/* ---------- das Korn rechnet der Shader: ein Raster als Deckfläche über
+   einem laufend gemalten Canvas wäre eine Vollfläche, die jeder Bild
+   neu kompositiert. ---------- */
 
 /* ---------- ein Element, ein Schreiber ---------- */
 function kind(e){
@@ -907,7 +965,7 @@ function erreichbar(e,ja){
 function aktShow(e,p,S,vv,zeit){
   var f=Fenster(p,S);
   if(f.a<=0.011){
-    if(e._on!==0){e._on=0;e.style.opacity="0";erreichbar(e,false);}
+    if(e._on!==0){e._on=0;e._a=0;e.style.opacity="0";erreichbar(e,false);}
     return;
   }
   if(e._on!==1)e._on=1;
@@ -927,8 +985,13 @@ function aktShow(e,p,S,vv,zeit){
 
   var op=f.a.toFixed(3);
   if(e._op!==op){e._op=op;e.style.opacity=op;}
+  e._a=f.a;
 
-  var uns=REDUCE?0:cl(Math.abs(q.d-K.plan)/212+vv*1.1,0,7);
+  /* Das Schärfenziehen ist die teure Bewegung: eine geblurrte Fläche wird in
+     ihrer skalierten Größe gerastert. Also grobe Stufen, harte Obergrenze, und
+     aus unterhalb der Sichtbarkeit — eine Karte, die an der Linse vorbeizieht,
+     braucht kein Raster mehr. */
+  var uns=REDUCE?0:(sk>1.72?0:cl(Math.abs(q.d-K.plan)/228+vv*1.05,0,6));
   var bq=Math.round(uns*2)/2;
   if(e._bf!==bq){e._bf=bq;e.style.filter=bq?"blur("+bq+"px)":"none";}
 
@@ -1015,7 +1078,7 @@ function hauteMalen(){
 /* ---------- der Takt ---------- */
 var pganz=0,pziel=0,vorher=0,vv=0,zeit=0,lastms=-1;
 var MX=0,MY=0,MXT=0,MYT=0;
-var AKTE=[],KORNEL=null,SCHLEIER=null,FORT=null,ZEITEL=null,HINW=null,RICK=null,RAIL=null;
+var AKTE=[],SCHLEIER=null,FORT=null,ZEITEL=null,HINW=null,RICK=null,RAIL=null;
 var RICKZ=-1;
 
 function frame(ms){
@@ -1041,15 +1104,11 @@ function frame(ms){
   if(FORT) FORT.style.transform="scaleX("+pganz.toFixed(4)+")";
 
   for(var i=0;i<AKTE.length;i++) aktShow(AKTE[i],pganz,ST[i],vv,zeit);
+  var maske=0;
+  for(var m2=0;m2<AKTE.length;m2++) if(AKTE[m2]._a>maske) maske=AKTE[m2]._a;
   hauteMalen(); staubMalen(zeit);
-  lichtMalen(pganz,vv,zeit);
+  lichtMalen(vv,zeit,K.zust+(1.0-K.zust)*vv*0.85,maske,K.bel);
 
-  if(KORNEL&&!REDUCE){
-    KORNEL.style.transform="translate3d("+(Math.floor(Math.random()*44)-22)+"px,"+
-      (Math.floor(Math.random()*44)-22)+"px,0)";
-    var ko=(0.4+vv*0.42).toFixed(3);
-    if(KORNEL._op!==ko){KORNEL._op=ko;KORNEL.style.opacity=ko;}
-  }
   if(SCHLEIER){
     var si=(vv*0.4).toFixed(3);
     if(SCHLEIER._op!==si){SCHLEIER._op=si;SCHLEIER.style.opacity=si;}
@@ -1096,7 +1155,7 @@ function anlassen(){
   window.scrollTo(0,0);
 
   LADE=W("#lade"); BALKEN=W("#lade-balken"); STANDEL=W("#lade-stand");
-  KORNEL=W("#korn"); SCHLEIER=W("#schleier"); FORT=W("#fortschritt");
+  SCHLEIER=W("#schleier"); FORT=W("#fortschritt");
   ZEITEL=W("#zeitcode"); HINW=W("#hinweis");
 
   lade(.14,"Blende");
@@ -1108,7 +1167,6 @@ function anlassen(){
   if(!glOk) D.documentElement.classList.add("no-3d");
   lade(.52,glOk?"Licht":"Lasuren");
 
-  korn();
   bereitstellen();
   vermessen();
   weltzeug();
@@ -1180,7 +1238,6 @@ function anlassen(){
       REDUCE=e.matches;
       if(REDUCE){MX=MY=MXT=MYT=0;for(var i=0;i<HAUTE.length;i++){HAUTE[i].el.style.opacity="0";}
         for(var j=0;j<STAEUB.length;j++){STAEUB[j].el.style.opacity="0";}}
-      if(KORNEL) KORNEL.style.opacity=REDUCE?"0":"0.4";
     };
     if(mq.addEventListener) mq.addEventListener("change",um);
   }
