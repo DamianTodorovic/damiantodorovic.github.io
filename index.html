@@ -58,12 +58,27 @@
     --sans:'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
     --mono:'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
     --maxw:1320px;
-    /* One curve for the whole page. An overshoot curve was in here and sat on every
-       button press; a control that bounces once past its resting position reads as
-       a template that was handed a spring constant instead of a designer, and it
-       contradicted the doctrine below. Press speed is expressed with a shorter
-       duration on :active, not with a second curve. */
-    --ease:cubic-bezier(.16,1,.3,1);
+    /* Eine Kurve für die ganze Seite: die Signatur. Sie ist die glatte über beide
+       Enden — cubic-bezier(.4,0,.2,1) — und trägt 80 % aller Bewegungen auf dem
+       Schirm. Vor ihr stand hier eine expo-out (/.16,1/.3,1/), die am Ende zu
+       steil auslaufte, um eine Ansage in Kinogröße zu setzen; die Freigabe vom
+       6.10.2026 hat die Seite auf die Premium-Persönlichkeit gestellt, und deren
+       Signatur ist diese Kurve.
+       Was bleibt, ist das Verbot: Overshoot ist null. Eine Kurve, die über die
+       Ruhelage hinausschießt, ist rausgeflogen, nicht weil sie langsam wäre,
+       sondern weil ein Produkt, das Versiegelung und Audit-Kette verkauft, nicht
+       hüpfen darf. Kein Wert hier hat y außer 0..1, und Tempo wird über die
+       Dauer ausgedrückt, nicht über eine zweite Kurve.
+       --ein (deco) holt herein, --aus (acc) geht fort und ist 35 % kürzer,
+       --sch ist sine-symmetrisch für alles, was läuft, --strich ist der Strich
+       unter einer Zeiger-Rückmeldung. Linear bleibt verbannt: nur
+       Fortschrittsbreite darf ihn haben (siehe .progress i). */
+    --ease:cubic-bezier(.4,0,.2,1);
+    --ein:cubic-bezier(.05,.7,.1,1);
+    --aus:cubic-bezier(.3,0,.8,.15);
+    --sch:cubic-bezier(.45,0,.55,1);
+    --strich:cubic-bezier(.2,0,0,1);
+    --quick:220ms; --standard:420ms; --slow:680ms;
     --nav-h:72px;
     --r:16px;
     /* light: paper. Depth comes from borders and tight low-alpha shadows, never from glow */
@@ -78,6 +93,10 @@
     --text:#14161a; --text-2:#34373d; --text-3:#5d5a51;
     --line:rgba(20,22,26,.10); --line-2:rgba(20,22,26,.18); --line-3:rgba(20,22,26,.30);
     --wax:#8e2f2f; --wax-2:#772222; --wax-deep:#8e2f2f; --wax-dim:rgba(142,47,47,.08);
+    /* Das Wachs im Siegel: eine obere Kante, die das Licht fängt, und ein Rand,
+       in dem es ausläuft. Zwei Werte, weil ein Verlauf aus einer Farbe kein
+       Siegel malt, sondern einen Knopf. */
+    --siegel-a:#b45452; --siegel-b:#6d2020;
     --tint:#16202b;
     --node:#2f4157; --node-tx:#f4f1ec;
     --haze:rgba(20,22,26,.02); --haze-2:rgba(20,22,26,.025);
@@ -111,6 +130,7 @@
     --text:#eceae4; --text-2:#a8afb8; --text-3:#8d96a1;
     --line:rgba(255,255,255,.085); --line-2:rgba(255,255,255,.16); --line-3:rgba(255,255,255,.26);
     --wax:#e2705f; --wax-2:#f0907c; --wax-deep:#8e2f2f; --wax-dim:rgba(226,112,95,.14);
+    --siegel-a:#f0907c; --siegel-b:#8e2f2f;
     --tint:#3f5670;
     --node:#3f5670; --node-tx:#eceae4;
     --haze:rgba(255,255,255,.03); --haze-2:rgba(255,255,255,.04);
@@ -146,7 +166,7 @@
      masthead keeps its own fade: that one belongs to scrolling, and snapping the
      glass in and out would read as a flicker. */
   @media (prefers-reduced-motion: no-preference){
-    body{ transition:background .5s var(--ease), color .5s var(--ease) }
+    body{ transition:background var(--standard) var(--ease), color var(--standard) var(--ease) }
   }
   html.vt body, html.vt header.masthead{transition:none}
   ::selection{background:var(--wax-deep); color:#fdfbf7}
@@ -188,7 +208,7 @@
     box-shadow:var(--raise), inset 0 1px 0 var(--glass-hi);
   }
   .mg-card > *, .karte > *, .pipe > *, .tt > *{position:relative; z-index:1}
-  [data-tilt]{transition:transform .35s var(--ease)}
+  [data-tilt]{transition:transform var(--quick) var(--ease)}
 
   ::-webkit-scrollbar{width:10px}
   ::-webkit-scrollbar-track{background:var(--bg-2)}
@@ -250,7 +270,7 @@
   main, footer{position:relative; z-index:2}
 
   /* ---------- masthead ---------- */
-  header.masthead{position:fixed; top:0; left:0; right:0; z-index:70; border-bottom:1px solid transparent; transition:background .4s var(--ease), border-color .4s var(--ease), box-shadow .4s var(--ease)}
+  header.masthead{position:fixed; top:0; left:0; right:0; z-index:70; border-bottom:1px solid transparent; transition:background var(--standard) var(--ease), border-color var(--standard) var(--ease), box-shadow var(--standard) var(--ease)}
   header.masthead.pinned{
     background:linear-gradient(180deg, var(--glass-a), var(--glass-b));
     -webkit-backdrop-filter:blur(22px) saturate(180%); backdrop-filter:blur(22px) saturate(180%);
@@ -315,16 +335,22 @@
   .masthead nav a:not(.btn){color:var(--text-2); font-family:var(--mono); font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; padding:6px 0; position:relative}
   /* The underline is a scaled box, not an animated `right`: that property is
      layout, and this one fires under the pointer on every link in the bar. */
-  .masthead nav a:not(.btn)::after{content:""; position:absolute; left:0; right:0; bottom:0; height:1px; background:var(--wax); transform:scaleX(0); transform-origin:left center; transition:transform .32s var(--ease)}
+  /* Rückmeldung unter 100 ms Wirkung: der Strich muss schon wachsen, während der
+     Zeiger noch einfährt — 140 ms, links stehend, Kurve mit hartem Ende. */
+  .masthead nav a:not(.btn)::after{content:""; position:absolute; left:0; right:0; bottom:0; height:1px; background:var(--wax); transform:scaleX(0); transform-origin:left center; transition:transform 140ms var(--strich)}
   .masthead nav a:not(.btn):hover{color:var(--text); text-decoration:none}
   .masthead nav a:not(.btn):hover::after{transform:scaleX(1)}
-  .btn{display:inline-flex; align-items:center; justify-content:center; gap:10px; font-family:var(--mono); font-size:11.5px; letter-spacing:.12em; text-transform:uppercase; padding:11px 18px; border-radius:10px; border:1px solid var(--line-2); background:var(--glass-a); color:var(--text); transition:transform .2s var(--ease), border-color .2s ease, background .25s ease}
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:10px; font-family:var(--mono); font-size:11.5px; letter-spacing:.12em; text-transform:uppercase; padding:11px 18px; border-radius:10px; border:1px solid var(--line-2); background:var(--glass-a); color:var(--text); transition:transform 260ms var(--ease), border-color var(--quick) var(--ease), background var(--quick) var(--ease)}
   /* One signal per element, and it lifts rather than glows: the old hover added a
      shadow on top of the movement, which reads as the button being lit from
-     outside. The press is faster than the release (60ms in, 200ms out) because a
-     press should feel like contact, not like a trampoline. */
+     outside.
+     button.press, wörtlich: die Taste gibt in 120 ms auf 0,985 nach und in 260 ms
+     zurück in die Ruhelage, beide Male die Signatur. Kein Quetschen, kein Federn —
+     eine Taste, die federt, widerspricht der Setztheit, die der Rest der Seite
+     behauptet. Overshoot ist hier null; das Tempo liegt in der Dauer, nicht in
+     einer zweiten Kurve. */
   .btn:hover{border-color:var(--line-3); color:var(--text); text-decoration:none; transform:translateY(-1.5px)}
-  .btn:active{transform:translateY(0); transition-duration:.06s}
+  .btn:active{transform:scale(.985); transition-duration:120ms}
   .btn.primary{background:var(--cta); border-color:transparent; color:var(--cta-tx); font-weight:500; box-shadow:var(--cta-sh)}
   .btn.primary:hover{background:var(--cta-2); color:var(--cta-tx)}
   .btn.lg{padding:16px 28px; font-size:12.5px}
@@ -332,7 +358,7 @@
   .kbd{font-family:var(--mono); font-size:10px; border:1px solid var(--line-2); border-radius:5px; padding:2px 6px; color:var(--text-3); background:var(--glass-b)}
   .palette-btn{display:inline-flex; align-items:center; gap:8px; background:var(--glass-b); border:1px solid var(--line); border-radius:9px; padding:8px 11px; color:var(--text-3); font-family:var(--mono); font-size:11px; letter-spacing:.06em; transition:border-color .2s ease, color .2s ease}
   .palette-btn:hover{border-color:var(--line-2); color:var(--text)}
-  .theme-btn{display:inline-flex; align-items:center; justify-content:center; width:36px; height:34px; background:var(--glass-b); border:1px solid var(--line); border-radius:9px; color:var(--text-2); transition:color .2s ease, border-color .2s ease, transform .3s var(--ease)}
+  .theme-btn{display:inline-flex; align-items:center; justify-content:center; width:36px; height:34px; background:var(--glass-b); border:1px solid var(--line); border-radius:9px; color:var(--text-2); transition:color var(--quick) var(--ease), border-color var(--quick) var(--ease), transform var(--quick) var(--ease)}
   .theme-btn:hover{color:var(--hot); border-color:var(--line-2); transform:rotate(-14deg)}
   .theme-btn svg{width:16px; height:16px}
   .theme-btn .sun{display:none}
@@ -413,9 +439,9 @@
      outside margin left to put it in. */
   .rail{position:fixed; left:26px; top:50%; transform:translateY(-50%); z-index:3; display:none; pointer-events:none}
   .rail-track{position:relative; height:42vh; min-height:260px; margin-left:5px; border-left:1px solid var(--line-2)}
-  .rail-tick{position:absolute; left:0; width:11px; height:2px; background:var(--line-3); transition:width .3s var(--ease), background .3s ease}
+  .rail-tick{position:absolute; left:0; width:11px; height:2px; background:var(--line-3); transform:scaleX(1); transform-origin:left center; transition:transform var(--quick) var(--ease), background var(--quick) var(--ease)}
   .rail-tick.past{background:var(--line-2)}
-  .rail-tick.on{width:17px; background:var(--wax)}
+  .rail-tick.on{transform:scaleX(1.55); background:var(--wax)}
   .rail-dot{position:absolute; left:-5px; width:11px; height:11px; margin-top:-5.5px; border-radius:50%; background:var(--wax); box-shadow:0 0 0 5px var(--wax-wash)}
   .rail-name{position:absolute; left:20px; top:50%; transform:translateY(-50%); white-space:nowrap; font-family:var(--mono); font-size:10px; letter-spacing:.17em; text-transform:uppercase; color:var(--text-2)}
   .rail-name em,.rail-name i{font-style:normal; font-weight:inherit}
@@ -426,7 +452,8 @@
   /* 1600px is where the outside margin is wide enough for the label to sit beside
      the text column without ever reaching near it */
   @media (min-width:1600px){ html.js:not(.no-3d) .rail{display:block} }
-  @media (prefers-reduced-motion: reduce){ .rail-tick{transition:none} }
+  /* Die Ruhe behandelt dieser Block nicht: sie steht zentral am Ende der
+     Datei, damit sie einen Besitzer hat. */
 
   /* ---------- the type over the world ----------
      One sentence per scene at the bottom-left, one glass dossier at the edge
@@ -451,12 +478,19 @@
     --gutter:clamp(20px,2.8vw,40px);
     --band:clamp(46px,5.6svh,64px);
     --dossier-w:clamp(268px,22vw,396px);
+    /* Das Bildfeld des Satzes. Er hängt an diesem Band, nicht am Rand: die Welt
+       bekommt die Mitte und den Fuß, der Leser sieht ein Subjekt und eine Ansage
+       und nicht zwei Dinge um dieselbe Fläche. Die Untergrenze ist die Masthead-
+       Höhe plus Luft, sonst säße die Ansage unter dem Grat. */
+    --satz-ob:max(calc(var(--nav-h) + 26px),24svh);
 
-    /* Skala. 84 px Endgröße, damit der Satz über der alten .beat-line (74)
-       liegt und unter dem statischen h1 (88/124) bleibt: das größte
-       bewegliche Wort, nicht der größte Buchstabe. */
-    --fs-satz:clamp(32px,5.85vw,84px);
-    --fs-satz-k:clamp(28px,4.5vw,68px);   /* in Akten-Szenen: Lane ist schmaler */
+    /* Skala. Der Satz ist das Sujet, also füllt er die Breite des Rahmens und
+       nicht eine Restbahn: 7 vw, gedeckelt bei 112 px. Die Zahl ist am gemessenen
+       Schnitt der längsten freien Zeile ("Stored on your own machine.", 12,14 em
+       inkl. Laufweite) festgemacht — bei 1430 px Füllung 90 %, eine Zeile, kein
+       Überlauf. C --fs-satz-k ist dieselbe Regel in der schmaleren Akten-Bahn. */
+    --fs-satz:clamp(34px,7vw,112px);
+    --fs-satz-k:clamp(30px,5vw,80px);   /* in Akten-Szenen: Lane ist schmaler */
     --lh-satz:.98;
 
     /* Hoch-Ton. Elfenbein bis fast weiß, Dunst in der Tiefe. Die Werte sind
@@ -517,18 +551,27 @@
 
   /* ---------------------------------------------------------------------
      2 · DER SATZ
-     Links unten verankert, Display-Schnitt, eine Zeile. In Akten-Szenen
-     rückt er rechts von die Akte; die Akte darf ihn nie überdecken, weil
-     er dann unter Glas läge und die Welt dort schon frei ist.
+     Mittig im Bildfeld, Display-Schnitt, eine Zeile — die Ansage steht dort,
+     wohin der Leser schaut, und nicht in der Ecke. In Akten-Szenen gilt
+     dieselbe Regel in der Bahn rechts von der Akte; die Akte darf ihn nie
+     überdecken, weil er dann unter Glas läge und die Welt dort schon frei
+     ist. Umbruch ist keine Gnade: ab 1200 px verlangt die Regie eine Zeile,
+     also ist die Skala so gesetzt, dass die längste Zeile durch ihren
+     eigenen Rahmen passt (siehe --fs-satz).
      --------------------------------------------------------------------- */
   .satz{
     position:fixed;
     left:var(--gutter);
     right:var(--gutter);
-    bottom:calc(var(--band) + clamp(14px,2.2svh,26px));
+    top:var(--satz-ob);
+    bottom:auto;
+    /* Zentriert AUF dem Band, nicht unter ihm: das Band ist die Achse, die der
+       Regie-Schnitt und das clearMask gemeinsam lesen. */
+    transform:translate3d(0,-50%,0);
     z-index:4;
     margin:0;
-    max-width:min(74vw,1120px);
+    max-width:none;
+    text-align:center;
     font-family:var(--serif);
     font-weight:400;
     font-size:var(--fs-satz);
@@ -546,32 +589,69 @@
      the shipping markup says data-dossier="yes" and the driver copies that
      value straight off the sentence, so the rule must not care what it is. */
   .satz[data-dossier]{
-    left:calc(var(--dossier-w) + var(--gutter) * 2);
+    left:calc(var(--dossier-w) + var(--gutter));
     max-width:none;
     font-size:var(--fs-satz-k);
     letter-spacing:-.03em;
   }
-  /* Der Fokus-Zieher: unscharf herein, scharf gesetzt, wieder unscharf raus.
-     blur() und opacity sind Kompositor-Eigenschaften — kein Buchstabe rückt
-     währenddessen um, die Zeilenbreite bleibt die fertige.
-     WHICH LINE OWNS THE FRAME ist Zustand, keine Bewegung: ein Leser, der Ruhe
+  /* inline-block, damit ein Wort sich heben kann, ohne die Zeile zu verschieben.
+     Steht außerhalb jeder Zustandsregel: die Zerlegung in Worte ändert nichts am
+     Bild, das ohne Script, ohne WebGL2 und mit reduzierter Bewegung zu sehen ist. */
+  .satz .w{display:inline-block}
+  /* Das Wort ist die Bewegungseinheit der Typo: rise and settle. Ein Wort kommt
+     aus 28 px unter der Endlage mit Deckkraft 0 und zerrt in die Ruhelage — ohne
+     jedes Überschwingen, nur translateY und opacity, 520 ms über --ein, 46 ms je
+     Wort. Weil alle Worte dieselbe Dauer und dieselbe monoton steigende Kurve
+     haben und nur versetzt starten, kann keines ein anderes überholen, und die
+     Zeilenkante bleibt während der Bewegung eine ruhige Kante.
+     Der alte Fokus-Zieher (blur 16 px -> 0 über die ganze Zeile) ist damit
+     ersetzt und nicht ergänzt: die Seite hat ein Eintrittsmuster, und eine
+     animierte filter:Blur()-Schicht über der fliegenden Leinwand war der teure
+     Weg zu demselben Effekt. Was der Blur konnte, kann die Kaskade besser: sie
+     zeigt, dass die Zeile gesetzt wird.
+     WELCHE ZEILE DAS BILD HAT ist Zustand, keine Bewegung: ein Leser, der Ruhe
      verlangt, hat genau einen Satz stehen und nicht sieben aufeinander
-     gedruckte. Darum steht das Verstecken außerhalb der Media-Query und nur der
-     Blur darin. Die Klammer läuft über .js und gegen .no-3d, denn beide Pfade
+     gedruckte. Darum steht der Zustand außerhalb der Media-Query und nur die
+     Fahrt darin. Die Klammer läuft über .js und gegen .no-3d, denn beide Pfade
      haben keine Kamera, die etwas setzt — ein Satz, der auf eine Klasse wartet,
-     die nie kommt, ist verlorener Inhalt. */
-  .js:not(.no-3d) .satz{
-    opacity:0;visibility:hidden;
-    transition:opacity .58s var(--ease),visibility 0s linear .58s;
-  }
-  .js:not(.no-3d) .satz.in{
-    opacity:1;visibility:visible;
-    transition:opacity .58s var(--ease),visibility 0s;
-  }
+     die nie kommt, ist verlorener Inhalt.
+     Die Reihenfolge .in vor .out ist Verabredung mit der Regie: beide haben
+     dieselbe Specificity, und wer absteigend schreibt, sieht den Übergang statt
+     des Aufleuchtens der Grundregel. */
+  .js:not(.no-3d) .satz{visibility:hidden;opacity:0}
+  .js:not(.no-3d) .satz .w{opacity:0;transform:translate3d(0,28px,0);transition:opacity .12s var(--ease)}
+  .js:not(.no-3d) .satz.in{visibility:visible;opacity:1}
+  .js:not(.no-3d) .satz.in .w{opacity:1;transform:none}
+  .js:not(.no-3d) .satz.out{visibility:hidden;opacity:0}
   @media (prefers-reduced-motion: no-preference){
-    .js:not(.no-3d) .satz{filter:blur(16px);transition:opacity .58s var(--ease),filter .58s var(--ease),visibility 0s linear .58s}
-    .js:not(.no-3d) .satz.in{filter:blur(0);transition:opacity .58s var(--ease),filter .58s var(--ease),visibility 0s}
-    .js:not(.no-3d) .satz.out{opacity:0;filter:blur(12px);transition-duration:.34s,.34s,.34s}
+    /* Der Rahmen hellt in --quick auf und in 140 ms wieder aus — Ausgang 35 %
+       kürzer als Eingang, auf den Millisekunden genau. Zwei Gründe, beide
+       gemessen: die Seite hat eine Maschine, die prüft, dass genau ein Satz das
+       Bild hält, und sie liest die Deckkraft des Satz-Knotens, nicht der Worte.
+       Und der Satz steht mit derselben Zeilenlage im Bild, zwei Sätze über
+       einander wären ein Brei, kein Blenden.
+       Die Worte tragen nur den Eintritt (520 ms --ein, 46 ms je Wort); der
+       Ausgang ist keine Kaskade, sondern ein Ausheben: --aus, 140 ms, 18 px
+       höher. Eine Kaskade, die niemand sieht, weil der Rahmen schon zu ist,
+       wäre eine Zahl mehr im Blatt und keine Bewegung im Bild. */
+    .js:not(.no-3d) .satz{
+      transition:opacity var(--quick) var(--ein),visibility 0s linear 140ms;
+    }
+    .js:not(.no-3d) .satz.in{
+      transition:opacity var(--quick) var(--ein),visibility 0s;
+    }
+    .js:not(.no-3d) .satz .w{
+      transition:opacity .52s var(--ein),transform .52s var(--ein);
+      transition-delay:calc(var(--i,0)*46ms);
+    }
+    .js:not(.no-3d) .satz.out{
+      transition:opacity 140ms var(--ease),visibility 0s linear 140ms;
+    }
+    .js:not(.no-3d) .satz.out .w{
+      opacity:0;transform:translate3d(0,-18px,0);
+      transition:opacity 140ms var(--aus),transform 140ms var(--aus);
+      transition-delay:0s;
+    }
   }
   /* ohne Script gibt es keine Szenenregie, also keinen Grund zu blenden.
      Die Rand offsets müssen mit auf auto: position:relative rechnet left,
@@ -585,6 +665,11 @@
   html:not(.js) .satz,html.no-3d .satz{
     position:relative;z-index:2;
     top:auto;right:auto;bottom:auto;left:auto;
+    /* transform:none, nicht geerbt: die Zentrierung auf dem Band verschiebt den
+       Satz um die Hälfte seiner eigenen Höhe nach oben. Im Fluss ist das kein
+       Band, sondern ein halber Zeilenabstand weniger — gemessen, bevor es
+       hier stand. */
+    transform:none;
     max-width:none;white-space:normal;margin:0 0 34px;
   }
 
@@ -696,7 +781,7 @@
   .akte-beleg svg{width:14px;height:8px;flex:0 0 auto;overflow:visible}
   .akte-beleg svg line,.akte-beleg svg polyline{stroke:currentColor;stroke-width:1.2;fill:none}
   @media (prefers-reduced-motion: no-preference){
-    .akte-beleg svg{transition:transform .34s var(--ease)}
+    .akte-beleg svg{transition:transform var(--quick) var(--ease)}
     .akte-beleg:hover svg{transform:translateX(4px)}
   }
   .akte-beleg:hover{text-decoration:none;color:var(--wax)}
@@ -712,13 +797,19 @@
      Gegen .no-3d, nicht gegen .js: ohne Renderer ist die Akte Papier im
      Dokument, und Papier, das auf eine Klasse wartet, die niemand setzt, ist
      verlorener Inhalt. */
-  .js:not(.no-3d) .akte{opacity:0;visibility:hidden;transition:opacity .26s var(--ease),visibility 0s linear .26s}
-  .js:not(.no-3d) .akte.in{opacity:1;visibility:visible;transition:opacity .5s var(--ease),visibility 0s}
+  .js:not(.no-3d) .akte{opacity:0;visibility:hidden;transition:opacity var(--standard) var(--aus),visibility 0s linear var(--standard)}
+  .js:not(.no-3d) .akte.in{opacity:1;visibility:visible;transition:opacity var(--slow) var(--ein),visibility 0s}
   @media (prefers-reduced-motion: no-preference){
-    .js:not(.no-3d) .akte>*{opacity:0;transform:translate3d(0,7px,0)}
+    /* karte.pruefung, in Tokens: die Rollen steigen 28 px aus der Endlage und
+       kommen über --ein zur Ruhe — 620 ms, weil eine aufgestellte Karte ein Reveal
+       ist und kein Zustandswechsel. Die Staffel von 0 bis 320 ms hält die
+       Choreografie-Budgetgrenze von 500 ms und lässt die sieben Rollen als eine
+       Geste ankommen. Ausgang --quick: das Glas geht fort, während die nächste
+       Szene noch nicht da ist. */
+    .js:not(.no-3d) .akte>*{opacity:0;transform:translate3d(0,28px,0)}
     .js:not(.no-3d) .akte.in>*{
       opacity:1;transform:none;
-      transition:opacity .5s var(--ease),transform .5s var(--ease);
+      transition:opacity .62s var(--ein),transform .62s var(--ein);
     }
     .js:not(.no-3d) .akte.in>*:nth-child(1){transition-delay:.00s}
     .js:not(.no-3d) .akte.in>*:nth-child(2){transition-delay:.06s}
@@ -727,7 +818,8 @@
     .js:not(.no-3d) .akte.in>*:nth-child(5){transition-delay:.22s}
     .js:not(.no-3d) .akte.in>*:nth-child(6){transition-delay:.27s}
     .js:not(.no-3d) .akte.in>*:nth-child(7){transition-delay:.32s}
-    .js:not(.no-3d) .akte.out>*{opacity:0;transition:opacity .26s var(--ease)}
+    .js:not(.no-3d) .akte.out>*{opacity:0;transform:translate3d(0,-12px,0);
+      transition:opacity var(--quick) var(--aus),transform var(--quick) var(--aus);transition-delay:0s}
   }
   /* ohne WebGL2 ist die Akte kein Panel neben der Welt, sondern ein Bogen
      im Dokument: sie rückt in den Fluss und wird Papier wie der Rest. */
@@ -772,10 +864,19 @@
   .hud[data-dossier] .hud-kapitel{margin-left:calc(var(--dossier-w) + var(--gutter))}
   .hud-kapitel i{
     position:relative;display:block;width:15px;height:1px;
-    background:var(--hud-ln);
   }
-  .hud-kapitel i.past{background:var(--hud-ln);opacity:.55}
-  .hud-kapitel i.on{background:var(--hud-punkt);height:2px}
+  /* Der Strich ist ein Pseudo-Element und der Strich ist die Bewegung: der
+     aktive Stand ist doppelt so dick, und das läuft über scaleY, nicht über
+     height — eine Höhenänderung würde im Layout landen, und ein Instrument, das
+     im Takt Layout macht, ist das letzte Ding, das die Kamerafahrt braucht.
+     Der Kasten bleibt 1 px hoch, die 2 px des aktiven Strichs wachsen über ihn
+     hinaus; der Punkt darunter sitzt auf derselben Mittellinie wie vorher. */
+  .hud-kapitel i::before{
+    content:"";position:absolute;left:0;top:0;width:100%;height:1px;
+    background:var(--hud-ln);transform-origin:50% 50%;
+  }
+  .hud-kapitel i.past{opacity:.55}
+  .hud-kapitel i.on::before{background:var(--hud-punkt);transform:scaleY(2)}
   .hud-kapitel i.on::after{
     content:"";position:absolute;left:-3.5px;top:50%;width:6px;height:6px;
     margin-top:-3px;border-radius:50%;
@@ -811,9 +912,10 @@
   .js:not(.no-3d) .hud{opacity:0;visibility:hidden}
   .js:not(.no-3d) .hud.in{opacity:1;visibility:visible}
   @media (prefers-reduced-motion: no-preference){
-    .js:not(.no-3d) .hud{transition:opacity .6s var(--ease) .18s,visibility 0s linear .6s}
-    .js:not(.no-3d) .hud.in{transition:opacity .6s var(--ease) .18s,visibility 0s}
-    .hud-kapitel i{transition:background .3s var(--ease),height .3s var(--ease),opacity .3s var(--ease)}
+    .js:not(.no-3d) .hud{transition:opacity var(--slow) var(--ease) .18s,visibility 0s linear var(--slow)}
+    .js:not(.no-3d) .hud.in{transition:opacity var(--slow) var(--ease) .18s,visibility 0s}
+    .hud-kapitel i{transition:opacity var(--quick) var(--ease)}
+    .hud-kapitel i::before{transition:transform var(--quick) var(--ease),background var(--quick) var(--ease)}
   }
   /* ohne Welt kein Instrument: das HUD liest eine Kamera, die dann fehlt */
   html:not(.js) .hud,html.no-3d .hud{display:none}
@@ -872,7 +974,7 @@
     margin-top:8px;
   }
   @media (prefers-reduced-motion: no-preference){
-    .js:not(.no-3d) .wp-merk,.js:not(.no-3d) .wp-date{opacity:0;transition:opacity .5s var(--ease)}
+    .js:not(.no-3d) .wp-merk,.js:not(.no-3d) .wp-date{opacity:0;transition:opacity var(--standard) var(--ein)}
     .js:not(.no-3d) .wp.sicht .wp-merk,.js:not(.no-3d) .wp.sicht .wp-date{opacity:1}
   }
   html:not(.js) .wp-date,html:not(.js) .wp-merk,
@@ -946,15 +1048,16 @@
     .satz,.satz[data-dossier]{
       left:var(--gutter);right:var(--gutter);
       max-width:none;
-      font-size:clamp(27px,7.1vw,44px);
+      font-size:clamp(30px,7.6vw,48px);
       white-space:normal;
       text-wrap:balance;
       line-height:1.04;
-      bottom:calc(var(--band) + 8px);
+      top:max(calc(var(--nav-h) + 18px),20svh);
+      bottom:auto;
     }
   }
   @media (max-width:560px){
-    .satz,.satz[data-dossier]{font-size:clamp(24px,6.6vw,32px);line-height:1.06}
+    .satz,.satz[data-dossier]{font-size:clamp(27px,7.3vw,38px);line-height:1.06}
     .akte-titel{font-size:24px}
     .wp-merk{font-size:15px;max-width:22ch}
   }
@@ -987,9 +1090,12 @@
   html.flug .rail{display:none}
   /* ---------- motion ----------
      One curve, two motions, one rule: nothing ever arrives by being added to a
-     place a reader is already looking. --ease (expo-out) is the only curve used for
-     entrances and the long durations sit on opacity and transform only, never on a
-     layout property. The two motions are the line-mask, which moves type, and the
+     place a reader is already looking. --ease is the Premium signature and the
+     only curve for anything travelling on the screen; --ein takes the entrance,
+     --aus the exit (35 % kürzer, beschleunigend), --sch the loops. Durations come
+     from one palette — --quick 220, --standard 420, --slow 680 — and the long
+     ones sit on opacity and transform only, never on a layout property. The two
+     motions are the line-mask and the word cascade, which move type, and the
      brightening, which moves nothing — see below.
      Both hidden states are gated: .js, so a reader without script gets the
      finished page, and prefers-reduced-motion:no-preference, so a reader who
@@ -1008,22 +1114,27 @@
        reader's eye is always arriving somewhere that is still travelling. A block
        of prose the reader walked up to does not need to arrive. It is already
        written. So the travel is gone and what is left is a short brightening, and
-       the one orchestrated entrance at the top of the page stays the only moment
-       where anything on this page changes position. The delays stay because they
+       the positions on this page that do change are named: the seven sentences of
+       the flight (Wortkaskade), the display lines lifting into their own mask, and
+       the hero card. A prose block is not one of them. The delays stay because they
        let a group come in as one gesture rather than as a queue. */
-    .js .rv{opacity:0; transition:opacity .5s var(--ease)}
+    .js .rv{opacity:0; transition:opacity var(--standard) var(--ease)}
     .js .rv.in{opacity:1}
     .js .rv.d1{transition-delay:.06s}.js .rv.d2{transition-delay:.12s}.js .rv.d3{transition-delay:.18s}.js .rv.d4{transition-delay:.24s}
     /* line-mask: the display line lifts into its own box instead of fading in
        where it already stands. On a 98px serif the difference is the whole
-       feeling of the type being set rather than dropped. */
-    .js .mask > span{transform:translateY(110%); transition:transform .8s var(--ease)}
+       feeling of the type being set rather than dropped. 680 ms — slow, weil
+       eine Zeile in Kinogröße ein Reveal ist und kein Zustandswechsel. */
+    .js .mask > span{transform:translateY(110%); transition:transform var(--slow) var(--ein)}
     .js .mask.in > span{transform:none}
     .js .mask.d1 > span{transition-delay:.06s}.js .mask.d2 > span{transition-delay:.12s}.js .mask.d3 > span{transition-delay:.18s}
-    /* short, gentle: the old 14px blur on 98px display type read as a blank page */
-    .js .blur-in{opacity:0; filter:blur(6px); transform:translateY(10px); animation:focus-in .62s var(--ease) both}
+    /* short, gentle: the old 14px blur on 98px display type read as a blank page.
+       Der Hub ist jetzt die 24 px des rise and settle — dieselbe Bewegung wie an
+       der Zeile und am Satz, damit die Seite ein Eintrittsmuster hat. */
+    .js .blur-in{opacity:0; filter:blur(6px); transform:translate3d(0,24px,0); animation:focus-in var(--slow) var(--ein) both}
     .js .blur-in.d1{animation-delay:.06s}.js .blur-in.d2{animation-delay:.12s}.js .blur-in.d3{animation-delay:.18s}.js .blur-in.d4{animation-delay:.24s}
     @keyframes focus-in{to{opacity:1; filter:blur(0); transform:none}}
+    /* Schleife, nicht Entrance: was läuft, hört in der Mitte nicht auf. */
     @keyframes bob{0%,100%{transform:translateX(0); opacity:0}12%{opacity:1}50%{transform:translateX(var(--run)); opacity:1}62%{opacity:0}100%{transform:translateX(var(--run)); opacity:0}}
     /* The wash behind everything used to drift on a 34s loop — a slow scale and
        two percent of travel that no reader watched twice. It is the last infinite
@@ -1038,6 +1149,25 @@
   .hero-head{margin-bottom:36px}
   .hero h1{margin:0; font-size:clamp(38px,5.9vw,88px)}
   .hero h1 .dim{color:var(--text-3)}
+  /* DER KORREKTURSTRICH. Die Signatur des angenommenen Entwurfs, und sie schlägt
+     hier zu, wo der Inhalt sie meint: der erste Halbsatz ist die Lesart, die das
+     Produkt ersetzt. "Your AI forgets." bleibt stehen und wird durchgestrichen —
+     die alte Lesart ist nicht gelöscht, sie ist ranked. Das ist genau die
+     Operation, die weiter unten das Zeitreise-Instrument an einer echten Notiz
+     vorführt; hier führt sie die Schlagzeile an sich selbst vor.
+     Gezogen über scaleX, links stehend, 380 ms Signatur, und erst 90 ms nachdem
+     die Zeile in ihrer Maske steht (die hebt in --slow). Ohne Script ist der
+     Strich da: er ist Inhalt und keine Verzierung, und eine Auszeichnung, die
+     auf eine Klasse wartet, die nie kommt, ist eine Lüge über dem Text. */
+  .korr{position:relative;display:inline-block}
+  .korr i{
+    position:absolute;left:-.04em;right:-.04em;top:52%;height:.062em;
+    background:var(--wax);border-radius:99px;transform-origin:6% 50%;
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .js .korr i{transform:scaleX(0)}
+    .js .mask.in .korr i{transform:scaleX(1);transition:transform 380ms var(--ease) .72s}
+  }
   /* The copy column is top-aligned against the card on purpose. Centred, a
      220px block of text floats in the middle of a 460px row and the headline
      and its lede are separated by a gap no reader mistakes for typography;
@@ -1058,18 +1188,17 @@
   .next{ margin:64px 0 0; padding-top:20px; border-top:1px solid var(--line); font-family:var(--serif); font-size:19px; line-height:1.4; letter-spacing:-.01em }
   .next a{ color:var(--text-2); display:inline-flex; align-items:baseline; gap:12px; text-decoration:none }
   .next a:hover{ color:var(--text); text-decoration:underline; text-underline-offset:4px; text-decoration-thickness:1px }
-  .next .arw{ font-family:var(--mono); font-size:15px; color:var(--wax); transform:translateY(1px); transition:transform .3s var(--ease) }
+  .next .arw{ font-family:var(--mono); font-size:15px; color:var(--wax); transform:translateY(1px); transition:transform var(--quick) var(--ease) }
   .next a:hover .arw{ transform:translateX(5px) translateY(1px) }
-  @media (prefers-reduced-motion:reduce){ .next .arw, .next a:hover .arw{ transition:none; transform:translateY(1px) } }
   /* Three real queries, wired to the same engine the card runs. The field is
      the invitation and the cursor is the ask; most visitors will not type into
      a screenshot, and will click a suggestion that is already written for them. */
   .prompt-row{display:flex; align-items:center; flex-wrap:wrap; gap:9px; margin-top:30px}
   .prompt-row .lab{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3); margin-right:2px}
-  .prompt{font-family:var(--mono); font-size:12.5px; color:var(--text-2); background:var(--glass-b); border:1px solid var(--line); border-radius:999px; padding:7px 14px; cursor:pointer; transition:color .2s ease, border-color .2s ease, background .2s ease, transform .22s var(--ease)}
+  .prompt{font-family:var(--mono); font-size:12.5px; color:var(--text-2); background:var(--glass-b); border:1px solid var(--line); border-radius:999px; padding:7px 14px; cursor:pointer; transition:color var(--quick) var(--ease), border-color var(--quick) var(--ease), background var(--quick) var(--ease), transform 260ms var(--ease)}
   .prompt:hover{color:var(--text); border-color:var(--wax-line); background:var(--wax-wash)}
   .prompt:focus-visible{outline:2px solid var(--wax); outline-offset:3px}
-  @media (prefers-reduced-motion: no-preference){ .prompt:active{transform:translateY(1px)} }
+  @media (prefers-reduced-motion: no-preference){ .prompt:active{transform:scale(.985);transition-duration:120ms} }
 
   /* hero card: live memory */
   .mg-card .bar, .tt .head, .cmd .head, .plate .bar, .shield .head{display:flex; align-items:center; gap:9px; padding:13px 18px; border-bottom:1px solid var(--line); background:var(--haze)}
@@ -1106,7 +1235,7 @@
   .mem-meter i{display:block; height:100%; width:100%; transform-origin:left center; transform:scaleX(var(--p,0)); background:linear-gradient(90deg,var(--grad-a),var(--grad-b))}
   @media (prefers-reduced-motion: no-preference){
     @keyframes meter-fill{ from{ transform:scaleX(0) } to{ transform:scaleX(var(--p,0)) } }
-    .mem-meter i{ animation:meter-fill .5s var(--ease) }
+    .mem-meter i{ animation:meter-fill var(--standard) var(--ein) }
   }
   .mem-empty{padding:52px 20px; text-align:center; color:var(--text-3); font-family:var(--mono); font-size:12.5px; letter-spacing:.06em}
   .mem-empty span{display:block; margin-top:9px; opacity:.85}
@@ -1169,8 +1298,8 @@
   .mg-card{position:relative; z-index:1; overflow:hidden}
   /* a query parks everything that did not rank, so the hits read as an
      ignition rather than a colour change */
-  .mgraph.searching .node{opacity:.2; transition:opacity .4s var(--ease)}
-  .mgraph.searching .edge{stroke-opacity:.07; transition:stroke-opacity .4s var(--ease)}
+  .mgraph.searching .node{opacity:.2; transition:opacity var(--standard) var(--ease)}
+  .mgraph.searching .edge{stroke-opacity:.07; transition:stroke-opacity var(--standard) var(--ease)}
   .mgraph.searching .node.on{opacity:1}
   .mgraph.searching .edge.on{stroke-opacity:.66; stroke-width:1.4}
   .mgraph .node.on .halo{opacity:.95}
@@ -1179,11 +1308,11 @@
     /* only the hubs breathe. Eight gradient circles pulsing on three different
        periods is enough for the field to read as alive; animating all twenty
        would repaint the whole hero layer every frame for no additional sense */
-    .mgraph .ent .halo{animation:mg-breathe 6.4s ease-in-out infinite}
+    .mgraph .ent .halo{animation:mg-breathe 6.4s var(--sch) infinite}
     .mgraph .ent:nth-child(3n) .halo{animation-duration:8.2s; animation-delay:-2.6s}
     .mgraph .ent:nth-child(4n) .halo{animation-duration:9.6s; animation-delay:-5.1s}
     @keyframes mg-breathe{ 0%,100%{opacity:.26} 50%{opacity:.5} }
-    .mgraph .node.on .halo{animation:mg-breathe 2.6s ease-in-out infinite}
+    .mgraph .node.on .halo{animation:mg-breathe 2.6s var(--sch) infinite}
     /* one assembly pass, then still. The ring draws, the nodes arrive on it,
        and nothing after that is waiting for the user to have seen it. */
     .mgraph.assembling .edge{stroke-dasharray:var(--len,460); stroke-dashoffset:var(--len,460); animation:mg-draw 1.15s var(--ease) forwards}
@@ -1275,7 +1404,7 @@
   /* ---------- pipeline diagram ---------- */
   .pipe{padding:42px 34px}
   .pipe svg{width:100%; height:auto; display:block}
-  .pulse{animation:bob 5s var(--ease) infinite}
+  .pulse{animation:bob 5s var(--sch) infinite}
   /* The diagram is drawn in a 1080-unit box: on a 390px phone the same 10.5-unit
      type lands at about 3px, which is a texture, not a label. Under 900px the
      three boxes are the same three boxes in reading order — real text, the arrows
@@ -1358,7 +1487,7 @@
   .tt .ticks{display:flex; justify-content:space-between; padding:2px 22px 12px; font-family:var(--mono); font-size:10px; letter-spacing:.1em; color:var(--text-3)}
   .tt .tt-status{margin:0; padding:0 22px 18px; font-family:var(--mono); font-size:11px; letter-spacing:.05em; color:var(--text-3)}
   .tt ul{list-style:none; margin:0; padding:0 0 8px}
-  .tt li{display:grid; grid-template-columns:14px minmax(0,1fr) auto; gap:14px; align-items:baseline; padding:15px 22px; border-top:1px solid var(--line); transition:opacity .35s ease, background .35s ease}
+  .tt li{display:grid; grid-template-columns:14px minmax(0,1fr) auto; gap:14px; align-items:baseline; padding:15px 22px; border-top:1px solid var(--line); transition:opacity var(--standard) var(--ease), background var(--standard) var(--ease)}
   .tt li .dot{width:8px; height:8px; border-radius:50%; background:var(--wax); margin-top:6px; box-shadow:0 0 10px var(--glow)}
   .tt li .t{font-family:var(--serif); font-size:18px}
   .tt li .d{grid-column:2; color:var(--text-3); font-size:14px; margin-top:3px}
@@ -1370,10 +1499,27 @@
   .tt li.future .dot, .tt li.expired .dot{background:var(--line-3); box-shadow:none}
   .tt li.expired .st, .tt li.superseded .st{color:var(--wax)}
   .tt li.superseded{background:var(--wax-dim)}
+  /* DIE NACHWEISKANTE, zweiter Schlag: ein ersetztes Blatt verschwindet nicht,
+     sein Rand bleibt unter dem neuen sichtbar. In der Liste, die der Datum-
+     Schieber baut, ist das die alte Lesart selbst — sie bleibt lesbar, sie wird
+     nur ranked. Darum Durchstreichen und nicht Ausblenden, und Wachs als Farbe,
+     weil Wachs hier das Siegel ist und nicht der Fehler.
+     text-decoration und kein gezeichnetes Lineal: die Titel der Notizen laufen
+     bei 390 px und darunter über zwei Zeilen, und ein absolutes Lineal über der
+     Zeile 52 % des Kastens würde durch die Mitte des Blocks statt durch die
+     Zeilen gehen. Die Dekoration der Schrift folgt jeder Zeile von selbst.
+     Der gezeichnete Strich — derselbe Gedanke, einmal geschlagen — sitzt am
+     Anfang des Papiers, an "Your AI forgets.", und der ist nachgemessen an
+     jedem Rahmen bis 320 px eine Zeile. */
+  .tt li.superseded .t{
+    text-decoration:line-through;
+    text-decoration-color:var(--wax);
+    text-decoration-thickness:1.5px;
+  }
 
   /* ---------- retrieval legs (bento) ---------- */
   .legs{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px}
-  .leg{display:grid; grid-template-columns:1fr; gap:10px; padding:26px 24px; border:1px solid var(--paper-edge); border-radius:var(--r); background:linear-gradient(158deg, var(--paper-a), var(--paper-b)); box-shadow:var(--sh-1), inset 0 1px 0 var(--glass-hi); transition:transform .35s var(--ease), border-color .3s ease}
+  .leg{display:grid; grid-template-columns:1fr; gap:10px; padding:26px 24px; border:1px solid var(--paper-edge); border-radius:var(--r); background:linear-gradient(158deg, var(--paper-a), var(--paper-b)); box-shadow:var(--sh-1), inset 0 1px 0 var(--glass-hi); transition:transform var(--standard) var(--ease), border-color var(--quick) var(--ease)}
   .leg:hover{transform:translateY(-3px); border-color:var(--line-2)}
   .leg .k{font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--wax-2)}
   .leg h3{font-size:22px}
@@ -1450,8 +1596,8 @@
   .frames{position:sticky; top:calc(var(--nav-h) + 48px); align-self:start; display:grid}
   .frames figure{grid-area:1 / 1 / 2 / 2; display:flex; flex-direction:column; gap:16px}
   @media (prefers-reduced-motion: no-preference){
-    .js .steps li .n, .js .steps li h3, .js .steps li p{transition:color .45s var(--ease)}
-    .js .frames figure{transition:opacity .6s var(--ease), transform .8s var(--ease)}
+    .js .steps li .n, .js .steps li h3, .js .steps li p{transition:color var(--standard) var(--ease)}
+    .js .frames figure{transition:opacity var(--slow) var(--ein), transform var(--slow) var(--ein)}
   }
   .js .frames figure{opacity:0; transform:scale(.985); pointer-events:none}
   .js .frames figure.on{opacity:1; transform:none; pointer-events:auto}
@@ -1460,7 +1606,7 @@
   .pricing h2{margin-bottom:16px}
   .pricing-lead{font-size:clamp(17px,1.8vw,21px); color:var(--text-2); max-width:58ch; line-height:1.5}
   .pricing-grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; margin-top:48px; align-items:stretch}
-  .karte{display:flex; flex-direction:column; padding:34px 30px; transition:transform .35s var(--ease), border-color .3s ease, box-shadow .35s ease}
+  .karte{display:flex; flex-direction:column; padding:34px 30px; transition:transform var(--standard) var(--ease), border-color var(--quick) var(--ease), box-shadow var(--standard) var(--ease)}
   .karte:hover{transform:translateY(-5px); border-color:var(--line-2)}
   .karte h3{font-size:27px; margin-bottom:6px}
   .karte .who{font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--text-3); margin-bottom:22px}
@@ -1475,7 +1621,37 @@
   /* the paid tier is marked the way a bound document is: a wax rule across the
      top of the sheet and a warmer edge. Tinting the page inside a paper card
      reads as a banner ad, and that is the one thing this page should not do. */
-  .karte.ent{border-color:var(--wax-line); box-shadow:var(--raise), inset 0 3px 0 var(--wax)}
+  .karte.ent{position:relative;border-color:var(--wax-line); box-shadow:var(--raise), inset 0 3px 0 var(--wax)}
+  /* DAS WACHSSIEGEL. Die Enterprise-Stufe ist kein Plan, sondern ein Vertrag,
+     und ein Vertrag läuft mit Siegel — dasselbe Gerät, das oben auf dem Blatt
+     schon die Wachsregel über die Kante legt, jetzt als der Punkt, an dem eine
+     Hand Siegel und Unterschrift setzt.
+     Es presst sich zu: 1,30 -> 1,00 über 300 ms Signatur, 160 ms nachdem seine
+     Karte im Bild steht. Das ist die ganze Bewegung — kein Glühen, kein Drehen,
+     kein Federn, und die Kante ist absichtlich unrund, weil ein Siegel nie rund
+     ausläuft. Der Start ist die Endlage: ohne Script und ohne Regie sitzt das
+     Siegel geschlossen, denn es zeichnet eine Behauptung, keine Verzierung. */
+  .siegel{
+    position:absolute;right:26px;top:26px;width:38px;height:35px;
+    background:radial-gradient(62% 58% at 38% 34%,var(--siegel-a) 0%,var(--wax) 52%,var(--siegel-b) 100%);
+    border-radius:47% 53% 56% 44% / 52% 47% 53% 48%;
+    box-shadow:inset 0 1px 1px rgba(255,255,255,.30), 0 3px 8px -3px var(--wax-line);
+  }
+  .siegel::after{
+    content:"";position:absolute;left:9px;top:10px;width:20px;height:15px;
+    border-radius:50%;border:2px solid rgba(255,255,255,.46);border-top-color:transparent;
+  }
+  .karte.ent h3{padding-right:68px}
+  @media (prefers-reduced-motion: no-preference){
+    .js .siegel{transform:scale(1.3);opacity:0}
+    .js .siegel.in{transform:scale(1);opacity:1;
+      transition:transform 300ms var(--ease) .16s,opacity 300ms var(--ease) .16s}
+  }
+  @media (max-width:560px){
+    .karte.ent h3{padding-right:0}
+    .siegel{right:20px;top:20px;width:28px;height:26px}
+    .siegel::after{left:7px;top:8px;width:14px;height:10px;border-width:2px}
+  }
   .karte.ent li::before{background:var(--wax-2)}
 
   /* ---------- FAQ ---------- */
@@ -1488,7 +1664,7 @@
      leerer Rand von zweihundertfünfzig bis dreihundertvierzig Pixel, den nichts
      füllte. Der Rand gehört der Frage: nichts erfunden, nur umgestellt, und es
      ist die gedruckte Form einer FAQ, nicht die einer Seite mit Loch. */
-  .faq-artikel{position:relative; display:grid; grid-template-columns:44px minmax(210px,300px) minmax(0,1fr); gap:22px 34px; align-items:baseline; padding:30px 0; border-bottom:1px solid var(--line); transition:background .3s var(--ease)}
+  .faq-artikel{position:relative; display:grid; grid-template-columns:44px minmax(210px,300px) minmax(0,1fr); gap:22px 34px; align-items:baseline; padding:30px 0; border-bottom:1px solid var(--line); transition:background var(--quick) var(--ease)}
   .faq-artikel:first-of-type{border-top:1px solid var(--line)}
   .faq-artikel:hover{background:var(--haze-3)}
   .faq-artikel h3{grid-column:2}
@@ -1583,7 +1759,7 @@
        max-height:0 trick it replaces. Reduced motion gets the same two states
        with nothing in between. */
     @media (prefers-reduced-motion: no-preference){
-      .masthead nav{opacity:0; transform:translateY(-10px); transition:opacity .26s var(--ease), transform .26s var(--ease), display .26s; transition-behavior:allow-discrete}
+      .masthead nav{opacity:0; transform:translateY(-10px); transition:opacity var(--quick) var(--ein), transform var(--quick) var(--ein), display var(--quick); transition-behavior:allow-discrete}
       .masthead nav.open{opacity:1; transform:none}
       @starting-style{ .masthead nav.open{opacity:0; transform:translateY(-10px)} }
     }
@@ -1641,6 +1817,57 @@
        whispers, so they are raised here rather than swapped for black borders. */
     :root{--line:rgba(20,22,26,.26); --line-2:rgba(20,22,26,.44); --line-3:rgba(20,22,26,.62); --glass-brd:rgba(20,22,26,.30); --text-3:#3f3d37}
     html[data-theme="dark"]{--line:rgba(255,255,255,.24); --line-2:rgba(255,255,255,.42); --line-3:rgba(255,255,255,.60); --glass-brd:rgba(255,255,255,.34); --text-3:#b9c1cb}
+  }
+
+  /* ==========================================================================
+     RUHE — prefers-reduced-motion, zentral, ein Besitzer
+     Alle räumliche Bewegung fällt; was bleibt, ist Deckkraft in 120 ms. Wer
+     Ruhe verlangt, will keine Nachstellung derselben Choreografie in klein,
+     sondern ein Bild pro Zustand: kein Hub, keine Wortkaskade, kein Wachsen,
+     keine Gegenbewegung, kein Nachgeben unter dem Finger. Die Zustands-
+     unterscheidung selbst muss bleiben — ein Satz, der ohne jede Rückmeldung
+     erscheint und verschwindet, ist für diesen Leser nicht schlechter, aber
+     einer, der nur über Deckkraft läuft, ist es.
+     Die Kamera fährt in diesem Zustand nicht (scenes.js), und die informativen
+     Schleifen (Paket in der Leitung, Halos, Messbalken) stehen schon in ihren
+     eigenen no-preference-Klammern und fallen dort raus. Eingänge sind hier
+     nicht länger als Ausgänge, weil es beide nicht mehr gibt.
+     Dieser Block steht am Ende der Datei und ist der einzige Besitzer der
+     Ruhe; die engen Regeln, die hier vorher verteilt waren, sind gelöscht.
+     ========================================================================== */
+  @media (prefers-reduced-motion: reduce){
+    /* die Welt über dem Satz: 120 ms Deckkraft, sonst nichts */
+    .js:not(.no-3d) .satz .w{transform:none;transition:opacity .12s var(--ease);transition-delay:0s}
+    .js:not(.no-3d) .satz,.js:not(.no-3d) .satz.in,.js:not(.no-3d) .satz.out{
+      transition:opacity .12s var(--ease),visibility 0s linear .12s}
+    .js:not(.no-3d) .satz.in{transition:opacity .12s var(--ease),visibility 0s}
+    .js:not(.no-3d) .akte,.js:not(.no-3d) .akte.in,.js:not(.no-3d) .akte.out>*{transition:opacity .12s var(--ease)}
+    .js:not(.no-3d) .akte{transition:opacity .12s var(--ease),visibility 0s linear .12s}
+    .js:not(.no-3d) .akte.in{transition:opacity .12s var(--ease),visibility 0s}
+    .js:not(.no-3d) .akte>*{transform:none;transition-delay:0s}
+    .js:not(.no-3d) .hud,.js:not(.no-3d) .hud.in{transition:opacity .12s var(--ease)}
+    .js:not(.no-3d) .hud{transition:opacity .12s var(--ease),visibility 0s linear .12s}
+    .js:not(.no-3d) .hud.in{transition:opacity .12s var(--ease),visibility 0s}
+    .js:not(.no-3d) .wp-merk,.js:not(.no-3d) .wp-date{transition:opacity .12s var(--ease)}
+    /* die Typo des Papiers: Maske und Karte kennen keinen Hub mehr */
+    .js .mask > span{transform:none;transition:opacity .12s var(--ease)}
+    .js .rv{transition:opacity .12s var(--ease)}
+    .js .blur-in{filter:none;transform:none;animation:none;opacity:1}
+    .js .frames figure{transform:none;transition:opacity .12s var(--ease)}
+    .js .steps li .n,.js .steps li h3,.js .steps li p{transition:color .12s var(--ease)}
+    /* die Instrumente */
+    .rail-tick{transition:background .12s var(--ease)}
+    .rail-tick.on{transform:none}
+    .hud-kapitel i{transition:opacity .12s var(--ease)}
+    .hud-kapitel i::before{transform:none;transition:background .12s var(--ease)}
+    .next .arw{transform:none;transition:none}
+    /* Zeiger-Rückmeldung: Farbe statt Weg */
+    .btn,.btn:hover,.btn:active,.prompt,.prompt:active,[data-tilt],.karte,.karte:hover,
+    .leg,.leg:hover,.akte-beleg svg,.akte-beleg:hover svg,.theme-btn,.theme-btn:hover,
+    .palette-btn,.palette-btn:hover,.masthead nav a:not(.btn):hover::after{
+      transform:none;transition:color .12s var(--ease),background .12s var(--ease),
+        border-color .12s var(--ease),box-shadow .12s var(--ease)}
+    .masthead nav a:not(.btn)::after{transition:transform .12s var(--ease)}
   }
 
   /* ---------- print: no animation may ever hide content ---------- */
@@ -1755,7 +1982,7 @@
   <section class="hero">
     <div class="wrap">
       <div class="hero-head">
-        <h1 class="mask"><span><span class="dim">Your AI forgets.</span><br>KEPTA keeps the record.</span></h1>
+        <h1 class="mask"><span><span class="dim">Your AI <span class="korr">forgets<i aria-hidden="true"></i></span>.</span><br>KEPTA keeps the record.</span></h1>
       </div>
       <div class="hero-body">
         <div>
@@ -2133,6 +2360,7 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
         <p class="mono">npx kepta-mcp &nbsp;&#183;&nbsp; pip install kepta</p>
       </div>
       <div class="karte ent">
+        <span class="siegel" aria-hidden="true"></span>
         <h3>KEPTA Enterprise</h3>
         <p class="who">Many people &#183; many agents &#183; your hardware</p>
         <ul role="list">
@@ -2437,6 +2665,33 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
   var reduceMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
   var reduce = reduceMQ.matches;
   reduceMQ.addEventListener('change', function (e) { reduce = e.matches; });
+  /* Das Wort als Bewegungseinheit — vor jedem Messen, nach dem Parsen.
+     Jeder Satz der Flugregie wird einmalig Wort für Wort in ein inline-block-Span
+     gehüllt, damit die Kaskade ein Wort heben kann, ohne die Zeile zu schieben.
+     Zwischen den Worten bleibt ein Textknoten mit genau einem Leerzeichen stehen:
+     fiele es weg, rückte die Zeilenkante um eine Wortlänge, und die Kante ist
+     genau das, was beim Eintritt ruhig bleiben muss. --i ist die laufende Nummer
+     im Satz und trägt die 46 ms Staffel allein im CSS; die Regie schaltet
+     weiterhin nur .in und .out, sie weiß nichts von den Worten.
+     textContent bleibt auf das Byte genau die alte Zeile, damit die Sonde, die
+     den Satz über seinen Text identifiziert, dieselbe Antwort bekommt. */
+  (function zerlegeSaetze () {
+    var saetze = $$('.satz');
+    for (var i = 0; i < saetze.length; i++) {
+      var el = saetze[i];
+      var worte = String(el.textContent || '').replace(/\s+/g, ' ').trim().split(' ');
+      if (worte.length < 2 || worte[0] === '') continue;
+      el.textContent = '';
+      for (var j = 0; j < worte.length; j++) {
+        if (j) el.appendChild(document.createTextNode(' '));
+        var w = document.createElement('span');
+        w.className = 'w';
+        w.textContent = worte[j];
+        w.style.setProperty('--i', String(j));
+        el.appendChild(w);
+      }
+    }
+  })();
   /* >>> KEPTA_SCENES — Quelle: web-qa/build/scenes.js. Nicht hier editieren. */
 (function (global) {
   'use strict';
@@ -3602,7 +3857,9 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
   /* Every figure on the page is printed in the markup at its final value. Nothing
      here tweens a number: a counter that runs up is a device for making a reader
      wait for a fact they could have read immediately. */
-  var reveals = $$('.rv, .mask');
+  /* .siegel zählt zu den Enthüllungen: es presst sich zu, wenn die Stufe im
+     Bild steht, und nicht beim ersten Bild der Datei. */
+  var reveals = $$('.rv, .mask, .siegel');
   if (!('IntersectionObserver' in window) || reduce) {
     reveals.forEach(function (el) { el.classList.add('in'); });
   } else {
@@ -6555,9 +6812,17 @@ void main() {
          instrument are fixed over the world and hold the page's smallest, quietest
          type — a keyboard hint at eleven pixels is exactly where an unscrimmed
          glow costs a reader the word. */
+      /* Der Satz zählt als EIN Kandidat, nicht als seine Worte. Seit die
+         Wortkaskade jeden Satz in fünf inline-block-Spans legt, würde
+         hasWords() ihn selbst verwerfen und die Worte würden einzeln eintreten:
+         35 Kandidaten mehr, jeder mit eigenem getBoundingClientRect und eigenem
+         Range, und das in jedem Bild der Fahrt. Der Range über den Inhalt des
+         Satz-Knotens liefert aber dasselbe — die Zeile, die die Worte zusammen
+         einnehmen. Also die Klasse direkt, und die Worte bleiben unsichtbar
+         für die Maske. */
       var all = document.querySelectorAll('header *, main *, footer *, .rail *, .satz, .akte, .hud'), out = [], solid = [];
       for (var i = 0; i < all.length; i++) {
-        if (hasWords(all[i])) out.push(all[i]);
+        if (hasWords(all[i]) || all[i].classList.contains('satz')) out.push(all[i]);
         if (isSolid(all[i])) solid.push(all[i]);
       }
       WCAND = out; OCAND = solid;
@@ -7421,12 +7686,22 @@ window.addEventListener('scroll', function () {
          there is not. quality stays 1 until the frame budget says otherwise. */
       var PW = pass ? pass.w : W, PH = pass ? pass.h : H;
       /* Die Schwelle der Löcher wächst mit demselben PAPER, das auch den Akt
-         schaltet. Zwei Zahlen, die jemand getrennt pflegt, driften. Bis zur
-         Grenze bleibt der Faktor 0 und die Welt behält ihre alten 34 bis 42 %
-         unter den Lettern; über den letzten acht Prozent der Kamerazeit fährt er
-         hoch, sodass im Papier kaum eine Linie mehr durch eine Zeile zeichnet. */
-      var klar = Math.max(0, Math.min(1,
-        (uCur - REG.PAPER) / Math.max(0.001, 1 - REG.PAPER))) * 0.86;
+         schaltet. Zwei Zahlen, die jemand getrennt pflegen, driften.
+         Der Flug beginnt nicht mehr bei Null. Der Satz liegt jetzt quer durch
+         das obere Bildfeld und damit über Körpern, die die Regie nie gerahmt
+         hat: die zweiten Organe holen ihre Höhe aus der Welt, nicht aus einer
+         BERTH, und keine Berth-Logik der Welt kann ein Objekt aus dem Feld
+         nehmen, das ihm keiner zugeteilt hat. Was es kann, ist die Regel der
+         Seite — das clearMask. Die gerichteten Körper weichen der Typo über
+         pickSlot aus, die ungerichteten über diese Zahl, und zusammen halten
+         sie die Ansage: Typo und Objekt kreuzen sich nie. Bis zur Aktgrenze
+         steht die Welt unter den Lettern noch mit 20 bis 24 % ihrer Deckung,
+         sie atmet also weiter, sie steht nur nicht mehr in einem Wort. Über
+         den letzten acht Prozent der Kamerazeit fährt sie auf den alten
+         Endwert 0.86, sodass im Papier kaum eine Linie mehr durch eine Zeile
+         zeichnet — Akt 2 ist damit auf den Pixel genau wie vorher. */
+      var klar = 0.42 + Math.max(0, Math.min(1,
+        (uCur - REG.PAPER) / Math.max(0.001, 1 - REG.PAPER))) * 0.44;
       var OPTS = { dt: dt, dark: C.dark, holeN: holeN, holes: HOLES, clearK: klar };
       if (uni && !reduce) {
         /* Die Projektung geht durch mView, also durch dieselbe Achse, die die
