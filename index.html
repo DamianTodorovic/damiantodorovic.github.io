@@ -390,6 +390,42 @@
   .twocol{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:80px; align-items:center}
   .twocol.tight{gap:58px}
   .prose{max-width:34em}
+  /* DER KORREKTURSTRICH — ein Gerät, genau einmal auf der Seite.
+     Er streicht das Wort durch, das dem Produkt nicht passt, und lässt es
+     lesbar stehen: ein Wachsfaden, über scaleX gezogen, von links, 380 ms
+     Signatur. Stehen bleibt dabei die Operation, nicht die Behauptung — ein
+     aufgehobenes Fakt ist nicht gelöscht, es bleibt im Bestand und rangt
+     hinter seinem Nachfolger. Darum schlägt der Strich HIER zu, im Halbsatz
+     "the old one is marked and kept, never quietly deleted", wo der Text das
+     Aufheben einer Notiz beschreibt, und nirgends, wo nichts aufgehoben wird.
+     Die Schlagzeile der Seite hat ihn nicht mehr: "Your AI forgets." ist eine
+     Lesart, kein Fakt im Bestand, und an ihr wäre der Strich Schmuck.
+     Gezogen wird nur über transform:scaleX — niemals über Breite (die wäre ein
+     Layout-Fall pro Bild) und niemals über filter (das Blatt liegt über einer
+     WebGL-Welt, und eine Blur-Schicht darüber ist bezahlt mit Framezeit).
+     Der Anlass ist die Ankunft im Bild, einmal: dieselbe Regie, die .rv und
+     .mask enthüllt, gibt .in und legt den Knoten danach ab. Die Verzögerung ist
+     die Entrance des WIRTS plus 90 ms, denn der Strich wächst erst, nachdem
+     sein Wort steht — 420 (+60 bei d1) an einer Enthüllung, 680 an einer Maske.
+     Für Sonden heißt das: die Seite scrollt weich (html{scroll-behavior:smooth}),
+     ein Sprung auf 18 800 px kostet selbst ein halbes Sekündchen, und der Strich
+     steht frühestens 950 ms NACH der Ankunft. Wer nach 1500 ms urteilt, sieht ein
+     Bild im Kommen und nennt einen halben Strich einen fehlenden — SETTLE ≥ 2600.
+     Ohne Script und mit reduzierter Bewegung ist der Strich da, in voller
+     Länge: er zeichnet eine Auszeichnung, keine Verzierung, und eine
+     Auszeichnung, die auf eine Klasse wartet, die nie kommt, ist eine Lüge
+     über dem Text. */
+  .korr{position:relative;display:inline-block}
+  .korr i{
+    position:absolute;left:-.04em;right:-.04em;top:52%;height:.062em;
+    background:var(--wax);border-radius:99px;transform-origin:6% 50%;
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .js .korr i{transform:scaleX(0)}
+    .js .rv.in .korr i{transform:scaleX(1);transition:transform 380ms var(--ease) .51s}
+    .js .rv.d1.in .korr i{transition-delay:.57s}
+    .js .mask.in .korr i{transform:scaleX(1);transition:transform 380ms var(--ease) .77s}
+  }
   /* Die Lesemaße der Seite standen in ch — und ch ist die Breite der Ziffer Null,
      bei dieser Serif auf dieser Stufe rund 1,4-mal so breit wie eine durchschnittliche
      Minuskel. Ein Budget von 74 ch setzte deshalb nicht 74 Zeichen, sondern etwa 100,
@@ -1153,25 +1189,6 @@
   .hero-head{margin-bottom:36px}
   .hero h1{margin:0; font-size:clamp(38px,5.9vw,88px)}
   .hero h1 .dim{color:var(--text-3)}
-  /* DER KORREKTURSTRICH. Die Signatur des angenommenen Entwurfs, und sie schlägt
-     hier zu, wo der Inhalt sie meint: der erste Halbsatz ist die Lesart, die das
-     Produkt ersetzt. "Your AI forgets." bleibt stehen und wird durchgestrichen —
-     die alte Lesart ist nicht gelöscht, sie ist ranked. Das ist genau die
-     Operation, die weiter unten das Zeitreise-Instrument an einer echten Notiz
-     vorführt; hier führt sie die Schlagzeile an sich selbst vor.
-     Gezogen über scaleX, links stehend, 380 ms Signatur, und erst 90 ms nachdem
-     die Zeile in ihrer Maske steht (die hebt in --slow). Ohne Script ist der
-     Strich da: er ist Inhalt und keine Verzierung, und eine Auszeichnung, die
-     auf eine Klasse wartet, die nie kommt, ist eine Lüge über dem Text. */
-  .korr{position:relative;display:inline-block}
-  .korr i{
-    position:absolute;left:-.04em;right:-.04em;top:52%;height:.062em;
-    background:var(--wax);border-radius:99px;transform-origin:6% 50%;
-  }
-  @media (prefers-reduced-motion: no-preference){
-    .js .korr i{transform:scaleX(0)}
-    .js .mask.in .korr i{transform:scaleX(1);transition:transform 380ms var(--ease) .72s}
-  }
   /* The copy column is top-aligned against the card on purpose. Centred, a
      220px block of text floats in the middle of a 460px row and the headline
      and its lede are separated by a gap no reader mistakes for typography;
@@ -1986,7 +2003,7 @@
   <section class="hero">
     <div class="wrap">
       <div class="hero-head">
-        <h1 class="mask"><span><span class="dim">Your AI <span class="korr">forgets<i aria-hidden="true"></i></span>.</span><br>KEPTA keeps the record.</span></h1>
+        <h1 class="mask"><span><span class="dim">Your AI forgets.</span><br>KEPTA keeps the record.</span></h1>
       </div>
       <div class="hero-body">
         <div>
@@ -2134,7 +2151,7 @@
       <div class="twocol">
         <div>
           <h2 class="mask"><span>Ask what you knew on any day.</span></h2>
-          <p class="lead rv d1" style="margin-top:26px">Facts carry validity windows. When one is replaced, the old one is marked and kept, never quietly deleted. Drag the date and watch the file tell you the truth as it stood.</p>
+          <p class="lead rv d1" style="margin-top:26px">Facts carry validity windows. When one is replaced, the old one is marked and kept, never quietly <span class="korr">deleted.<i aria-hidden="true"></i></span> Drag the date and watch the file tell you the truth as it stood.</p>
           <dl class="spec rv d2" style="margin-top:38px">
             <div><dt>Validity</dt><dd>Every note can carry <code>valid_from</code> and <code>valid_to</code>, and answers a query for a past moment.</dd></div>
             <div><dt>Supersede</dt><dd>A new fact displaces the old one and points to it, so the reasoning stays traceable.</dd></div>
