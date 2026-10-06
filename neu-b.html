@@ -22,7 +22,7 @@
   die Schlagzeile über 11:1, egal wo das Blatt steht, und die Seite muss ihre
   Lesbarkeit nie mit einem Scrim erkaufen. Das ist zugleich das Argument gegen
   Variante A: ein Produkt, dessen Behauptung ein nachweisbares, lesbare Protokoll
-  ist, verkauft sich nicht über Dunkeheit.
+  ist, verkauft sich nicht über Dunkelheit.
 
   Signaturgerät, zweimal geschlagen: die NACHWEISKANTE. Ein ersetztes Blatt
   verschwindet nicht, sein Rand bleibt unter dem neuen sichtbar — im Objekt (der
@@ -232,9 +232,14 @@
   .flaeche::after{content:"";position:absolute;inset:0;pointer-events:none;
     background:linear-gradient(112deg,rgba(255,246,226,.85) 0%,rgba(255,246,226,0) 32%,rgba(47,65,87,.15) 100%);
     opacity:var(--beschiene,.55)}
+  /* Das ersetzte Blatt verschwindet nicht: sein Rand bleibt unter dem neuen sicht-
+     bar und schiebt sich mit der Lage seiner Szene weiter heraus. Der Weg steht in
+     em, also wächst er mit der Karte, und eine Zahl (--kf) auf dem Behälter reicht,
+     weil jedes Blatt sie erbt. */
   .geist{position:absolute;inset:0;background:linear-gradient(152deg,#efeade,#dfd9ca);
-    border:1px solid rgba(21,23,27,.13);border-radius:2px;
-    transform:translate3d(-.24em,.22em,0) rotate(-1.5deg);
+    border:1px solid rgba(21,23,27,.13);border-radius:2px;will-change:transform;
+    transform:translate3d(calc(-.24em - var(--kf,0)*.60em),calc(.22em + var(--kf,0)*.22em),0)
+              rotate(calc(-1.5deg - var(--kf,0)*1.6deg));
     box-shadow:.5em .8em 1.1em -0.7em rgba(47,65,87,.28)}
   .kopf{font:600 .48em/1.3 var(--mono);letter-spacing:.17em;text-transform:uppercase;color:var(--quiet)}
   .text{margin-top:.55em;font-family:var(--display);font-weight:700;font-size:1.02em;line-height:1.05;
@@ -265,6 +270,72 @@
   .f-kern{stroke:var(--slate);stroke-width:1.3}
   .f-gl{stroke:rgba(255,255,255,.82);stroke-width:.6}
 
+  /* ============================================================ LUFT UND RAHMEN
+     Zwei Ebenen, die es vorher nicht gab, und beide hängen an derselben Zahl: der
+     Lage. Staub im Raum und die vier Ecken der Aufnahme. Kein Stück davon bewegt
+     sich aus eigenem Antrieb — wer den Scroll hält, hält auch die Luft an.
+
+     Der Preis ist bewusst klein: das ganze Feld hängt an DREI Zahlen auf dem
+     Träger (--px, --py, --pw), die Rate --r sitzt an jedem Partikel selbst und
+     CSS rechnet sie gegeneinander. Sechsundzwanzig Partikel, drei Stil-
+     Schreibungen pro Bild, keine Messung im Takt. Weil die Seitwärtsfahrt in der
+     Projektion mit 1/Z wirkt, ist das kein aufgemaltes Parallaxen, sondern
+     dasselbe Gesetz, nach dem die Blätter auf dem Tisch stehen.
+
+     STAPEL: Staub liegt über dem Grund und unter den Bühnen. Dafür reicht z 0 —
+     #studio trägt z 0 und steht im DOM zuerst, die Bühnen tragen kein z und
+     stehen dahinter, also entscheidet die Reihenfolge. Ein z 1 hier läge über der
+     Typo und wäre Schmutz auf der Linse statt Luft im Raum.
+
+     WAS HIER BEWUSST FEHLT: eine Splitter-Ebene VOR der Kamera. Sie stand hier
+     einen Versuch lang und ist an der Messung gestorben, nicht am Geschmack —
+     die Seitwärtsfahrt verschiebt ein Partikel um bis zu Rate·62 px, und bei
+     Rate 1,9 fährt eine Faser aus dem Rand mitten durch „your own machine".
+     Vorne ist der einzige Platz, an dem ein Partikel Lesbarkeit kosten kann, und
+     der Gewinn war eine 1 px dünne Linie bei 6 % Deckkraft. Also: Luft nur
+     hinten, wo sie strukturell keinem Satz etwas antun kann. */
+  #luft{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;contain:layout paint style}
+  #luft i{position:absolute;display:block;left:calc(var(--x,0)*100%);top:calc(var(--y,0)*100%);
+    width:var(--b,2px);height:var(--b,2px);border-radius:50%;background:var(--c,var(--slate));
+    opacity:var(--o,.1);will-change:transform;
+    transform:translate3d(calc(var(--r,1)*var(--px,0px)),calc(var(--r,1)*var(--py,0px)),0)
+              scale(calc(.72 + var(--r,1)*var(--pw,0)*.62))}
+  /* Die Faser: kein Punkt, sondern ein Stückchen Papier, das im Licht steht. */
+  #luft i.f{height:.9px;width:calc(var(--b,2px)*7);border-radius:99px;
+    transform:translate3d(calc(var(--r,1)*var(--px,0px)),calc(var(--r,1)*var(--py,0px)),0)
+              rotate(calc(var(--dr,0deg) + var(--pw,0)*var(--rr,0deg)))}
+  html.no-3d #luft{display:none}
+
+  /* Das Register: vier Ecken, die atmen, weil die Kamera fährt. Herkunfts-
+     zeichen des Kartenkatalogs, hier der Sucherrahmen der Aufnahme — darum über
+     dem Bild und nicht dahinter. Auf schmalen Rahmen weg, wo der Satz bis an den
+     Rand reicht: eine Ecke, die durch ein Wort steht, ist kein Rahmen mehr. */
+  #raster{position:fixed;inset:0;z-index:11;pointer-events:none}
+  #raster i{position:absolute;display:block;width:22px;height:22px;opacity:.34;will-change:transform}
+  #raster .e1{left:calc(var(--gutter) - 7px);top:clamp(52px,7.4svh,86px);border-left:1.5px solid var(--line-2);border-top:1.5px solid var(--line-2);
+    transform:translate3d(calc(var(--rz,0)*-15px),calc(var(--rz,0)*-13px),0)}
+  #raster .e2{right:calc(var(--gutter) - 7px);top:clamp(52px,7.4svh,86px);border-right:1.5px solid var(--line-2);border-top:1.5px solid var(--line-2);
+    transform:translate3d(calc(var(--rz,0)*15px),calc(var(--rz,0)*-13px),0)}
+  #raster .e3{left:calc(var(--gutter) - 7px);bottom:clamp(26px,4.4svh,54px);border-left:1.5px solid var(--line-2);border-bottom:1.5px solid var(--line-2);
+    transform:translate3d(calc(var(--rz,0)*-15px),calc(var(--rz,0)*-13px),0)}
+  #raster .e4{right:calc(var(--gutter) - 7px);bottom:clamp(26px,4.4svh,54px);border-right:1.5px solid var(--line-2);border-bottom:1.5px solid var(--line-2);
+    transform:translate3d(calc(var(--rz,0)*15px),calc(var(--rz,0)*-13px),0)}
+  @media (max-width:780px){#raster{display:none}}
+
+  /* Die Lampe wandert. Derselbe Streifen Key-Light, den der Shader über den Tisch
+     zieht (tgt.bahn), fällt auch auf das Papier — aber breit und matt, weil Papier
+     kein Blech ist: kein Aufblitzen, sondern Tageslicht, das über den Schreibtisch
+     zieht und die beschienene Seite der Karte wechselt. Nur die Karte im Vorder-
+     grund trägt es. Bewegt wird ausschließlich translate3d; .flaeche clippt selbst
+     (overflow:hidden), also braucht die Bahn keinen eigenen Behälter. */
+  .blatt.vor .flaeche::before{content:"";position:absolute;left:0;top:0;width:150%;height:100%;
+    background:linear-gradient(100deg,rgba(255,244,214,0) 0%,rgba(255,247,226,.19) 38%,
+      rgba(255,250,236,.28) 52%,rgba(255,247,226,.19) 66%,rgba(255,244,214,0) 100%);
+    transform:translate3d(calc(var(--sw,0)*250% - 150%),0,0);pointer-events:none;will-change:transform}
+  /* Der Text liegt ÜBER dem Licht, nicht darunter: Licht darf über Papier streichen,
+     aber nie zwischen Papier und Leserin. */
+  .kopf,.text,.fuess,.balk{position:relative;z-index:1}
+
   /* ============================================================= 4 · ANGEBOT */
   .tafel{position:absolute;left:50%;top:50%;z-index:3;width:min(900px,86vw);
     transform:translate3d(-50%,-50%,0);transform-origin:50% 50%;will-change:transform,opacity}
@@ -281,6 +352,19 @@
     font-size:var(--fs-akt);line-height:.98;letter-spacing:-.03em;color:var(--ink);
     text-shadow:0 1px 0 rgba(255,255,255,.6)}
   .titel em{font-style:normal;color:var(--slate)}
+  /* Im letzten Akt gibt es keinen Satz mehr, der die Fahrt trägt — also trägt die
+     Tafel sie selbst, und ihre vier Lagen gehen unterschiedlich schnell: Kopf-
+     zeile und Titel bleiben zurück, Handlung und Nachweis ziehen aus. Eine Zahl
+     (--q4) auf der Tafel, CSS rechnet die Wege.
+
+     Die Wege sind nach UNTEN klein gehalten — gemessen, nicht geschätzt: die
+     unterste Zeile steht bei 820 px Breite 22 px über der Plattenkante, und ein
+     Weg von 23 px hätte sie genau daraufgesetzt. Also 10 px nach unten, 14 nach
+     oben. Getrennt wird über die Höhe, nie über die Lesbarkeit. */
+  .tafel .eyebrow{transform:translate3d(0,calc(var(--q4,0)*-14px),0);will-change:transform}
+  .tafel .titel{transform:translate3d(0,calc(var(--q4,0)*-7px),0)}
+  .tafel .handlung{transform:translate3d(0,calc(var(--q4,0)*6px),0)}
+  .tafel .zeile{transform:translate3d(0,calc(var(--q4,0)*10px),0);opacity:calc(.42 + var(--q4,0)*.58)}
 
   /* kein Kartenraster: eine Ledger-Zeile pro Stufe, Trennlinie statt Rand.
      Zwei Zeilen, eine Bewegung: 24 px unter der Endlage, 420 ms Eingang,
@@ -356,6 +440,10 @@
       transition:opacity 120ms var(--sig)!important}
     .hinweis{display:none}
     #luft,#raster{display:none}
+    /* Die wandernde Lampe ist Bewegung an der Lesefläche selbst — die gehört
+       nicht in den Krankheitsmodus. Ruhelage heißt hier: Licht von links, wie der
+       Beschienen-Überzug es ohne Fahrt meint. */
+    .blatt.vor .flaeche::before{display:none}
   }
   html:not(.js) .dinge,html:not(.js) .hinweis{display:none}
   html:not(.js) #luft,html:not(.js) #raster{display:none}
@@ -366,6 +454,8 @@
 <body>
 <a class="skip" href="#angebot">Zum Angebot springen</a>
 <canvas id="studio" aria-hidden="true"></canvas>
+<div id="luft" aria-hidden="true"></div>
+<div id="raster" aria-hidden="true"><i class="e1"></i><i class="e2"></i><i class="e3"></i><i class="e4"></i></div>
 
 <div class="marke"><b>KEPTA</b><span>Memory-Layer für KI-Assistenten</span></div>
 
@@ -1107,14 +1197,49 @@ var FDB = [0,0,0,0];                             /* Feldgrenze je Szene, in Bild
 var faden1 = document.querySelector('svg[data-faden="1"]');
 var REIHEN = [].slice.call(document.querySelectorAll(".ledger .reihe"));
 var SIEGEL = document.querySelector("[data-siegel]");
-var KANTE  = document.querySelector("[data-kante]");
 var luft   = document.getElementById("luft");
 var raster = document.getElementById("raster");
+var DINGE  = [].slice.call(document.querySelectorAll("[data-dinge]"));
+var HELDEN = [].slice.call(document.querySelectorAll(".blatt.vor .flaeche"));
+
+/* DIE LUFT WIRD EINMAL GEBAUT, NIE IM TAKT. Staub im Raum, Kind derselben drei
+   Zahlen auf dem Träger, die der Takt weiter unten schreibt. Hier entstehen nur
+   die konstanten Größen je Partikel: Platz, Größe, eigene Rate, Deckkraft,
+   Ruhewinkel.
+
+   Die Plätze sind gezogen, nicht gewürfelt. Ein fester Startwert liefert bei
+   jedem Laden dieselbe Seite — wer zurückscrollt, sieht denselben Staub, und die
+   Messbilder der QA bleiben vergleichbar. Ein Zufallsgenerator wäre hier kein
+   Reichtum, sondern ein Grund, warum zwei Läufe sich nicht vergleichen lassen. */
+(function luftBauen(){
+  if(REDUCE || !luft) return;              /* reduzierte Bewegung: die Luft steht */
+  var z = 20261006;
+  function w(){ z = (z*1664525 + 1013904223) >>> 0; return z/4294967296; }
+  function zw(a,b){ return (a + (b-a)*w()).toFixed(3); }
+  function feld(n, fn){
+    var f = document.createDocumentFragment();
+    for(var i=0;i<n;i++){ var e=document.createElement("i"); fn(e,i); f.appendChild(e); }
+    luft.appendChild(f);
+  }
+
+  /* Zwanzig Punkte und sechs Fasern, fern und blass, also mit kleiner Rate. Weil
+     --r die Seitwärtsfahrt der Kamera multipliziert, trennt sich die Tiefe von
+     selbst — dieselbe 1/Z-Wirkung, die die Blätter auf dem Tisch staffelt. */
+  feld(20, function(e){
+    e.setAttribute("style","--x:"+zw(0,1)+";--y:"+zw(0,1)+";--b:"+zw(1.2,2.6)+"px;"+
+      "--r:"+zw(.25,.85)+";--o:"+zw(.05,.16));
+  });
+  feld(6, function(e){
+    e.className = "f";
+    e.setAttribute("style","--x:"+zw(0,1)+";--y:"+zw(0,1)+";--b:"+zw(2,4)+"px;"+
+      "--r:"+zw(.5,1)+";--o:"+zw(.06,.13)+";--dr:"+zw(-40,40)+"deg;--rr:"+zw(-26,26)+"deg");
+  });
+})();
 
 /* DER KORRIDOR. Zwischen zwei Stationen liegt kein Schnitt, sondern eine Fahrt.
    Die übergebende Zeile steigt bis q=0,94 aus dem Bild und ist dann fort; die
    kommende kommt von unten herein und ist bei q=-0,02 an ihrem Ort. Zwei Sätze in
-   Kinogröße, die einander in derselben Bildhälfte läsen, wären unlesbar — die
+   Kinogröße, die einander in derselben Bildhälfte lägen, wären unlesbar — die
    Übergabe ist deshalb über die HÖHE getrennt, nicht nur über die Deckkraft.
    (karte.pruefung: ein Objekt und ein Wort streiten nicht um dieselbe Fläche.) */
 var EIN_A=-0.28, EIN_B=-0.02, AUS_A=0.68, AUS_B=0.94;
@@ -1159,16 +1284,33 @@ function render(dt){
   var glow = REDUCE ? 1 : tritt(idx,40,640,0,0,K_SCH);
   GLP = 1+.14*glow; GLK = 1+.06*glow;
 
-  /* Die Luft: Staub und Lichtbahn ziehen mit dem Grund, also mit der spätesten
-     der drei Uhren. Zwei Zahlen für sechsundzwanzig Partikel — die Rate sitzt an
-     jedem Partikel selbst, CSS rechnet sie gegeneinander. */
-  if(luft){
-    var pk = (uA - 0) ;
-    schreib(luft,"--px", (cam.px*260).toFixed(1)+"px");
-    schreib(luft,"--py", (PWn[idx]*-70 - 34).toFixed(1)+"px");
-    schreib(luft,"--pw", (K_SCH(cl(uC/3.6,0,1))).toFixed(4));
+  /* DIE LUFT UND DER RAHMEN. Staub und Register ziehen mit dem Grund, also mit
+     der spätesten der drei Uhren; drei Zahlen auf zwei Trägern bewegen sechsund-
+     zwanzig Partikel, weil die Rate an jedem Partikel selbst sitzt und CSS sie
+     gegeneinander rechnet. Alles unter einem Vorbehalt: bei reduzierter Bewegung
+     sind Luft und Register per CSS nicht da, und Zahlen auf Elemente schreiben,
+     die nichts malen, kostet trotzdem Style-Recalc — also gar nicht erst tun. */
+  if(!REDUCE){
+    if(luft){
+      schreib(luft,"--px", (cam.px*260).toFixed(1)+"px");
+      schreib(luft,"--py", (PWn[idx]*-70 - 34).toFixed(1)+"px");
+      schreib(luft,"--pw", (K_SCH(cl(uC/3.6,0,1))).toFixed(4));
+    }
+    if(raster) schreib(raster,"--rz", K_SCH(cl(uC/3.6,0,1)).toFixed(4));
+
+    /* DIE LAMPE AUF DEM PAPIER. tgt.bahn wandert über den ganzen Dokumentweg von
+       -3,2 auf +3,2 und wird schon im Shader über den Tisch geschoben. Hier ist
+       dieselbe Zahl, normiert auf 0…1, und legt die beschienene Seite der Karte im
+       Vordergrund um. Keine eigene Uhr, kein eigener Verlauf — eine Lampe, zwei
+       Oberflächen, die sich einig sind. */
+    var sw = cl((cam.bahn + 3.2)/6.4, 0, 1).toFixed(4);
+    for(var h=0;h<HELDEN.length;h++) schreib(HELDEN[h],"--sw", sw);
   }
-  if(raster) schreib(raster,"--rz", K_SCH(cl(uC/3.6,0,1)).toFixed(4));
+
+  /* DAS ERSETZTE BLATT schiebt sich mit der Lage seiner Szene heraus, nicht mit
+     einer Uhr: --kf steht auf dem Behälter, jedes .geist darunter erbt es. */
+  for(var g=0;g<DINGE.length;g++)
+    schreib(DINGE[g],"--kf", (REDUCE ? 0 : K_SIG(cl((PWn[g]-0.10)/0.62,0,1))).toFixed(4));
 
   for(var i=0;i<3;i++){
     var el=satze[i], q=PW[i], p=P[i];
@@ -1251,8 +1393,8 @@ function render(dt){
   if(tafel){
     /* Die letzte Station hat den längsten Weg und keinen Nachfolger, der ihn
        abnimmt: also trägt sie ihre eigene Auflösung. Die Tafel steigt, neigt
-       sich, wird von der Lichtbahn quergestrichen, die zwei Zeilen heben sich
-       nacheinander, das Siegel presst sich zu — alles an einem Eingang. */
+       sich, ihre vier Lagen gehen unterschiedlich schnell, die zwei Zeilen heben
+       sich nacheinander, das Siegel presst sich zu — alles an einem Eingang. */
     var q4=PWn[3], e4=K_SIG(cl(q4,0,1));
     var in4=REDUCE ? 1 : out3(seg(PW[3],-.20,.24));
     var sc4= REDUCE ? 1 : mix(.90,1.055,K_SCH(cl(q4/1.02,0,1)));
@@ -1261,7 +1403,12 @@ function render(dt){
     schreib(tafel,"opacity",cl(in4*1.15,0,1).toFixed(3));
     schreib(tafel,"transform","translate3d(-50%,calc(-50% + "+ty4.toFixed(1)+"px),0) scale("+
       sc4.toFixed(4)+") rotateX("+rx4.toFixed(2)+"deg)");
-    schreib(tafel,"--sw", K_SCH(cl((PWc[3]+0.10)/1.05,0,1)).toFixed(4));
+    /* Im letzten Akt trägt kein Satz mehr die Fahrt — also trägt die Tafel sie
+       selbst. Eine Zahl, vier Wege: Kopfzeile und Titel bleiben zurück, Handlung
+       und Nachweis ziehen aus. Lesbar bleibt das, weil die Wege 7 bis 14 px sind
+       und an keiner Kante weniger als 11 px Luft lassen — gemessen bei 1430,
+       1024, 820 und 390 px (web-qa/tafel.js). */
+    schreib(tafel,"--q4", (REDUCE ? 1 : K_SIG(cl(q4/1.02,0,1))).toFixed(4));
     for(var r2=0;r2<REIHEN.length;r2++){
       /* Zwei Zeilen, eine Bewegung — aber die Bewegung gehört der Lage: 24 px
          unter der Endlage, 120 px Versatz je Zeile im Fortschritt. */
@@ -1275,7 +1422,6 @@ function render(dt){
       var pr = REDUCE ? 1 : K_SIG(cl((q4-0.44)/0.26,0,1));
       schreib(SIEGEL,"--press", pr>=1 ? "1" : mix(1.30,1.00,pr).toFixed(4));
     }
-    if(KANTE) schreib(KANTE,"--kf", K_SIG(cl((q4-0.06)/0.52,0,1)).toFixed(4));
   }
 
   for(var n=0;n<navs.length;n++){
