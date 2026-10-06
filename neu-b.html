@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KEPTA Enterprise — Das Leben einer Erinnerung</title>
+<meta name="description" content="KEPTA ist der Memory-Layer für KI-Assistenten. Eine Erinnerung liegt auf deinem Rechner, ist mit anderen verbunden, wird nach Rang geholt statt nach Treffer, und sie zeigt, woher sie kommt. Core kostenlos. Enterprise nach Vertrag.">
+<meta name="color-scheme" content="light">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23f3f0e9'/%3E%3Ccircle cx='11' cy='16' r='2.4' fill='%2315171b'/%3E%3Cpath d='M11 16l9-6M11 16l9 6M11 16h9' stroke='%232f4157' stroke-width='1.6' fill='none'/%3E%3Ccircle cx='22' cy='10' r='1.7' fill='%238e2f2f'/%3E%3C/svg%3E">
+
+<!--
+  KEPTA — VARIANTE B.
+
+  Theseis: KEPTAs Identität ist Papier, und die Charakterstärke der Referenzfilme
+  braucht kein Dunkel — sie braucht Maßstab, Tiefe und ein Subject nach dem anderen.
+  Darum ein LICHTER Grund, aber ein beschienener: ein Atelier aus warmer Key-Light,
+  langem kühlem Schatten und Perspektive, nicht ein beige Rechteck.
+
+  Die Regel dahinter: Tiefe wird über WARM/KALT erzeugt, nie über HELL/DUNKEL. Der
+  Schatten des Ateliers ist ein kühles Graublau bei 0,84 Relativluminanz, kein
+  Grauschwarz. Kein Ton, hinter dem je Tinte steht, fällt unter ~0,80 — damit bleibt
+  die Schlagzeile über 11:1, egal wo das Blatt steht, und die Seite muss ihre
+  Lesbarkeit nie mit einem Scrim erkaufen. Das ist zugleich das Argument gegen
+  Variante A: ein Produkt, dessen Behauptung ein nachweisbares, lesbare Protokoll
+  ist, verkauft sich nicht über Dunkeheit.
+
+  Signaturgerät, zweimal geschlagen: die NACHWEISKANTE. Ein ersetztes Blatt
+  verschwindet nicht, sein Rand bleibt unter dem neuen sichtbar — im Objekt (der
+  Geist unter dem Blatt) und in der Typografie (der Korrekturstrich durch "matched",
+  der erst im Scrollen gezogen wird). Superseded, not deleted, als Form.
+
+  Technik: ein File, null Anfragen nach draußen — kein CDN, keine Web Fonts, keine
+  Bilder, keine Bibliotheken. Der Grund ist ein analytischer WebGL2-Shader
+  (~130 ALU/Pixel, Pixeldeckel 2,25 M, ein Draw, keine Texturen). Blätter und Fäden
+  sind DOM/SVG in DEMSELBEN Kameraraum: JS rechnet die Projektion vorwärts für das
+  DOM, der Shader invertiert sie pro Pixel — ein Blatt wirft exakt den Schatten, der
+  unter ihm liegt. Animiert wird ausschließlich transform und opacity.
+
+  Sätze im Bild: Englisch. Bedienung: Deutsch.
+-->
+
+<style>
+  /* ================================================================== TOKEN */
+  :root{
+    color-scheme:light;
+
+    /* Papier, beschienen */
+    --paper:#f3f0e9; --paper-lit:#fcfaf5; --paper-deep:#e4dfd3; --haze:#eeede9;
+
+    --ink:#15171b;         /* 13,6:1 auf paper */
+    --ink-2:#33363c;       /* 10,4:1 */
+    --quiet:#5d6169;       /*  5,5:1 */
+    --slate:#2f4157;       /*  9,2:1 — Arbeitsfarbe: Rang, Faden, Score */
+    --slate-2:#4a6280;     /*  5,6:1 */
+    --wax:#8e2f2f;         /*  7,1:1 — Siegelrot, kein Terrakotta. Zweimal im Dokument. */
+    --line:rgba(21,23,27,.13);
+    --line-2:rgba(21,23,27,.26);
+
+    /* Display = Slab, nicht Kontrast-Serif: der Schnitt von Gummistempel,
+       Kartenkatalog und Versandkarton. Body = Humanist-Grotesk. Nutzen = Mono,
+       die Stimme des Buchhalters. Drei Rollen, drei Herkunften. */
+    --display:'Superclarendon','Rockwell','Bookman Old Style','Roboto Slab','Noto Serif',Georgia,serif;
+    --body:'Avenir Next','Segoe UI Variable Text','Segoe UI',system-ui,-apple-system,'Helvetica Neue',sans-serif;
+    --mono:ui-monospace,'SF Mono','Cascadia Mono','Roboto Mono',Menlo,Consolas,monospace;
+
+    --gutter:clamp(20px,4.2vw,64px);
+    /* 7,9 statt 8,2 vw: die Zeile ist am ruhenden Maß 86 % des Rahmens breit.
+       Die Fahrt darf sie bis 1,12 ihres Maßes wachsen lassen, ohne dass ein Wort
+       den Rand verlässt — eine Schlagzeile, die im Vorbeifahren abgeschnitten
+       wird, ist kein Kamerateam, sondern ein Bug. */
+    --fs-satz:clamp(30px,7.9vw,118px);   /* 118px gegen 17px Lauftext: siebener Sprung */
+    --fs-akt:clamp(25px,4.1vw,52px);
+
+    /* ---- Bewegungs-Tokens (Motion-Plan 6.10.2026, Premium) ----
+       Signatur ist die glatte Kurve über beide Enden: sie trägt 80 % aller
+       Bewegungen auf dem Schirm. Der Eingang ist deco (schnell abgehend, weich
+       landend), der Ausgang acc (weich abgehend, schnell fort) und damit 35 %
+       kürzer als der Eingang. Die Schleife ist sine-symmetrisch. Linear ist für
+       räumliche Bewegung verboten; ertragen nur ein Spinner und Fortschrittsbreite.
+       Overshoot: null — nichts auf dieser Seite federt. */
+    --ein:cubic-bezier(.05,.7,.1,1);
+    --aus:cubic-bezier(.3,0,.8,.15);
+    --sig:cubic-bezier(.4,0,.2,1);
+    --sch:cubic-bezier(.45,0,.55,1);
+    --strich:cubic-bezier(.2,0,0,1);
+    --quick:220ms; --standard:420ms; --slow:680ms;
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  @media (prefers-reduced-motion: no-preference){ html{scroll-behavior:smooth} }
+  body{
+    margin:0;color:var(--ink);
+    font-family:var(--body);font-size:17px;line-height:1.55;letter-spacing:-.004em;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+    /* statischer Grund für ohne Script / ohne WebGL2: dieselbe Lichtverteilung,
+       warm von oben links, kühl nach unten rechts */
+    background:
+      radial-gradient(120% 76% at 24% 8%, var(--paper-lit) 0%, rgba(252,250,245,0) 58%),
+      linear-gradient(178deg, var(--haze) 0%, var(--paper) 44%, #e7e2d7 100%);
+    background-attachment:fixed;
+  }
+  ::selection{background:var(--slate);color:#fbfaf6}
+  a{color:var(--slate);text-decoration:none}
+  :focus{outline:none}
+  :focus-visible{outline:2.5px solid var(--slate);outline-offset:4px;border-radius:3px}
+  .sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+  .skip{position:fixed;left:var(--gutter);top:-70px;z-index:60;background:var(--paper-lit);color:var(--ink);
+    padding:11px 17px;font:600 14px/1 var(--body);border:1.5px solid var(--slate)}
+  .skip:focus{top:14px}
+
+  /* =================================================================== BÜHNE */
+  #studio{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:block;pointer-events:none}
+  html.no-3d #studio{display:none}
+
+  /* Die Abschnitte tragen nur Länge. Die Bühne ist fix und wird geblendet wie im
+     Film: zu jedem Zeitpunkt gehört der ganze Rahmen genau einem Bild — außer in
+     den Korridoren, da fahren zwei Bilder durcheinander hindurch.
+     215svh beim Angebot: die letzte Station hat keine nächste, die sie ablöst.
+     Ihre Auflösung braucht eigenen Weg, sonst ist das Ende des Scrolls tot. */
+  .szene{position:relative;height:155svh;height:155vh;height:155svh}
+  .angebot{position:relative;height:215svh;height:215vh;height:215svh}
+  .buehne{position:relative;height:100svh;height:100vh;height:100svh;overflow:hidden;isolation:isolate}
+  html.js .buehne{position:fixed;inset:0;opacity:0;pointer-events:none;will-change:opacity}
+  html.js .buehne.an{pointer-events:auto}
+  html:not(.js) .szene,html:not(.js) .angebot{height:100svh;height:100vh}
+
+  .raum{position:absolute;inset:0;perspective:1500px;perspective-origin:50% 40%}
+  /* Die Tafel neigt sich im letzten Akt — ohne eigenen Raum hätte sie keine
+   Perspektive und der rotateX wäre ein heimliches scaleY. */
+  html.js .angebot .buehne{perspective:1500px;perspective-origin:50% 44%}
+
+  /* Ein Satz pro Bildschirm, in der Mitte des Raums, nicht in einer Ecke.
+       --ob ist die Höhe im Bild: das Subjekt steht auf dem Tisch, also sitzt die
+       Zeile dort, wo das Licht herkommt — nie in einer festen Ecke.
+
+       DIE TYPO IST EINE EBENE, KEIN AUFDRUCK. Der Satz sitzt im Korridor der
+       Kamera und wird auf ihr durchgefahren: --sc und --ty sind eine Funktion der
+       Position zwischen zwei Stationen, nicht eines Augenblicks. Darum steht hier
+       keine Ruhelage, die ein Ereignis verlässt — die Zeile skaliert von 0,77 bis
+       1,31 und steigt dabei, solange der Leser scrollt. Aufgenommen wird nur, was
+       die CSS-Herkunft nicht selbst tun kann: drei Zahlen (--sc, --ty, --qz), die
+       JS pro Bild setzt; die Zeilen- und Wortdifferenz rechnet CSS aus --qz.
+
+       DAS FELD: die Zeilen stehen in der oberen Bildhälfte, die Karte steht unter
+       ihnen auf dem Tisch. Wo die Karte steht, endet die Typo — ein Objekt und ein
+       Wort streiten nicht um dieselbe Fläche, und eine Kollision kann man nicht
+       weganimieren. Der Wert pro Szene sitzt in JS (FELD[]) und wird von der Wache
+       in applyNote() eingehalten: kein Blatt steigt über den Satzfuß hinaus — und
+       zwar über den GEFAHREN Fuß, den des größten Maßes der ganzen Fahrt. */
+  .satz{
+    position:absolute;left:var(--gutter);right:var(--gutter);top:var(--ob,50%);
+    transform:translate3d(0,calc(-50% + var(--ty,0px)),0) scale(var(--sc,1));
+    z-index:2;margin:0;text-align:center;
+    font-family:var(--display);font-weight:700;
+    font-size:var(--fs-satz);line-height:.9;letter-spacing:-.032em;
+    color:var(--ink);
+    text-shadow:0 1px 0 rgba(255,255,255,.60), 15px 21px 24px rgba(47,65,87,.13);
+    pointer-events:none;will-change:transform,opacity;
+  }
+  /* Zwei Zeilen, zwei Tiefen: die obere liegt weiter weg und zieht langsamer mit,
+       die nähere läuft ihr davon. Die Zeilen entfernen sich also VONEINANDER, nie
+       aufeinander zu — wo sie einander berühren könnten, wäre es kein Satz mehr. */
+  .satz .z{display:block;transform:translate3d(0,calc(var(--qz,0)*var(--dz,0px)),0)}
+  /* Das Wort ist die Bewegungseinheit der Typo: rise and settle, 28 px unter der
+       Endlage, 46 ms gestaffelt, ohne jedes Überschwingen. Nur translateY und
+       opacity — die Zeilenkante bleibt während der Bewegung eine ruhige Kante,
+       und kein Wort kann ein anderes überholen. Die Fahrt legt sich darüber: jedes
+       Wort steht an einer um seine Nummer verspäteten Stelle derselben monoton
+       steigenden Kurve, also wellt die Zeile, aber sie überholt sich nie. */
+  .satz .w{display:inline-block;transform:translate3d(0,0,0)}
+  html.js .buehne.an .satz,html.js .buehne.an .satz .w{will-change:transform,opacity}
+  .hi{color:var(--slate)}
+  /* Hochformat: das Subjekt ist hier fast so breit wie der Rahmen, also rückt
+     die Zeile über ihn statt vor ihm. */
+  @media (max-aspect-ratio:4/5){ .satz{top:calc(var(--ob,50%) - 9%)} }
+
+  /* Der Korrekturstrich: die Operation des Produkts, auf die Schlagzeile
+     ausgeführt — die alte Lesart bleibt lesbar, sie wird nur ranked. Er wächst
+     erst, NACHDEM sein Wort steht (90 ms Verzug, 380 ms Signatur). */
+  .korr{position:relative;display:inline-block;color:var(--quiet)}
+  .korr i{
+    position:absolute;left:-.04em;right:-.04em;top:52%;height:.062em;
+    background:var(--wax);border-radius:99px;
+    transform:scaleX(0);transform-origin:6% 50%;will-change:transform;
+  }
+
+  /* ================================================================= RAHMEN */
+  .marke{position:fixed;left:var(--gutter);top:clamp(16px,2.6svh,28px);z-index:30;display:flex;align-items:baseline;gap:14px}
+  .marke b{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:.13em;color:var(--ink)}
+  .marke span{font:500 10.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--quiet)}
+  @media (max-width:660px){.marke span{display:none}}
+
+  /* Die Standanzeige springt quick, nie slow: eine Anzeige, die wartet, liest sich
+     als Fehler. 220 ms Signatur, scaleY und Deckkraft — der aktive Stand ist auch
+     ohne Farbe dicker als die anderen, nie nur heller. */
+  .schiene{position:fixed;right:clamp(12px,1.9vw,26px);top:50%;transform:translateY(-50%);z-index:30;
+    display:flex;flex-direction:column;gap:15px;align-items:flex-end}
+  .schiene a{display:block;width:26px;height:2px;background:var(--line-2);transform-origin:100% 50%;opacity:.62;
+    transition:background var(--quick) var(--sig),transform var(--quick) var(--sig),opacity var(--quick) var(--sig)}
+  .schiene a[aria-current="true"]{background:var(--slate);opacity:1;transform:scaleX(1.62) scaleY(1.8)}
+  .schiene a:hover{background:var(--slate-2);opacity:1;transform:scaleX(1.2) scaleY(1.4)}
+  @media (max-width:780px){.schiene{display:none}}
+
+  .hinweis{position:absolute;left:50%;bottom:clamp(18px,4svh,38px);transform:translateX(-50%);z-index:4;
+    display:flex;flex-direction:column;align-items:center;gap:9px;
+    font:500 10px/1 var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--quiet);pointer-events:none}
+  .hinweis i{display:block;width:1px;height:34px;background:linear-gradient(var(--slate),rgba(47,65,87,0));
+    transform-origin:50% 0;will-change:transform}
+  @media (max-width:780px){.hinweis{display:none}}
+
+  /* ======================================================= BLÄTTER UND FÄDEN
+     Zwei Tiefebenen: das Subjekt steht VOR seiner eigenen Zeile (.vor, z 3) und
+     bricht die Lettern — das ist der Moment, in dem Typografie im Raum steht und
+     nicht auf ihm liegt. Alles andere bleibt hinter der Zeile (z 1). */
+  .dinge{position:absolute;inset:0;pointer-events:none}
+
+  .blatt{position:absolute;left:0;top:0;z-index:1;transform-origin:50% 100%;will-change:transform,opacity;opacity:0}
+  .blatt.vor{z-index:3}  .flaeche{
+    position:absolute;inset:0;display:flex;flex-direction:column;
+    background:linear-gradient(152deg,var(--paper-lit) 0%,#f7f4ed 48%,#ece8db 100%);
+    border:1px solid rgba(21,23,27,.17);border-radius:2px;overflow:hidden;
+    padding:1.2em 1.1em;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.95),
+      inset 0 -1px 0 rgba(21,23,27,.05),
+      .9em 1.3em 1.8em -0.9em rgba(47,65,87,.32),
+      .1em .16em .3em -0.16em rgba(47,65,87,.24);
+  }
+  /* die eine Fläche, die wirklich etwas hinter sich hat: Beschiene und Gegenlicht */
+  .flaeche::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(112deg,rgba(255,246,226,.85) 0%,rgba(255,246,226,0) 32%,rgba(47,65,87,.15) 100%);
+    opacity:var(--beschiene,.55)}
+  .geist{position:absolute;inset:0;background:linear-gradient(152deg,#efeade,#dfd9ca);
+    border:1px solid rgba(21,23,27,.13);border-radius:2px;
+    transform:translate3d(-.24em,.22em,0) rotate(-1.5deg);
+    box-shadow:.5em .8em 1.1em -0.7em rgba(47,65,87,.28)}
+  .kopf{font:600 .48em/1.3 var(--mono);letter-spacing:.17em;text-transform:uppercase;color:var(--quiet)}
+  .text{margin-top:.55em;font-family:var(--display);font-weight:700;font-size:1.02em;line-height:1.05;
+    letter-spacing:-.022em;color:var(--ink);overflow-wrap:anywhere}
+  .fuess{margin-top:auto;font:500 .45em/1.75 var(--mono);letter-spacing:.05em;color:var(--slate-2);white-space:pre}
+  .fuess .ab{color:var(--wax)}
+
+  /* Der Score-Balken: die Rangzahl als Länge. Seine Breite ist einmal gesetztes
+     Layout (--rang), bewegt wird nur scaleX — 0 → 1, 100 ms nachdem seine Karte
+     steht, 320 ms Signatur. Die Reihe ist erst durch diese Bewegung eine Rangfolge
+     und nicht drei gleichrangige Karten. */
+  .balk{display:block;margin-top:.55em;height:.13em;border-radius:99px;background:rgba(47,65,87,.15);overflow:hidden}
+  .balk i{display:block;height:100%;width:var(--rang,50%);border-radius:99px;background:var(--slate);
+    transform:scaleX(0);transform-origin:0 50%;will-change:transform}
+  .blatt.vor .balk i{background:var(--slate)}
+
+  .siegel{position:absolute;width:2.3em;height:2.1em;right:.9em;top:.85em;transform:scale(var(--press,1));
+    background:radial-gradient(62% 58% at 38% 34%,#b45452 0%,var(--wax) 52%,#6d2020 100%);
+    border-radius:47% 53% 56% 44% / 52% 47% 53% 48%;
+    box-shadow:inset 0 1px 1px rgba(255,255,255,.34), .1em .14em .3em -.1em rgba(47,65,87,.5)}
+  .siegel::after{content:"";position:absolute;left:.55em;top:.6em;width:1.15em;height:.85em;border-radius:50%;
+    border:.09em solid rgba(255,255,255,.42);border-top-color:transparent}
+
+  .faden{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:2}
+  .faden g{transform-box:view-box;transform-origin:0 0;will-change:transform}
+  .faden path{fill:none;stroke-linecap:round}
+  .f-sch{stroke:rgba(47,65,87,.14);stroke-width:3}
+  .f-kern{stroke:var(--slate);stroke-width:1.3}
+  .f-gl{stroke:rgba(255,255,255,.82);stroke-width:.6}
+
+  /* ============================================================= 4 · ANGEBOT */
+  .tafel{position:absolute;left:50%;top:50%;z-index:3;width:min(900px,86vw);
+    transform:translate3d(-50%,-50%,0);transform-origin:50% 50%;will-change:transform,opacity}
+  .tafel-flaeche{position:relative;
+    background:linear-gradient(168deg,var(--paper-lit) 0%,#f8f5ee 54%,#efebe0 100%);
+    border:1px solid rgba(21,23,27,.16);border-radius:2px;
+    padding:clamp(24px,3.3vw,48px) clamp(22px,3.1vw,48px) clamp(20px,2.7vw,40px);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.96),
+      0 44px 74px -48px rgba(47,65,87,.46), 0 4px 12px -8px rgba(47,65,87,.26)}
+  .tafel-flaeche::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+    background:linear-gradient(180deg,var(--wax),rgba(142,47,47,0) 74%)}
+  .eyebrow{margin:0 0 clamp(10px,1.4vw,18px);font:600 10.5px/1 var(--mono);letter-spacing:.24em;text-transform:uppercase;color:var(--wax)}
+  .titel{margin:0 0 clamp(14px,2vw,26px);font-family:var(--display);font-weight:700;
+    font-size:var(--fs-akt);line-height:.98;letter-spacing:-.03em;color:var(--ink);
+    text-shadow:0 1px 0 rgba(255,255,255,.6)}
+  .titel em{font-style:normal;color:var(--slate)}
+
+  /* kein Kartenraster: eine Ledger-Zeile pro Stufe, Trennlinie statt Rand.
+     Zwei Zeilen, eine Bewegung: 24 px unter der Endlage, 420 ms Eingang,
+     120 ms gestaffelt. Das Wachssiegel der Enterprise-Zeile presst sich zu
+     (scale 1,30 → 1,00 = 30 % Weg), 160 ms nachdem ihre Zeile steht. */
+  .ledger{margin:0 0 clamp(18px,2.3vw,26px);border-top:1px solid var(--line-2)}
+  .reihe{display:grid;gap:2px 18px;padding:clamp(12px,1.4vw,17px) 0;border-bottom:1px solid var(--line);
+    grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"stufe zahl" "zug zug";align-items:baseline;
+    transform:translate3d(0,0,0);will-change:transform,opacity}
+  @media (min-width:760px){
+    .reihe{grid-template-columns:minmax(0,1.16fr) auto minmax(0,1.7fr);
+      grid-template-areas:"stufe zahl zug";align-items:center}
+    .stufe{white-space:nowrap}
+  }
+  .stufe{grid-area:stufe;font-family:var(--display);font-weight:700;font-size:clamp(18px,1.65vw,24px);letter-spacing:-.022em;color:var(--ink)}
+  .zahl{grid-area:zahl;display:flex;align-items:center;gap:.6em;
+    font:600 clamp(11.5px,.95vw,13.5px)/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--slate);white-space:nowrap}
+  .zug{grid-area:zug;font-size:clamp(13.5px,1.02vw,15.5px);line-height:1.45;color:var(--ink-2);max-width:42ch}
+  .reihe[data-kern] .zahl{color:var(--wax)}
+  .reihe .siegel{position:relative;right:auto;top:auto;flex:0 0 auto;width:1.5em;height:1.36em}
+  .reihe .siegel::after{left:.36em;top:.38em;width:.76em;height:.56em;border-width:.07em}
+  @media (max-width:560px){
+    .stufe{font-size:19px}
+    .zahl{font-size:10.5px;letter-spacing:.07em}
+  }
+
+  .handlung{display:flex;flex-wrap:wrap;align-items:center;gap:clamp(14px,1.8vw,24px)}
+  /* Die Taste gibt nach: 0,985 in 120 ms, zurück in 260 ms, beide Signatur.
+     Kein Quetschen, kein Federn — eine Taste, die federt, widerspricht der
+     Setztheit, die der Rest der Seite behauptet. Runter 120 ms, los 260 ms. */
+  .knopf{position:relative;display:inline-flex;align-items:center;gap:12px;padding:16px 26px 16px 18px;
+    border:none;border-radius:2px;background:var(--slate);color:#f7f5f0;overflow:hidden;
+    font:700 clamp(15px,1.12vw,17px)/1 var(--body);letter-spacing:-.008em;text-decoration:none;
+    box-shadow:0 16px 30px -18px rgba(47,65,87,.72), inset 0 1px 0 rgba(255,255,255,.16);
+    transform:scale(1);transition:transform 260ms var(--sig)}
+  .knopf::before{content:"";position:absolute;inset:0;background:var(--ink);opacity:0;transition:opacity var(--quick) var(--sig)}
+  .knopf:hover::before{opacity:.16}
+  .knopf:active{transform:scale(.985);transition:transform 120ms var(--sig)}
+  .knopf span.k{position:relative}
+  .knopf .siegel{position:relative;right:auto;top:auto;flex:0 0 auto;width:20px;height:18px}
+  .knopf .siegel::after{left:5px;top:5px;width:10px;height:8px;border-width:1px}
+  /* Rückmeldung unter 100 ms Wirkung: der Strich wächst schon, während der Zeiger
+     noch eintrifft — 140 ms, links stehend, kurve mit hartem Ende. */
+  .link{position:relative;font:600 14.5px/1.3 var(--body);color:var(--slate);border-bottom:1.5px solid var(--line-2);padding-bottom:2px;
+    transition:color var(--quick) var(--sig)}
+  .link::after{content:"";position:absolute;left:0;right:0;bottom:-1.5px;height:1.5px;background:var(--slate);
+    transform:scaleX(0);transform-origin:0 50%;transition:transform 140ms var(--strich)}
+  .link:hover{border-bottom-color:var(--line-2)}
+  .link:hover::after,.link:focus-visible::after{transform:scaleX(1)}
+  .zeile{margin:clamp(14px,1.7vw,20px) 0 0;font:500 11px/1.7 var(--mono);letter-spacing:.05em;color:var(--quiet)}
+  .zeile b{color:var(--slate);font-weight:600}
+
+  /* ==================================================================== RUHE */
+  /* Wer Bewegung abschaltet, will keine Nachstellung derselben Choreografie in
+     klein, sondern ein Bild pro Stand. Also: alle räumliche Bewegung fällt
+     (translateY/X, rotateX, scale, Wortkaskade, Gegenbewegung); was bleibt, ist
+     Deckkraft in 120 ms. Die Kamerafahrt wird zu unterscheidbaren, stehenden
+     Bildern — der Scroll fährt von Stand zu Stand, kein Dolly, kein Autostart. */
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto}
+    .szene{height:100svh;height:100vh}
+    .angebot{height:140svh;height:140vh}
+    /* Keine räumliche Bewegung an etwas, das auf der Seite etwas bedeutet. Die
+       Projektion der Blätter (.blatt) ist Lage, nicht Bewegung: sie bleibt. Die
+       Ebenen der Fahrt (--sc/--ty/--qz) werden gar nicht erst geschrieben; was
+       hier steht, ist die Ruhelage, die der Entwurf ohne Scroll meint. */
+    .satz{transform:translate3d(0,-50%,0)!important}
+    .satz .z,.satz .w,.korr i,.balk i,.siegel,.reihe,.hinweis i,.tafel,.blatt .glanz{transform:none!important}
+    .korr i{transform:scaleX(1)!important}
+    .balk i{transform:scaleX(1)!important}
+    .siegel{--press:1!important}
+    .blatt,.satz,.tafel,.reihe,.satz .w,.korr i,.balk i,.schiene a,.knopf,.knopf::before,.link,.link::after{
+      transition:opacity 120ms var(--sig)!important}
+    .hinweis{display:none}
+    #luft,#raster{display:none}
+  }
+  html:not(.js) .dinge,html:not(.js) .hinweis{display:none}
+  html:not(.js) #luft,html:not(.js) #raster{display:none}
+  html:not(.js) .satz{opacity:1!important;transform:translate3d(0,-50%,0)!important}
+  html:not(.js) .tafel{opacity:1!important;transform:translate3d(-50%,-50%,0)!important}
+</style>
+</head>
+<body>
+<a class="skip" href="#angebot">Zum Angebot springen</a>
+<canvas id="studio" aria-hidden="true"></canvas>
+
+<div class="marke"><b>KEPTA</b><span>Memory-Layer für KI-Assistenten</span></div>
+
+<nav class="schiene" aria-label="Szenen">
+  <a href="#s1" data-nav="0" aria-label="Szene 1: Abgelegt"></a>
+  <a href="#s2" data-nav="1" aria-label="Szene 2: Verbunden"></a>
+  <a href="#s3" data-nav="2" aria-label="Szene 3: Gereiht"></a>
+  <a href="#angebot" data-nav="3" aria-label="Angebot"></a>
+</nav>
+
+<main>
+
+  <!-- ============================== 1 · ABGELEGT ============================== -->
+  <section class="szene" id="s1"><div class="buehne" data-bu="0">
+    <div class="raum">
+      <div class="dinge" data-dinge="0">
+        <article class="blatt vor" data-note="0,0">
+          <div class="geist" aria-hidden="true"></div>
+          <div class="flaeche">
+            <div class="kopf">Akte 4a17f</div>
+            <div class="text">Variante&nbsp;B</div>
+            <div class="fuess">lokal · verschlüsselt<span class="ab">
+abläuft 14.03.2027</span></div>
+          </div>
+          <span class="siegel" aria-hidden="true"></span>
+        </article>
+      </div>
+      <h1 class="satz" data-satz="0" style="--ob:30%"><span class="z" style="--dz:-13px">Stored on</span><span class="z" style="--dz:9px">your <span class="hi">own</span> machine.</span></h1>
+    </div>
+    <div class="hinweis" aria-hidden="true">Scrollen<i></i></div>
+  </div></section>
+
+  <!-- ============================== 2 · VERBUNDEN ============================= -->
+  <section class="szene" id="s2"><div class="buehne" data-bu="1">
+    <div class="raum">
+      <div class="dinge" data-dinge="1">
+        <svg class="faden" data-faden="1" aria-hidden="true"></svg>
+        <article class="blatt vor" data-note="1,0">
+          <div class="flaeche">
+            <div class="kopf">Akte 4a17f</div>
+            <div class="text">Variante&nbsp;B</div>
+            <div class="fuess">5 verbindungen</div>
+          </div>
+        </article>
+        <article class="blatt" data-note="1,1"><div class="flaeche"><div class="kopf">Person</div><div class="text">Todorovic</div></div></article>
+        <article class="blatt" data-note="1,2"><div class="flaeche"><div class="kopf">Projekt</div><div class="text">Konsole</div></div></article>
+        <article class="blatt" data-note="1,3"><div class="flaeche"><div class="kopf">Standort</div><div class="text">Rechner</div></div></article>
+        <article class="blatt" data-note="1,4"><div class="flaeche"><div class="kopf">Vertrag</div><div class="text">BUSL-1.1</div></div></article>
+        <article class="blatt" data-note="1,5"><div class="geist" aria-hidden="true"></div><div class="flaeche"><div class="kopf">Ersetzt</div><div class="text">Variante A</div><div class="fuess"><span class="ab">am 02.09.</span></div></div></article>
+      </div>
+      <h2 class="satz" data-satz="1" style="--ob:33%"><span class="z" style="--dz:-13px">One note calls</span><span class="z" style="--dz:9px"><span class="hi">five</span> others.</span></h2>
+    </div>
+  </div></section>
+
+  <!-- =============================== 3 · GEREIHT ============================== -->
+  <section class="szene" id="s3"><div class="buehne" data-bu="2">
+    <div class="raum">
+      <div class="dinge" data-dinge="2">
+        <article class="blatt vor" data-note="2,0"><div class="flaeche"><div class="kopf">Treffer 1</div><div class="text">Variante&nbsp;B</div><span class="balk" aria-hidden="true"><i></i></span><div class="fuess">rang 0.94 · 3 beweise</div></div></article>
+        <article class="blatt" data-note="2,1"><div class="flaeche"><div class="kopf">Treffer 2</div><div class="text">Konsole</div><span class="balk" aria-hidden="true"><i></i></span><div class="fuess">rang 0.71</div></div></article>
+        <article class="blatt" data-note="2,2"><div class="flaeche"><div class="kopf">Treffer 3</div><div class="text">Audit-Kette</div><span class="balk" aria-hidden="true"><i></i></span><div class="fuess">rang 0.58</div></div></article>
+        <article class="blatt" data-note="2,3"><div class="flaeche"><div class="kopf">Treffer 4</div><div class="text">Fundnotiz</div><span class="balk" aria-hidden="true"><i></i></span><div class="fuess">rang 0.33</div></div></article>
+        <article class="blatt" data-note="2,4"><div class="flaeche"><div class="kopf">Treffer 5</div><div class="text">Wortgleich</div><span class="balk" aria-hidden="true"><i></i></span><div class="fuess">rang 0.12</div></div></article>
+      </div>
+      <h2 class="satz" data-satz="2" style="--ob:32%"><span class="z" style="--dz:-13px">Ranked,</span><span class="z" style="--dz:9px">not <span class="korr">matched<i></i></span>.</span></h2>
+    </div>
+  </div></section>
+
+  <!-- ============================ 4 · DAS ANGEBOT ============================= -->
+  <section class="angebot" id="angebot"><div class="buehne" data-bu="3">
+    <div class="tafel" data-tafel>
+      <div class="tafel-flaeche">
+        <p class="eyebrow">Angebot</p>
+        <h2 class="titel">Zwei Stufen.<br><em>Eine Erinnerung, die bleibt.</em></h2>
+        <div class="ledger">
+          <div class="reihe">
+            <div class="stufe">KEPTA Core</div>
+            <div class="zahl">0 €</div>
+            <div class="zug">Die App und der Memory-Layer für Claude, Cursor und jeden MCP-Client. Tageslimiten, source-available, alles bleibt auf deinem Rechner.</div>
+          </div>
+          <div class="reihe" data-kern>
+            <div class="stufe">KEPTA Enterprise</div>
+            <div class="zahl"><span class="siegel" data-siegel aria-hidden="true"></span>nach Vertrag</div>
+            <div class="zug">Mandanten, fortgeschriebene Audit-Kette, Menschenschleuse vor jedem Agent-Schreibzugriff, Wiederherstand auf einen Zeitpunkt. Container auf eigener Hardware, air-gap möglich.</div>
+          </div>
+        </div>
+        <div class="handlung">
+          <a class="knopf" href="https://github.com/DamianTodorovic/kepta/releases/latest" rel="noopener">
+            <span class="siegel" aria-hidden="true"></span><span class="k">App herunterladen</span>
+          </a>
+          <a class="link" href="index.html#enterprise">Enterprise nach Vertrag anfragen</a>
+        </div>
+        <p class="zeile">oder <b>npx kepta-mcp</b> — ein Befehl, die Memory kommt auf deinem Rechner hoch</p>
+      </div>
+    </div>
+  </div></section>
+
+</main>
+
+<script>
+(function(){
+"use strict";
+var R = document.documentElement;
+R.classList.add("js");
+var MQ = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : {matches:false};
+var REDUCE = MQ.matches;
+
+function cl(v,a,b){ return v<a?a:(v>b?b:v); }
+function seg(p,a,b){ return cl((p-a)/Math.max(b-a,1e-6),0,1); }
+function out3(t){ return 1-Math.pow(1-t,3); }
+function io3(t){ return t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; }
+function mix(a,b,t){ return a+(b-a)*t; }
+
+/* ============================================================ DIE KURVEN
+   Dieselben vier Bézier-Kurven, die in CSS als Tokens stehen, auch in JS: die
+   Choreografie hier ist zeitgesteuert (Eintritt) UND fortschrittsgesteuert
+   (Kamera), beides muss auf dieselbe Signatur hören. gel() löst x(t)=p nach t
+   (Newton, Bisektion als Rückgrat) und gibt y(t). Linear ist für räumliche
+   Bewegung nicht dabei — es gibt hier keine lineare räumliche Bewegung.
+   ------------------------------------------------------------------------ */
+function gel(x1,y1,x2,y2){
+  var cx=3*x1, bx=3*(x2-x1)-cx, ax=1-cx-bx,
+      cy=3*y1, by=3*(y2-y1)-cy, ay=1-cy-by;
+  function X(t){ return ((ax*t+bx)*t+cx)*t; }
+  function dX(t){ return (3*ax*t+2*bx)*t+cx; }
+  function Y(t){ return ((ay*t+by)*t+cy)*t; }
+  return function(p){
+    if(!(p>0)) return 0; if(p>=1) return 1;
+    var t=p,i,e,d,a=0,b=1;
+    for(i=0;i<5;i++){ e=X(t)-p; if(Math.abs(e)<1e-5) return Y(t);
+      d=dX(t); if(Math.abs(d)<1e-6) break; t-=e/d;
+      if(t<=0||t>=1){ t=p; break; } }
+    for(i=0;i<14;i++){ e=X(t); if(Math.abs(e-p)<1e-5) break; if(e>p) b=t; else a=t; t=(a+b)*.5; }
+    return Y(t);
+  };
+}
+var K_EIN  = gel(.05,.7,.1,1),      /* Eingang: deco — schnell abgehend, weich landend */
+    K_AUS  = gel(.3,0,.8,.15),      /* Ausgang: acc — weich abgehend, schnell fort    */
+    K_SIG  = gel(.4,0,.2,1),        /* Signatur: glatt auf beiden Enden, 80 % aller Wege */
+    K_SCH  = gel(.45,0,.55,1);      /* Schleife: sine-symmetrisch */
+
+/* ================================================================ DIE UHR
+   Eine Szene wird betreten, wenn sie den Rahmen übernimmt; von da an läuft eine
+   Zeitsuhr in Millisekunden. Alle Eintritte hängen an dieser Uhr — die Kamera
+   dagegen fährt gegen den Dokumentfortschritt. So ist der Reveal ein Reveal und
+   kein Abtasten: wer hält, sieht die Bewegung; wer scrollt, fährt.
+   ------------------------------------------------------------------------ */
+var JETZT=0, UHR=[-1,-1,-1,-1];
+var FLUG=[1250,1450,1750,1100];     /* ms, die eine Szene nach dem Betreten läuft */
+function tritt(i,verz,dauer,staffel,j,K){
+  var t=UHR[i]; if(t<0) return 0;
+  return K(cl((JETZT-t-verz-j*staffel)/Math.max(dauer,1e-6),0,1));
+}
+function ver(i){ return UHR[i]<0 ? -1 : JETZT-UHR[i]; }   /* ms seit dem Betreten */
+function laeuft(){
+  if(REDUCE) return false;
+  for(var i=0;i<4;i++) if(UHR[i]>=0 && JETZT-UHR[i]<FLUG[i]) return true;
+  return false;
+}
+/* Schreibt nur, wenn sich die Zahl wirklich bewegt hat — ein Stil, der jeden
+   Bild dasselbe ist, kostet trotzdem Style-Recalc. */
+function schreib(el,prop,neu){
+  if(!el._c) el._c={};
+  if(el._c[prop]===neu) return neu;
+  el._c[prop]=neu;
+  /* Eine benannte Maß (--beschiene, --press) geht nur über setProperty — die
+   eckige Klammer auf style verschluckt einen Namen mit zwei Bindestrichen. */
+  if(prop.charCodeAt(0)===45) el.style.setProperty(prop,neu); else el.style[prop]=neu;
+  return neu;
+}
+
+/* ================================================================ DER RAUM
+   camH = 1 ist das Weltmaß. Ein Blatt steht mit seinem Fuß auf dem Tisch bei
+   Tiefe Z und hat die Welt-Höhe hh. JS rechnet das vorwärts ins DOM, der Shader
+   invertiert dieselbe Projektion pro Pixel — Blatt und Wurfsschatten teilen sich
+   eine Zahl, also fällt der Schatten dorthin, wo das Blatt steht.
+   ------------------------------------------------------------------------ */
+var CAMH = 1, BASE = 380, ASP = .72;                 /* ASP = Breite/Höhe eines Blatts */
+var SDX = .72, SDZ = .69;                            /* Wurfrichtung: weg vom Licht */
+var cam = { tilt:.035, f:1.24, lx:-1.30, lz:2.00, pool:1.70, key:1.00, flat:0, rule:1, drift:0, px:-0.10, bahn:-3.2, bel:1, horiz:0 };
+var tgt = { tilt:.035, f:1.24, lx:-1.30, lz:2.00, pool:1.70, key:1.00, flat:0, rule:1, drift:0, px:-0.10, bahn:-3.2, bel:1, horiz:0 };
+var st  = { w:1, h:1, f:1.24, tilt:.035 };
+
+/* GEGENBEWEGUNG: das Hauptmotiv fährt nach rechts, der Grund driftet ihm zu 25 %
+   entgegen. Getragen wird das vom Linienregister im Boden — es zieht seitlich durch,
+   wenn die Kamera schwenkt; Blatt, Wurf und Lichtpfütze bleiben an ihrem Platz. */
+var GEGEN = .25;
+
+/* Fußpunkt und Höhe eines Blatts aus (Seitenlage in Bildbreite, Tiefe, Höhe).
+   Die Seitwärtsfahrt der Kamera wirkt durch die Projektion mit 1/Z: ein Blatt
+   bei Z=1,6 springt über den Schirm, eines bei Z=5,6 kaum. Das ist die
+   Parallaxie, und sie ist keine Sonderbehandlung — sie ist dieselbe Zahl, die
+   der Shader für den Grund benutzt. */
+function stand(fx, Z, hh){
+  var H = st.h, W = st.w, f = st.f, hy = .5 + st.tilt;
+  var k = .5*H*f/Z;
+  var ph = k*hh*CAMH;
+  var baseY = (1 - (hy - .5*f*CAMH/Z))*H;
+  return {
+    cx: fx*W - cam.px*k,
+    by: baseY,
+    h : ph,
+    X : (fx-.5)*W*Z/(.5*H*f),                        /* Welt-X für den Schatten */
+    Z : Z
+  };
+}
+
+/* ================================================================== WEBGL2 */
+var cvs = document.getElementById("studio"), gl=null, prog=null, U={}, ok=false, DPR=1;
+var SHN = 6, shBuf = new Float32Array(SHN*4), shad = [];
+
+var VS = "#version 300 es\nvoid main(){vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&2));gl_Position=vec4(p*2.0-1.0,0.0,1.0);}";
+
+var FS = [
+"#version 300 es",
+"precision highp float;",
+"out vec4 O;",
+"uniform vec2 uRes;",
+"uniform vec4 uCam;",   // 0.5+tilt, 0.5*f*camH, 1/f, flat
+"uniform vec4 uLight;", // lx, lz, pool, key
+"uniform vec4 uTint;",  // Gegenbewegung (Drift in Welt-X), rule, Belichtung, Korn
+"uniform vec4 uDir;",   // Wurfrichtung xy, Stärke, —
+"uniform vec4 uBew;",   // Lichtbahn x, Stärke, Belichtung, Horizontsenkung
+"uniform vec4 uSh["+SHN+"];",
+"uniform int uShN;",
+"const vec3 LIT =vec3(0.996,0.992,0.980);",
+"const vec3 DEEP=vec3(0.886,0.867,0.824);",
+"const vec3 HAZ =vec3(0.939,0.935,0.927);",
+"const vec3 TOP =vec3(0.908,0.903,0.893);",
+"const vec3 SHA =vec3(0.826,0.840,0.862);",   /* kühl, hell: 0,67 Luminanz, nie schwarz */
+"float hash(vec2 p){p=fract(p*vec2(233.34,851.73));p+=dot(p,p+23.45);return fract(p.x*p.y);}",
+"void main(){",
+"  vec2 uv=gl_FragCoord.xy/uRes;",
+"  float asp=uRes.x/uRes.y;",
+"  float t=uCam.x-uv.y;",
+"  vec3 col;",
+"  float X=0.0,Z=99.0;",
+"  if(t>0.0016){",
+"    Z=uCam.y/t;",
+"    X=(uv.x-0.5)*2.0*asp*Z*uCam.z+uTint.x;",             /* Grund gegen die Kamera */
+"    col=mix(LIT,DEEP,(1.0-exp(-Z*0.115))*0.90);",
+"    vec2 d=vec2(X-uLight.x,Z-uLight.y);",
+"    col+=vec3(0.036,0.026,0.006)*exp(-dot(d,d)/(uLight.z*uLight.z))*uLight.w;",
+"    for(int i=0;i<"+SHN+";i++){",
+"      if(i>=uShN) break;",
+"      vec4 s=uSh[i];",
+"      vec2 dv=vec2(X-s.x,Z-s.y);",
+"      vec2 q=vec2(dot(dv,uDir.xy),dot(dv,vec2(-uDir.y,uDir.x)));",
+"      float e=length(q/max(s.zw,vec2(0.02)));",
+"      col=mix(col,SHA,clamp((1.0-smoothstep(0.40,1.0,e))*uDir.z,0.0,1.0));",
+"    }",
+"    float cell=Z/0.30;",                                 /* Lineal des Protokolls */
+"    float ln=1.0-smoothstep(0.0,fwidth(cell)*1.4+1e-4,abs(fract(cell+0.5)-0.5));",
+"    col=mix(col,SHA,ln*0.14*exp(-Z*0.19)*uTint.y*smoothstep(1.10,2.05,Z));",
+"    float bahn=exp(-pow((X-uBew.x)/0.80,2.0));",                    /* Lichtbahn über dem Grund */
+"    col+=vec3(0.034,0.027,0.011)*bahn*uBew.y*exp(-max(Z-1.4,0.0)*0.20);",
+"    col+=(hash(floor(vec2(X,Z)*150.0))-0.5)*uTint.w;",
+"    col=mix(col,HAZ,(1.0-exp(-max(Z-2.1,0.0)*0.30))*0.92);",  /* Dunst: naht an die Wand */
+"  } else {",
+"    col=mix(HAZ,TOP,clamp((uv.y-uCam.x)*1.9,0.0,1.0));",
+"    float wx=(uv.x-0.5)*2.0;",
+"    float ueber=clamp((uv.y-uCam.x)*3.4,0.0,1.0);",                  /* über dem Horizont, nicht darauf */
+"    col+=vec3(0.016,0.012,0.005)*exp(-pow((wx-uBew.x*0.20)/0.62,2.0))*ueber;",
+"    col=mix(col,HAZ,uBew.w*ueber);",                                 /* hebt nur die obere Wand */
+"  }",
+"  vec2 v=(uv-0.5)*vec2(1.02,1.16);",
+"  float vig=0.100+0.055*uBew.w;",
+"  col*=(1.0-vig*dot(v,v))*uBew.z;",
+"  col=mix(col,HAZ,uCam.w*0.26);",
+"  O=vec4(clamp(col,0.0,1.0),1.0);",
+"}"].join("\n");
+
+function mksh(type,src){
+  var s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)||"shader");
+  return s;
+}
+function initGL(){
+  try{ gl=cvs.getContext("webgl2",{antialias:false,alpha:false,depth:false,stencil:false,powerPreference:"low-power"}); }catch(e){ gl=null; }
+  if(!gl) return false;
+  try{
+    prog=gl.createProgram();
+    gl.attachShader(prog,mksh(gl.VERTEX_SHADER,VS));
+    gl.attachShader(prog,mksh(gl.FRAGMENT_SHADER,FS));
+    gl.linkProgram(prog);
+    if(!gl.getProgramParameter(prog,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog)||"link");
+    gl.useProgram(prog);
+    ["uRes","uCam","uLight","uTint","uDir","uBew","uSh","uShN"].forEach(function(n){ U[n]=gl.getUniformLocation(prog,n); });
+    gl.bindVertexArray(gl.createVertexArray());
+    return true;
+  }catch(e){ gl=null; prog=null; return false; }
+}
+function resize(){
+  var W=window.innerWidth, H=window.innerHeight;
+  var want=Math.min(window.devicePixelRatio||1,1.6), budget=2.25e6, px=W*H*want*want;
+  if(px>budget) want=Math.max(.75,want*Math.sqrt(budget/px));
+  DPR=want; st.w=W; st.h=H;
+  var w=Math.round(W*DPR), h=Math.round(H*DPR);
+  if(cvs.width!==w||cvs.height!==h){ cvs.width=w; cvs.height=h; }
+  cvs.style.width=W+"px"; cvs.style.height=H+"px";
+  stationen();
+  var svgs=document.querySelectorAll("svg.faden");
+  for(var i=0;i<svgs.length;i++) svgs[i].setAttribute("viewBox","0 0 "+W+" "+H);
+  if(satze && satze.length) messen();
+}
+/* GLÜH: die Lichtpfütze hellt auf, während der Satz sich setzt — 14 % auf dem
+   Pool, 6 % auf der Key, 640 ms sine. Sie ist der einzige Ambient-Layer, der
+   nichts überlagert: kein Filter, keine Blur, nur eine Zahl im Shader. */
+var GLP=1, GLK=1;
+function draw(){
+  if(!ok) return;
+  gl.viewport(0,0,cvs.width,cvs.height);
+  gl.uniform2f(U.uRes,cvs.width,cvs.height);
+  gl.uniform4f(U.uCam,.5+cam.tilt,.5*cam.f*CAMH,1/cam.f,cam.flat);
+  gl.uniform4f(U.uLight,cam.lx,cam.lz,cam.pool*GLP,cam.key*GLK);
+  gl.uniform4f(U.uTint,cam.drift+cam.px,cam.rule*(1-cam.flat),cam.bel,.0110*(1-cam.flat*.65));
+  gl.uniform4f(U.uDir,SDX,SDZ,.72*(1-cam.flat*.85),1);
+  gl.uniform4f(U.uBew,cam.bahn,1.00,cam.bel,cam.horiz);
+  var n=Math.min(shad.length,SHN);
+  for(var i=0;i<n;i++){ var s=shad[i]; shBuf[i*4]=s[0]; shBuf[i*4+1]=s[1]; shBuf[i*4+2]=s[2]; shBuf[i*4+3]=s[3]; }
+  gl.uniform4fv(U.uSh,shBuf);
+  gl.uniform1i(U.uShN,n);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+}
+
+/* ============================================================= CHOREOGRAPHIE
+   fx = Seitenlage als Bildanteil, z = Tiefe, hh = Welthöhe. Ein Blatt, das seine
+   Lage wechselt, hat z0/z1 (und x0 für Szene 3). t0/t1 = Auftrittsfenster.
+
+   DAS FELD (karte.pruefung): ein Blatt darf den Satz nie kreuzen. Die Sätze
+   stehen deshalb in der oberen Bildhälfte (--ob in HTML, FELD[] hier als Zahl
+   dieselbe Regel), und die Tiefe/Height der stehenden Blätter ist so gesetzt,
+   dass ihr Kopf unter dem Fuß der letzten Zeile bleibt. Halten muss das die
+   Wache in standZ(): sie schiebt ein Blatt, das trotzdem über die Typo wächst,
+   auf dem Tisch nach vorn, bis es wieder darunter steht — bei jedem Seiten-
+   verhältnis, auch wenn jemand die Zeilenzahl ändert.
+   ------------------------------------------------------------------------ */
+var FELD=[.30,.33,.32,.50];                          /* --ob je Szene, eine Regel */
+var W0=[{fx:.52,z0:2.30,z1:1.62,hh:.92,t0:0,t1:.40,stand:1}];
+var W1=[
+  {fx:.500,z0:3.05,z1:2.15,hh:.78,t0:0,   t1:.18,stand:1},
+  {fx:.090,z0:3.55,z1:2.70,hh:.68,t0:.14, t1:.44, a:-6},
+  {fx:.280,z0:4.90,z1:4.15,hh:.52,t0:.24, t1:.54, a:-3},
+  {fx:.385,z0:6.20,z1:5.50,hh:.44,t0:.34, t1:.64, a: 1},
+  {fx:.680,z0:5.00,z1:4.25,hh:.52,t0:.44, t1:.74, a: 3},
+  {fx:.900,z0:3.65,z1:2.80,hh:.66,t0:.54, t1:.84, a: 6}
+];
+var W2=[
+  {fx:.50,z0:3.40,z1:2.25,hh:.60,hh1:.88,t0:0,t1:.20,win:1,rang:.94},
+  {fx:.17,z0:3.40,z1:4.90,hh:.60,t0:0,t1:.30,a:-5,rang:.71},
+  {fx:.36,z0:3.40,z1:5.60,hh:.60,t0:0,t1:.30,a:-2,rang:.58},
+  {fx:.64,z0:3.40,z1:5.60,hh:.60,t0:0,t1:.30,a: 2,rang:.33},
+  {fx:.83,z0:3.40,z1:4.90,hh:.60,t0:0,t1:.30,a: 5,rang:.12}
+];
+
+var bu    = [].slice.call(document.querySelectorAll(".buehne"));
+var satze = [].slice.call(document.querySelectorAll(".satz"));
+var tafel = document.querySelector("[data-tafel]");
+var navs  = [].slice.call(document.querySelectorAll(".schiene a"));
+var korr  = document.querySelector(".korr i");
+var hin   = document.querySelector(".hinweis");
+var notes = {};
+
+function collect(){
+  ["0","1","2"].forEach(function(k){
+    var list = [].slice.call(document.querySelectorAll('[data-dinge="'+k+'"] .blatt'));
+    var spec = k==="0"?W0:(k==="1"?W1:W2);
+    list.forEach(function(el,i){
+      var s = spec[i]; el._s = s;
+      el.style.width  = Math.round(s.hh*ASP*BASE)+"px";
+      el.style.height = Math.round(s.hh*BASE)+"px";
+      el.style.fontSize = (s.hh*ASP*BASE*0.082).toFixed(2)+"px";
+      el._w = el.offsetWidth; el._h = el.offsetHeight;   /* Layout nur hier, nie im Takt */
+      /* Der Score-Balken: die Breite ist einmal gesetztes Layout, bewegt wird nur
+         scaleX. --rang ist die Zahl aus der Rangliste, in % der Zeilenbreite. */
+      var b = el.querySelector(".balk i");
+      if(b){ b.style.setProperty("--rang", (s.rang*100).toFixed(1)+"%"); el._balk=b; }
+    });
+    notes[k]=list;
+  });
+}
+collect();
+
+/* ============================================================ DAS WORT als
+   Bewegungseinheit. Der Satz wird Wort für Wort in inline-block-Span gehüllt;
+   zwischen den Worten bleiben die Leerzeichen als Textknoten stehen, sonst bricht
+   die Zeile um ein Wort später um und die Kante wandert. Kein Wort wird länger
+   als seine eigene Zeile bewegt: nur translateY und opacity.
+   ------------------------------------------------------------------------ */
+function zerteile(el){
+  var ws=[];
+  [].slice.call(el.querySelectorAll(".z")).forEach(function(z){
+    var frag=document.createDocumentFragment(), offen=null;
+    function wort(txt){
+      var w=document.createElement("span"); w.className="w"; w.textContent=txt;
+      frag.appendChild(w); ws.push(w); offen=w;
+    }
+    [].slice.call(z.childNodes).forEach(function(n){
+      if(n.nodeType===3){
+        var teile=n.nodeValue.split(/(\s+)/);
+        for(var i=0;i<teile.length;i++){
+          var s=teile[i]; if(!s) continue;
+          if(/^\s/.test(s)){ frag.appendChild(document.createTextNode(s)); offen=null; continue; }
+          if(offen){ offen.appendChild(document.createTextNode(s)); continue; }  /* Satzzeichen folgt dem Wort */
+          wort(s);
+        }
+      } else if(n.nodeType===1){
+        var e=document.createElement("span"); e.className="w"; e.appendChild(n);
+        frag.appendChild(e); ws.push(e); offen=e;
+      }
+    });
+    z.textContent=""; z.appendChild(frag);
+  });
+  return ws;
+}
+var WORTE = satze.map(zerteile);
+var KORR_W = 0;                                   /* Nummer des Wortes mit dem Strich */
+(function(){ var k=document.querySelector(".korr");
+  if(k){ var w=k.parentNode; for(var i=0;i<WORTE[2].length;i++) if(WORTE[2][i]===w) KORR_W=i; } })();
+
+/* Wort-Kaskade: 46 ms je Wort, 520 ms je Wort, Eingang Kurve, 28 px unter der
+   Endlage. Da alle Worte dieselbe Dauer und dieselbe monoton steigende Kurve
+   haben und nur um 46 ms versetzt starten, kann keines ein anderes überholen. */
+var W_STAFFEL=46, W_DAUER=520, W_HUB=28;
+
+/* Der Fuß der letzten Zeile, in Bildpixeln — die Feldgrenze für die Blätter.
+   Weil die Typo jetzt eine Ebene ist, die durchfahren wird, ist ihr Fuß keine
+   Zahl mehr, die einmal gemessen wird: er steht da, wo die SKALIERTE Zeile im
+   größten Maß der ganzen Fahrt steht. Gemessen wird nur die Herkunft (Mittelpunkt
+   = offsetTop, weil die Zeile um -50% ihrer Höhe steht; halbe Höhe; die größte
+   Zeilenverschiebung --dz), gesetzt wird der Fuß pro Bild. Ein Layout-read pro
+   Resize, nie im Takt. */
+var SATZ_C=[0,0,0,0], SATZ_H=[0,0,0,0], SATZ_DZ=[0,0,0,0];
+function messen(){
+  for(var i=0;i<satze.length;i++){
+    var el=satze[i];
+    SATZ_C[i] = el.offsetTop;
+    SATZ_H[i] = el.offsetHeight/2;
+    var dz=0, zs=el.querySelectorAll(".z");
+    for(var k=0;k<zs.length;k++){
+      var v=parseFloat(zs[k].style.getPropertyValue("--dz"))||0;
+      if(v>dz) dz=v;
+    }
+    SATZ_DZ[i] = dz;
+  }
+}
+
+var NS="http://www.w3.org/2000/svg";
+function buildThreads(){
+  document.querySelectorAll("svg.faden").forEach(function(svg){
+    var n = svg.getAttribute("data-faden")==="1" ? 5 : 4;
+    svg.textContent=""; svg._g=[];
+    for(var i=0;i<n;i++){
+      var g=document.createElementNS(NS,"g");
+      ["f-sch","f-kern","f-gl"].forEach(function(c,j){
+        var p=document.createElementNS(NS,"path");
+        p.setAttribute("class",c);
+        if(j===0) p.setAttribute("transform","translate(0,3.5)");
+        if(j===2) p.setAttribute("transform","translate(0,-1.1)");
+        g.appendChild(p);
+      });
+      svg.appendChild(g); svg._g.push(g);
+    }
+  });
+}
+buildThreads();
+
+/* Ein Faden wächst aus dem Hub heraus: rotate + scaleX, reine Transformation. */
+function threads(svg, hub, targets, reveal){
+  for(var i=0;i<svg._g.length;i++){
+    var g=svg._g[i], t=targets[i];
+    if(!t){ g.style.opacity="0"; continue; }
+    var dx=t.cx-hub.cx, dy=t.cy-hub.cy;
+    var L=Math.max(Math.sqrt(dx*dx+dy*dy),1);
+    var ang=Math.atan2(dy,dx)*180/Math.PI;
+    var sag=Math.min(20,L*.10), ps=g.children;
+    for(var j=0;j<ps.length;j++)
+      ps[j].setAttribute("d","M0 0 Q "+(L*.5).toFixed(1)+" "+(sag*(j===0?1.3:1)).toFixed(1)+" "+L.toFixed(1)+" 0");
+    var k=cl(reveal[i],0,1);
+    g.style.opacity = k>.002 ? "1" : "0";
+    g.style.transform="translate("+hub.cx.toFixed(1)+"px,"+hub.cy.toFixed(1)+"px) rotate("+ang.toFixed(2)+"deg) scaleX("+
+      (.0002+out3(k)*.9998).toFixed(4)+")";
+  }
+}
+/* Die Mitte eines Blatts: gerechnet, nicht gemessen. getBoundingClientRect im
+   Takt würde jeden Bild einen Layout-Zwang auslösen — die Projektion kennt die
+   Lage schon, also liegt sie im Cache desselben Aufrufs. */
+function mitte(el){ return {cx: el._cx||0, cy: el._cy||0}; }
+
+/* ------------------------------------------------------------------ ZUSTAND
+   EIN EINGANG, DREI UHREN. Die Seite bewegt sich nicht mehr auf Ereignissen,
+   sondern auf Lage: uA ist die Position, gegen die Kamera und Typo fahren; uB
+   folgt ihr mit fester Verzögerung und führt die Blätter; uC folgt erneut und
+   führt Grund, Staub und Lichtbahn. Alle drei konvergieren gegen dieselbe Zahl,
+   also hat das Bild Gewicht, ohne dass je etwas aus eigenem Antrieb liefe.
+
+   Weil alles eine Funktion der Lage ist, gilt auch für die Fortschrittskopplung
+   die Regel des Motion-Plans: keine gerade Linie im Raum. Die Korridorzahl wird
+   durch K_SCH (sine-symmetrisch) und K_SIG geschickt; linear kommt hier in
+   keiner räumlichen Bewegung vor.
+
+   PW[i] ist die Lage ZUR Station i, unbeschnitten: sie darf vor 0 und nach 1
+   gehen. Was zwischen -0,32 und 1,04 passiert, ist der Korridor, in dem eine
+   Szene durch die nächste hindurchgefahren wird — kein Schnitt, ein Durchfahren.
+   ------------------------------------------------------------------------ */
+var P=[0,0,0,0], PA=[0,0,0,0], PB=[0,0,0,0], PC=[0,0,0,0], PW=[0,0,0,0], PWn=[0,0,0,0];
+var PWb=[0,0,0,0], PWc=[0,0,0,0];
+var u=0, uA=0, uB=0, uC=0, SCHRITT=0, ST=[0,1,2,3], UEND=4, idx=0;
+var sec = [].slice.call(document.querySelectorAll(".szene,.angebot"));
+
+/* Die Stationen liegen, wo die Abschnitte liegen — nicht, wo eine Gleichung sie
+   vermutet. Einhöherer letzter Abschnitt verschiebt sonst alles nach ihm. */
+function stationen(){
+  SCHRITT = (sec[0] && sec[0].offsetHeight) ? sec[0].offsetHeight : 0;
+  if(!SCHRITT) return;
+  for(var i=0;i<sec.length && i<4;i++) ST[i] = sec[i].offsetTop/SCHRITT;
+  UEND = Math.max(ST[3], (document.documentElement.scrollHeight - window.innerHeight)/SCHRITT);
+}
+
+function roh(){ return SCHRITT>0 ? cl(window.pageYOffset/SCHRITT, 0, UEND) : 0; }
+
+function schritt(dt){
+  var r = roh(); u = r;
+  if(REDUCE){ uA=uB=uC=r; return; }
+  var s = Math.max(dt||16,1);
+  uA += (r-uA)*(1-Math.exp(-s/58));      /* die Lage selbst: trägt die Kamera    */
+  uB += (uA-uB)*(1-Math.exp(-s/132));    /* das Subjekt: folgt mit festem Verzug */
+  uC += (uB-uC)*(1-Math.exp(-s/214));    /* der Grund: folgt erneut              */
+  if(Math.abs(r-uA)<2e-4) uA=r;
+  if(Math.abs(uA-uB)<2e-4) uB=uA;
+  if(Math.abs(uB-uC)<2e-4) uC=uB;
+}
+
+function lesen(){
+  idx = cl(Math.round(uA),0,3);
+  /* Die letzte Station hat keine Nachfolgerin, die ihr den Weg abnimmt: ihr
+     eigener Fortschritt muss den vorhandenen Scrollweg vollständig ausfüllen,
+     sonst ist das Ende der Seite tot. */
+  var span3 = Math.max(.2, Math.min(1, UEND - ST[3]));
+  for(var i=0;i<4;i++){
+    PW[i]  = uA - ST[i];
+    PWb[i] = uB - ST[i];
+    PWc[i] = uC - ST[i];
+    var span = i===3 ? span3 : 1;
+    PA[i] = REDUCE ? (i<=idx?1:0) : cl(PW[i]/span,0,1);
+    PWn[i] = REDUCE ? (i<=idx?1:0) : PW[i]/span;
+    P[i]  = REDUCE ? (i<=idx?1:0) : cl(PWb[i]/span,0,1);
+    PB[i] = P[i];
+    PC[i] = cl(PWc[i]/span,0,1);
+  }
+}
+
+/* Die Kamera steht nicht von Szene zu Szene neu, sie FAHRT: jede Zahl hier ist
+   eine Funktion der Lage zwischen zwei Stationen. Die Kette mischt von Station zu
+   Station mit der Signaturkurve, also gibt es keinen Sprung in dem Augenblick, in
+   dem eine Szene anfängt, und zwischen den Stationen steht kein einziger Wert
+   still. PANNE fährt die Kamera seitwärts durch den Raum — weil der Versatz in
+   der Projektion mit 1/Z wirkt, trennen sich neare und ferne Ebene von selbst
+   (Parallaxie), ohne dass ein Element dafür eigens geschoben werden müsste. */
+var PANNE=[-0.10, 0.20, -0.24, 0.08];
+function panne(uu){
+  var i=cl(Math.floor(uu),0,3), j=Math.min(i+1,3);
+  return mix(PANNE[i], PANNE[j], K_SIG(cl(uu-i,0,1)));
+}
+function camera(){
+  var a=PA[0], b=PA[1], c=PA[2], d=PA[3];
+  tgt.tilt = mix(.035,.075,K_SIG(a));
+  tgt.tilt = mix(tgt.tilt,.050,K_SIG(b));
+  tgt.tilt = mix(tgt.tilt,.070,K_SIG(c));
+  tgt.tilt = mix(tgt.tilt,.92,out3(d));
+  tgt.f = mix(1.24,1.66,K_SIG(a));
+  tgt.f = mix(tgt.f,1.42,K_SIG(b));
+  tgt.f = mix(tgt.f,1.74,K_SIG(c));
+  tgt.f = mix(tgt.f,1.12,out3(d));
+  tgt.lx = mix(-1.30,.10,K_SIG(a));
+  tgt.lx = mix(tgt.lx,-.40,K_SIG(b));
+  tgt.lx = mix(tgt.lx,.95,K_SIG(c));
+  tgt.lx = mix(tgt.lx,.05,out3(d));
+  tgt.lz = mix(2.00,2.70,K_SIG(a));
+  tgt.lz = mix(tgt.lz,3.30,K_SIG(b));
+  tgt.lz = mix(tgt.lz,2.55,K_SIG(c));
+  tgt.lz = mix(tgt.lz,2.20,out3(d));
+  tgt.pool = mix(1.70,2.35,K_SIG(a));
+  tgt.pool = mix(tgt.pool,3.40,K_SIG(b));
+  tgt.pool = mix(tgt.pool,2.70,K_SIG(c));
+  tgt.pool = mix(tgt.pool,6.40,out3(d));
+  tgt.key = mix(1.00,1.12,K_SIG(a));
+  tgt.key = mix(tgt.key,.94,K_SIG(c));
+  tgt.key = mix(tgt.key,1.06,out3(d));
+  tgt.flat = out3(seg(d,.02,.74));
+  tgt.rule = mix(mix(1,.66,K_SIG(b)),.18,out3(d));
+  /* Seitwärtsfahrt der Kamera, gegen die Lage — nicht gegen die Zeit. */
+  tgt.px = panne(uA);
+  /* Gegenbewegung: der Grund driftet der Kamera zu 25 % ihrer Seitwärtsfahrt
+     entgegen. Nullpunkt ist die Beleuchtung der ersten Szene. */
+  tgt.drift = -GEGEN*(tgt.lx + 1.30);
+  /* Die Lichtbahn: ein Streifen Key-Light wandert über den Tisch, weil die
+     Lampe mit der Lage seitwärts zieht. Eine Zahl, drei Verwendungen: Grund,
+     Blattbeschiene, Staub. */
+  tgt.bahn = mix(-3.2, 3.2, K_SCH(cl(uA/3.75,0,1)));
+  tgt.bel = mix(1.000,.972,K_SIG(cl(Math.abs(uA-1.6)/2.2,0,1)));
+  tgt.horiz = mix(0,.085,K_SIG(cl(uA/3.4,0,1)));
+}
+
+/* Die Feldwache. Ein Blatt, dessen Kopf über den Fuß des Satzes wachsen will,
+   wird auf dem Tisch nach vorn geholt, bis er wieder darunter steht: Kopf(Z) =
+   A + C/Z mit A = Horizont, C = halbe Brennweite·Höhe·(1−Blatthöhe), also ist
+   Z ≤ C/(B−A) die Schranke. Eine Zeile Arithmetik — kein Messen im Takt. Ein
+   Blatt, das höher als der Raum wäre (C ≤ 0), wird auf Raumhöhe gesetzt, denn
+   sonst hilft keine Tiefe mehr. */
+function standZ(Z,hh,B){
+  if(!(B>0)) return Z;
+  var A=(.5-st.tilt)*st.h;
+  if(!(B>A)) return Z;                       /* der Satz endet über dem Horizont:
+                                                 ein Blatt unter Raumhöhe kann ihn
+                                                 strukturell nie kreuzen */
+  var C=.5*st.f*st.h*(1-hh);
+  if(C<=0){ hh=.98; C=.5*st.f*st.h*(1-hh); }
+  return Math.min(Z, Math.max(C/(B-A), .90));
+}
+
+/* Ein Blatt hinsetzen. stand() liefert Fußpunkt und Höhe; der Wurf wird in
+   Weltkoordinaten ans Licht gemeldet, das der Shader pro Pixel ausliest. Die
+   Größe des Blatts liegt im Cache — sie ändert sich nie im Takt.
+   EIN WURF GEHÖRT EINEM KÖRPER: ein Blatt, das man nicht sieht, darf keinen
+   Schatten werfen — im Korridor fährt die nächste Szene schon, während ihre
+   Blätter noch bei null Deckkraft stehen, und sechs Würfe ohne Körper lesen
+   sich als Flecken im Grund. Am Ende des Korridors zieht dp den Wurf mit dem
+   Körper aus dem Bild. */
+function setNote(el,fx,Z,hh,rot,op,B,y,sk,wurf,dep){
+  var pl=stand(fx,standZ(Z,hh,B),hh), w=el._w, h=el._h, s=(pl.h/h)*(sk===undefined?1:sk);
+  el.style.transform="translate("+(pl.cx-w/2).toFixed(1)+"px,"+(pl.by-h+(y||0)).toFixed(1)+"px) scale("+
+    s.toFixed(4)+") rotateX("+rot.toFixed(2)+"deg)";
+  el.style.opacity=op.toFixed(3);
+  el._cx=pl.cx; el._cy=pl.by+(y||0)-h*s*.5; el._op=op;
+  var len = Math.max(hh*ASP,0.02);
+  len *= (wurf===undefined?1:wurf) * (1-0.92*(dep||0));
+  return [pl.X + cam.drift + cam.px + SDX*len*.5, pl.Z + SDZ*len*.5, len*.62, hh*ASP*.52];
+}
+
+/* Auf einem hohen, schmalen Rahmen ist dasselbe Blatt ein Monstrum: KK skaliert
+   die Körper, KKX rückt die Streuung zusammen. 1440×900 lässt beide auf 1. */
+var KK = 1, KKX = 1;
+function spread(fx){ return .5+(fx-.5)*KKX; }
+
+/* CHOREOGRAFIE: Aufbau 25 % — Handlung 40 % — Auflösung 35 % der Szenenzeit.
+   Der Satz ist der Aufbau, die Blätter sind die Handlung, Balken und Strich sind
+   die Auflösung. Deshalb beginnt das erste Blatt erst, wenn der Satz sich gesetzt
+   hat: nie Typo und Objekt gleichzeitig in Bewegung (1/3-Dichte-Regel). */
+var HANDELN = 420;
+
+/* Ein Blatt hinsetzen UND eintreten lassen. Was die LAGE tut, ist die Fahrt
+   (Tiefe, Seite, Höhe, Neigung, Wurf); was die Uhr tut, ist nur noch der
+   Auftritt beim allerersten Betreten — rise and settle, 40 px, 7°, ohne
+   Überschwingen. Am Ende des Korridors überholt die Kamera das Blatt: dep zieht
+   Tiefe, Höhe und Neigung weiter, also fährt auch das Subjekt noch, während die
+   Blende es abgibt.
+
+   karte.vorwegnahme: die Erstplatzierte einer Szene kippt 6 px zurück, ehe sie
+   steigt — 90 ms, acc gekurvt, leise. karte.secondary: der lange Schatten folgt
+   mit 120 ms Verzug und kommt 520 ms später zur Ruhe (38 % Weg).
+   rangreihe: das Auseinanderziehen der fünf Notizen ist keine Uhr mehr, es ist
+   die Lage — jede Karte an einem um ihre Rangnummer verspäteten Punkt derselben
+   Kurve, die Erstplatzierte voraus. Nur ihr Eintritt bleibt ein Eintritt. */
+function applyNote(el,p,scene,j,dep){
+  var s=el._s, t=seg(p,s.t0,s.t1), e=out3(t), op=cl(t*2.4,0,1), sh;
+  var B=FDB[scene], y=0, kip=0, sk=1, ein=1, wurf=1, opE=1;
+  /* Die Fahrt zieht weiter, wo das Auftrittsfenster schon zu Ende ist: das
+     Blatt schiebt sich vor die Kamera und verlässt den Rahmen unten, während die
+     Blende es abgibt. Die Seitwärtsfahrt tut das Ihre — nahe Körper wandern am
+     schnellsten aus dem Bild. */
+  var dp = dep*dep*(3-2*dep);
+  var dZ = -0.58*dp, dY = 52*dp, dR = 7*dp, dS = 1+0.12*dp;
+
+  if(!REDUCE && UHR[scene]>=0){
+    if(s.stand){
+      var vor = tritt(scene,HANDELN,90,0,0,K_AUS);
+      var hoch= tritt(scene,HANDELN+90,620,0,0,K_EIN);
+      y   = 40 + 6*vor - 46*hoch;
+      kip = 7*(1-hoch);
+      opE = tritt(scene,HANDELN+60,420,0,0,K_SIG);
+      op *= opE;
+      wurf = 1 + .38*(1-tritt(scene,HANDELN+120,520,0,0,K_SIG));
+    } else if(scene===2){
+      ein = tritt(scene,HANDELN+(s.win?0:140+(j-1)*70),460,0,0,K_SIG);
+      y   = mix(24,0,ein); sk = mix(.965,1,ein); op *= ein;
+    } else {
+      ein = tritt(scene,HANDELN+100+j*70,460,0,0,K_EIN);
+      y = mix(24,0,ein); kip = 7*(1-ein); op *= ein;
+    }
+  }
+
+  if(scene===0){
+    /* liegt auf dem Tisch und richtet auf; die Länge des Wurfs folgt dem Winkel */
+    var Z=mix(s.z0,s.z1,io3(p))+dZ, hh=s.hh*KK;
+    var pl=stand(spread(s.fx),standZ(Z,hh,B),hh);
+    var w=el._w,h=el._h, s0=(pl.h/h)*dS;
+    var o0=cl((.30+t*2.0)*opE,0,1);
+    el.style.transform="translate("+(pl.cx-w/2).toFixed(1)+"px,"+(pl.by-h+y+dY).toFixed(1)+"px) scale("+
+      s0.toFixed(4)+") rotateX("+((1-e)*72+kip+dR).toFixed(2)+"deg)";
+    el.style.opacity=o0.toFixed(3);
+    el._cx=pl.cx; el._cy=pl.by+y+dY-h*s0*.5; el._op=o0;
+    var len=hh*(.20+.44*e)*wurf*(1-0.92*dp);
+    el._sh=[pl.X+cam.drift+cam.px+SDX*len*.5, pl.Z+SDZ*len*.5, Math.max(.05,len*.62), hh*ASP*.5*Math.max(.4,e)];
+    return;
+  }
+  if(scene===1){
+    var Z1=s.z0+(s.z1-s.z0)*io3(cl(t*1.25,0,1))+dZ;
+    var fx1=spread(.5+(s.fx-.5)*io3(cl(t*1.15,0,1)));
+    sh=setNote(el,fx1,Z1,s.hh*KK,(s.a||0)*mix(1.9,1,e)+kip+dR,op,B,y+dY,sk*dS,wurf,dp);
+    el._sh=sh; return;
+  }
+  /* Die Rangreihe: Lage, nicht Uhr. Fünf Versätze an einer Kurve. */
+  var r = K_SIG(cl((p - 0.12 - (s.win?0:(j-1)*0.055))/0.52, 0, 1));
+  var dim=1;
+  var hh2 = mix(s.hh, s.hh1||s.hh, r)*KK;
+  var fx = s.win ? spread(s.fx) : .5+(spread(s.fx)-.5)*mix(1,1.09,r);
+  var Z2  = s.z0+(s.z1-s.z0)*r + dZ;
+  if(!s.win) dim=mix(1,.62,r);
+  sh=setNote(el,fx,Z2,hh2,(s.a||0)*mix(1,1.7,r)+dR,op*dim,B,y+dY,sk*dS,1,dp);
+  schreib(el,"--beschiene",(s.win?mix(.25,1,r):mix(.6,.05,r)).toFixed(3));
+  /* Der Score-Balken wächst aus der Lage: 100 px nachdem seine Karte steht. */
+  if(el._balk) schreib(el._balk,"transform","scaleX("+
+    (REDUCE?1:K_SIG(cl((p-0.58-(j-1)*0.05)/0.26,0,1))).toFixed(4)+")");
+  el._sh=sh;
+}
+
+/* ================================================================== DER TAKT
+   Zwei Steuerungen, ein Rahmen: die KAMERA fährt gegen den Dokumentfortschritt
+   (1:1, szene.uebergang), der AUFTRITT läuft gegen die Uhr der Szene, die den
+   Rahmen übernommen hat. Die Dämpfung ist zeitschritt-abhängig (nicht bild-
+   schritt-abhängig), damit die Kamera bei jeder Bildrate dem Scroll folgt und
+   nach dem Loslassen in unter 200 ms steht — uebergang.pruefung.
+   ------------------------------------------------------------------------ */
+var TAU = 32;                                    /* ms Zeitkonstante der Kamera */
+var SPANN = {tilt:.0015,f:.002,lx:.004,lz:.006,pool:.012,key:.002,flat:.002,rule:.004,
+             drift:.004,px:.0008,bahn:.006,bel:.0004,horiz:.0004};
+var FDB = [0,0,0,0];                             /* Feldgrenze je Szene, in Bildpixeln */
+var faden1 = document.querySelector('svg[data-faden="1"]');
+var REIHEN = [].slice.call(document.querySelectorAll(".ledger .reihe"));
+var SIEGEL = document.querySelector("[data-siegel]");
+var KANTE  = document.querySelector("[data-kante]");
+var luft   = document.getElementById("luft");
+var raster = document.getElementById("raster");
+
+/* DER KORRIDOR. Zwischen zwei Stationen liegt kein Schnitt, sondern eine Fahrt.
+   Die übergebende Zeile steigt bis q=0,94 aus dem Bild und ist dann fort; die
+   kommende kommt von unten herein und ist bei q=-0,02 an ihrem Ort. Zwei Sätze in
+   Kinogröße, die einander in derselben Bildhälfte läsen, wären unlesbar — die
+   Übergabe ist deshalb über die HÖHE getrennt, nicht nur über die Deckkraft.
+   (karte.pruefung: ein Objekt und ein Wort streiten nicht um dieselbe Fläche.) */
+var EIN_A=-0.28, EIN_B=-0.02, AUS_A=0.68, AUS_B=0.94;
+function blende(q,m){
+  var ein = (m===0) ? 1 : K_EIN(seg(q,EIN_A,EIN_B));
+  var aus = (m===3) ? 0 : K_SIG(seg(q,AUS_A,AUS_B));
+  return ein*(1-aus);
+}
+/* Die Übergabe selbst: wie weit eine Zeile beim Wechsel aus ihrer Bildhälfte
+   auszieht, und wie tief die nächste dafür ansetzt. Beides Funktionen von q. */
+function uebergabe(q){
+  return { x: K_SIG(seg(q,AUS_A,AUS_B)), n: K_EIN(seg(q,EIN_A,EIN_B)) };
+}
+
+function render(dt){
+  /* Blende zuerst: sie weiß, wer den Rahmen hat, und tritt damit die Uhr ab. */
+  var V=[0,0,0,0];
+  for(var m=0;m<4;m++){
+    var vis = REDUCE ? ((idx===m)?1:0) : blende(PW[m], m);
+    V[m]=vis;
+    schreib(bu[m],"opacity",vis.toFixed(3));
+    if(vis>.02) bu[m].classList.add("an"); else bu[m].classList.remove("an");
+    /* Betreten, wenn die Szene den Rahmen übernimmt; vergessen, wenn sie ganz
+     abgetreten ist — wer zurückscrollt, sieht dieselbe Choreografie. */
+    if(!REDUCE){ if(vis>.5 && UHR[m]<0) UHR[m]=JETZT; if(vis<.05) UHR[m]=-1; }
+  }
+
+  camera();
+  var a = REDUCE ? 1 : 1-Math.exp(-Math.max(dt||16,1)/TAU);
+  for(var k in tgt) if(typeof tgt[k]==="number"){
+    var d=tgt[k]-cam[k];
+    cam[k] = Math.abs(d)<(SPANN[k]||.0008) ? tgt[k] : cam[k]+d*a;
+  }
+  st.f=cam.f; st.tilt=cam.tilt;
+  var ar = st.w/Math.max(st.h,1);
+  KK  = cl(ar/1.30,.82,1);
+  KKX = cl(ar/1.30,.58,1);
+  shad.length=0;
+
+  /* Ambient: die Pfütze hellt auf, während der Satz sich setzt — 640 ms sine,
+     14 % auf dem Pool, 6 % auf der Key, und nur für die Szene, die den Rahmen hat. */
+  var glow = REDUCE ? 1 : tritt(idx,40,640,0,0,K_SCH);
+  GLP = 1+.14*glow; GLK = 1+.06*glow;
+
+  /* Die Luft: Staub und Lichtbahn ziehen mit dem Grund, also mit der spätesten
+     der drei Uhren. Zwei Zahlen für sechsundzwanzig Partikel — die Rate sitzt an
+     jedem Partikel selbst, CSS rechnet sie gegeneinander. */
+  if(luft){
+    var pk = (uA - 0) ;
+    schreib(luft,"--px", (cam.px*260).toFixed(1)+"px");
+    schreib(luft,"--py", (PWn[idx]*-70 - 34).toFixed(1)+"px");
+    schreib(luft,"--pw", (K_SCH(cl(uC/3.6,0,1))).toFixed(4));
+  }
+  if(raster) schreib(raster,"--rz", K_SCH(cl(uC/3.6,0,1)).toFixed(4));
+
+  for(var i=0;i<3;i++){
+    var el=satze[i], q=PW[i], p=P[i];
+    /* DIE TYPO IST EINE EBENE IM KORRIDOR. Sie kommt von hinten (0,60 ihres
+       Maßes) und wächst, während die Kamera sie durchfährt; sie steigt über die
+       ganze Szene um 190 px. Das Maß ist nach oben begrenzt, weil die Zeile am
+       ruhenden Punkt 86 % des Rahmens füllt — was darüber hinausläuft, wäre
+       abgeschnitten, nicht durchfahren. Der Auszug nach oben (x) und der Anflug
+       von unten (1-n) trennen die Übergabe über die Höhe.
+       Kein Overshoot, kein Federn: K_SCH läuft in beide Enden mit null
+       Geschwindigkeit aus, also setzt sich das Bild, statt darin zu frieren. */
+    var ue = REDUCE ? {x:0,n:1} : uebergabe(q);
+    var eA = REDUCE ? 1 : K_EIN(cl((q+0.30)/0.34,0,1));
+    var eB = REDUCE ? 0 : K_SCH(cl((q-0.04)/1.00,0,1));
+    var tyH = REDUCE ? 0 : mix(0,-76,eB);
+    var sc  = REDUCE ? 1 : (mix(0.60,0.955,eA) + 0.115*eB) * (1+0.045*ue.x);
+    var ty  = REDUCE ? 0 : mix(46,26,eA) + tyH - 122*ue.x + 112*(1-ue.n);
+    var aus = V[i];
+    FDB[i]  = SATZ_C[i] + ty + SATZ_H[i]*sc + SATZ_DZ[i]*eB + 8;
+    schreib(el,"opacity",aus.toFixed(3));
+    if(!REDUCE){
+      schreib(el,"--sc",sc.toFixed(4));
+      schreib(el,"--ty",ty.toFixed(1)+"px");
+      schreib(el,"--qz",eB.toFixed(4));
+    }
+
+    /* typo.hero: rise and settle, Wort für Wort, 46 ms gestaffelt, 28 px unter
+       der Endlage, 520 ms Eingang. Darüber legt sich die Welle der Fahrt: jedes
+       Wort steht an einer um seine Nummer verspäteten Stelle derselben monoton
+       steigenden Kurve. Eine monotone Kurve mit konstanter Phasenverschiebung kann
+       sich nie überholen — die Zeilenkante bleibt eine ruhige Kante. */
+    var ws=WORTE[i], nW=ws.length;
+    for(var w2=0;w2<nW;w2++){
+      var kw = (REDUCE||UHR[i]<0) ? (REDUCE?1:0) : tritt(i,w2*W_STAFFEL,W_DAUER,0,0,K_EIN);
+      var wy = REDUCE ? 0 : mix(0,-76,K_SCH(cl((q-0.04-w2*0.075)/1.00,0,1))) - tyH;
+      var yy = mix(W_HUB,0,kw) + wy;
+      schreib(ws[w2],"transform", (kw>=1 && Math.abs(wy)<.05) ? "translate3d(0,0,0)"
+                                       : "translate3d(0,"+yy.toFixed(2)+"px,0)");
+      schreib(ws[w2],"opacity", kw>=1 ? "1" : cl(kw*1.18,0,1).toFixed(3));
+    }
+    /* Die Feldwache kennt den Wortverzug: solange noch Worte aus der Tiefe
+       steigen, ist der Fuß des Satzes tiefer, als die Ebene steht. */
+    if(!REDUCE){
+      var klz = UHR[i]<0 ? 0 : tritt(i,0,W_DAUER+(nW-1)*W_STAFFEL,0,0,K_SIG);
+      FDB[i] += W_HUB*(1-klz);
+    }
+
+    /* Das Subjekt fährt mit dem verzögerten Fortschritt und wird am Ende des
+       Korridors von der Kamera überholt: Tiefe, Höhe und Neigung ziehen weiter,
+       auch wenn sein Auftrittsfenster längst zu Ende ist. */
+    var dep = REDUCE ? 0 : K_SIG(seg(q,AUS_A,AUS_B));
+    var ns=notes[String(i)];
+    for(var j=0;j<ns.length;j++){
+      applyNote(ns[j],p,i,j,dep);
+      if(ns[j]._sh && ns[j]._op>.10 && V[i]>.05) shad.push(ns[j]._sh);
+    }
+  }
+  /* Höchstens sechs Würfe teilen sich einen Shader-Puffer. Was den Rahmen hat,
+     zuerst — im Korridor fahren zwei Bilder durcheinander, und das lautere
+     soll nicht dem späteren weichen. */
+  if(shad.length>SHN) shad.length=SHN;
+
+  if(faden1){
+    if(P[1]>.001 && V[1]>.02){
+      var hub=mitte(notes["1"][0]), tg=[], rv=[];
+      for(var v=1;v<6;v++){ tg.push(mitte(notes["1"][v])); rv.push(seg(P[1],W1[v].t0+.05,W1[v].t1+.10)); }
+      schreib(faden1,"opacity",cl(V[1]-seg(PW[1],.92,1.04),0,1).toFixed(3));
+      threads(faden1,hub,tg,rv);
+    } else schreib(faden1,"opacity","0");
+  }
+  /* Szene 3 hat keine Fäden: hier ordnet der Rang, nicht die Verbindung. */
+
+  if(korr){
+    /* Der Strich ist eine Funktion der Lage: er wächst, während die Zeile an
+       ihm vorbeifährt — 35 % des Weges, nachdem sein Wort durch die Mitte ist. */
+    var ks = REDUCE ? 1 : K_SIG(cl((PW[2]-0.46)/0.34,0,1));
+    schreib(korr,"transform","scaleX("+ks.toFixed(4)+")");
+  }
+
+  if(tafel){
+    /* Die letzte Station hat den längsten Weg und keinen Nachfolger, der ihn
+       abnimmt: also trägt sie ihre eigene Auflösung. Die Tafel steigt, neigt
+       sich, wird von der Lichtbahn quergestrichen, die zwei Zeilen heben sich
+       nacheinander, das Siegel presst sich zu — alles an einem Eingang. */
+    var q4=PWn[3], e4=K_SIG(cl(q4,0,1));
+    var in4=REDUCE ? 1 : out3(seg(PW[3],-.20,.24));
+    var sc4= REDUCE ? 1 : mix(.90,1.055,K_SCH(cl(q4/1.02,0,1)));
+    var ty4= REDUCE ? 0 : mix(30,-26,e4);
+    var rx4= REDUCE ? 0 : mix(5.2,-1.6,e4);
+    schreib(tafel,"opacity",cl(in4*1.15,0,1).toFixed(3));
+    schreib(tafel,"transform","translate3d(-50%,calc(-50% + "+ty4.toFixed(1)+"px),0) scale("+
+      sc4.toFixed(4)+") rotateX("+rx4.toFixed(2)+"deg)");
+    schreib(tafel,"--sw", K_SCH(cl((PWc[3]+0.10)/1.05,0,1)).toFixed(4));
+    for(var r2=0;r2<REIHEN.length;r2++){
+      /* Zwei Zeilen, eine Bewegung — aber die Bewegung gehört der Lage: 24 px
+         unter der Endlage, 120 px Versatz je Zeile im Fortschritt. */
+      var e3 = REDUCE ? 1 : K_EIN(cl((q4-0.16-r2*0.11)/0.30,0,1));
+      var ew = (UHR[3]<0) ? 0 : tritt(3,r2*120,420,0,0,K_EIN);
+      var hy = mix(24,0,e3) + mix(16,0,ew);
+      schreib(REIHEN[r2],"transform","translate3d(0,"+hy.toFixed(2)+"px,0)");
+      schreib(REIHEN[r2],"opacity", cl(e3*Math.max(ew,cl(q4*6,0,1)),0,1).toFixed(3));
+    }
+    if(SIEGEL){
+      var pr = REDUCE ? 1 : K_SIG(cl((q4-0.44)/0.26,0,1));
+      schreib(SIEGEL,"--press", pr>=1 ? "1" : mix(1.30,1.00,pr).toFixed(4));
+    }
+    if(KANTE) schreib(KANTE,"--kf", K_SIG(cl((q4-0.06)/0.52,0,1)).toFixed(4));
+  }
+
+  for(var n=0;n<navs.length;n++){
+    if(n===idx){ if(navs[n].getAttribute("aria-current")!=="true") navs[n].setAttribute("aria-current","true"); }
+    else navs[n].removeAttribute("aria-current");
+  }
+
+  if(hin){
+    schreib(hin,"opacity",(cl(1-seg(PW[0],.02,.22),0,1)).toFixed(3));
+    schreib(hin,"transform","translateX(-50%) scaleY("+mix(.4,1,K_SIG(seg(PW[0],0,.20))).toFixed(3)+")");
+  }
+
+  draw();
+}
+
+/* -------------------------------------------------------------------- TAKT
+   EIN EINGANG. Der Takt läuft, solange die drei Uhren nicht an der Lage sind,
+   die Kamera nicht ihre Zielweite hat, oder ein Auftritt noch läuft. Er steht,
+   wenn alles zur Ruhe gekommen ist — und zur Ruhe kommt er an einem Zustand, der
+   ausschließlich von der Scroll-Position abhängt. Kein Bild, das sich aus eigenem
+   Antrieb bewegt; kein Bild, das mitten in einer Bewegung einfriert.
+   ------------------------------------------------------------------------ */
+var raf=null, ZULETZT=0;
+function settled(){
+  if(!REDUCE && (uA!==u || uB!==uA || uC!==uB)) return false;   /* die Uhren laufen noch */
+  for(var k in tgt) if(typeof tgt[k]==="number" && Math.abs(tgt[k]-cam[k])>(SPANN[k]||.0008)) return false;
+  return !laeuft();
+}
+function jetzt(){ return (window.performance&&performance.now)?performance.now():Date.now(); }
+function loop(ts){
+  raf=null;
+  JETZT = (typeof ts==="number" && ts>0) ? ts : jetzt();
+  var dt = ZULETZT ? Math.min(80,Math.max(0,JETZT-ZULETZT)) : 16;
+  ZULETZT = JETZT;
+  schritt(dt); lesen(); render(dt);
+  if(!settled()) raf=requestAnimationFrame(loop);
+}
+function kick(){ if(!raf) raf=requestAnimationFrame(loop); }
+function einpendeln(){ var r=roh(); u=uA=uB=uC=r; lesen(); }
+
+function boot(){
+  ok=initGL();
+  if(!ok) R.classList.add("no-3d");
+  resize(); einpendeln(); camera();
+  if(REDUCE) for(var k in tgt) cam[k]=tgt[k];
+  else { cam.px=tgt.px; cam.bahn=tgt.bahn; cam.bel=tgt.bel; cam.horiz=tgt.horiz; }
+  messen();
+  JETZT = jetzt(); ZULETZT = JETZT;
+  render(16);
+  if(!REDUCE) kick();
+}
+
+window.addEventListener("scroll",kick,{passive:true});
+window.addEventListener("resize",function(){ var alt=SCHRITT; resize(); if(SCHRITT!==alt) einpendeln(); kick(); });
+if(MQ.addEventListener) MQ.addEventListener("change",function(e){ REDUCE=e.matches; for(var z=0;z<4;z++) UHR[z]=-1; einpendeln(); kick(); });
+navs.forEach(function(a){ a.addEventListener("click",function(){ setTimeout(kick,70); }); });
+
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",boot);
+else boot();
+})();
+</script>
+</body>
+</html>
