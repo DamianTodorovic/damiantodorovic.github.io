@@ -424,6 +424,19 @@
   .karte > p:not(.mono) a{color:var(--text); text-decoration:none; border-bottom:1px solid var(--wax-dim)}
   .karte > p:not(.mono) a:hover{border-bottom-color:var(--wax)}
 
+  /* ===== Produktplatten: die echten Fenster der App ===== */
+  .plates{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:30px 26px; margin-top:48px}
+  .plates figure{margin:0}
+  .plate{border:1px solid var(--line-2); border-radius:14px; padding:10px;
+    background:linear-gradient(180deg,#fdfcf9,#f7f5f0);
+    box-shadow:0 50px 80px -64px rgba(20,22,26,.5)}
+  .plate img{display:block; width:100%; height:auto; border-radius:8px}
+  .plates figcaption{margin-top:15px; font-size:14.5px; line-height:1.6; color:var(--text-2); max-width:62ch}
+  .plates figcaption code{font-family:var(--mono); font-size:.88em; color:var(--text)}
+  .plates .num{display:block; font-family:var(--mono); font-size:10.5px; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--wax-2); margin-bottom:6px}
+  @media (max-width:860px){ .plates{grid-template-columns:minmax(0,1fr); gap:34px} }
+
   #faq > h2{max-width:var(--maxw); margin:0 auto; padding:0 40px}
   .faq-artikel{position:relative; display:grid; grid-template-columns:44px minmax(200px,300px) minmax(0,1fr);
     gap:6px 34px; align-items:baseline; max-width:var(--maxw); margin:0 auto; padding:30px 40px;
@@ -469,6 +482,7 @@
     </button>
     <nav id="mainnav" aria-label="Main">
       <a href="#how">Mechanism</a>
+      <a href="#app">The app</a>
       <a href="#enterprise">Enterprise</a>
       <a href="#time">Time</a>
       <a href="#faq">FAQ</a>
@@ -595,6 +609,31 @@
       </div>
     </div>
   </section>
+  <!-- ============ PRODUKTPLATTEN ============ -->
+  <section id="app"><div class="wrap">
+    <p class="eyebrow">The app itself</p>
+    <h2>Four screens, captured from the running app.</h2>
+    <p class="lead">Not a design comp. These are the windows you get: what arrived since you left, the index behind it, the graph the links draw, and one note while you edit it.</p>
+    <div class="plates">
+      <figure>
+        <div class="plate"><img src="assets/img/07-today.webp" width="1600" height="960" alt="The KEPTA Today view: one new note since the last visit, a disagreement between two notes about a retainer figure, and the call counts of Claude and Cursor." loading="lazy" decoding="async"></div>
+        <figcaption><span class="num">Today</span>What happened since you left: Claude saved one note, and two notes disagree about a retainer — 4,500 signed against 4,000 in the proposal. You pick which one stands.</figcaption>
+      </figure>
+      <figure>
+        <div class="plate"><img src="assets/img/01-index.webp" width="1600" height="960" alt="The KEPTA knowledge index showing 75 entries with counts by type, a tag list, a semantic search toggle and a toast reading Claude saved Lumen retainer." loading="lazy" decoding="async"></div>
+        <figcaption><span class="num">The index</span>Seventy-five entries: 36 facts, 15 events, 10 how-tos, 14 documents across 37 categories. Tags down the left, semantic search one switch away.</figcaption>
+      </figure>
+      <figure>
+        <div class="plate"><img src="assets/img/03-graph.webp" width="1600" height="960" alt="The KEPTA graph view showing 75 nodes and 891 edges with a force and tree toggle, a filter field and a time slider." loading="lazy" decoding="async"></div>
+        <figcaption><span class="num">The graph</span>75 nodes, 891 edges, coloured by memory type. Force or tree layout, a filter field, and a time slider that runs up to now.</figcaption>
+      </figure>
+      <figure>
+        <div class="plate"><img src="assets/img/04-editor.webp" width="1600" height="960" alt="The KEPTA editor open on a fact titled Project Atlas goals, with wiki-links to Client Portal, Lumen and Co., Mara Lind and Q4 Close in the content." loading="lazy" decoding="async"></div>
+        <figcaption><span class="num">The note</span>A fact in the editor. <code>[[Client Portal]]</code>, <code>[[Lumen &amp; Co.]]</code>, <code>[[Mara Lind]]</code> and <code>[[Q4 Close]]</code> are written as plain text; the engine turns them into the linked entities the graph draws.</figcaption>
+      </figure>
+    </div>
+  </div></section>
+
   <!-- ============ SEALED ============ -->
   <section id="time">
     <div class="wrap">
