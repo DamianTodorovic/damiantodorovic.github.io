@@ -1,0 +1,1225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){var r=document.documentElement;r.classList.add('js');var t;try{t=localStorage.getItem('kepta-theme')}catch(e){}if(t!=='dark')t='light';r.setAttribute('data-theme',t);})();</script>
+<title>KEPTA - Local, encrypted memory for your AI</title>
+<meta name="description" content="KEPTA gives every AI assistant one encrypted memory on your own machine. Ranked retrieval, provenance, a sealed audit chain, an MCP server for Claude, Cursor and any client. No cloud. No account.">
+<meta name="robots" content="index,follow">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#eef0f5">
+<link rel="canonical" href="https://damiantodorovic.github.io/">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<meta name="author" content="Damian Todorovic">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="KEPTA">
+<meta property="og:title" content="KEPTA - Local, encrypted memory for your AI">
+<meta property="og:description" content="One encrypted memory on your own machine that Claude, Cursor and every MCP client read and write. Ranked retrieval, provenance, sealed chain. No cloud, no account.">
+<meta property="og:url" content="https://damiantodorovic.github.io/">
+<meta property="og:image" content="https://damiantodorovic.github.io/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="KEPTA - local, encrypted memory for your AI: one encrypted file shared by every assistant, no cloud, no account">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="KEPTA - Local, encrypted memory for your AI">
+<meta name="twitter:description" content="One encrypted memory on your own machine. Ranked retrieval, provenance, sealed chain. No cloud, no account.">
+<meta name="twitter:image" content="https://damiantodorovic.github.io/og-image.jpg">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"KEPTA","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows","description":"Local, encrypted memory layer for AI assistants, reached over MCP by every client.","codeRepository":"https://github.com/DamianTodorovic/kepta","url":"https://damiantodorovic.github.io/","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"}}</script>
+<!--
+  KEPTA - the vault front.
+  Purpose   Landing surface: show a memory being set, retrieved, corrected and proven.
+  Audience  People under a duty of confidentiality who want an agent memory they can hand to nobody.
+  World     design/DESIGN.md v3, "Der Tresor aus poliertem Glas": one accent (steel blue) for
+            action, active state and focus only; radius as hierarchy; one glass sheet per layer;
+            courage at exactly two places, the graph and the search lens.
+  Motion    design/MOTION.md. Seven beats, one main event each, every value a pure function of
+            scroll position; interaction rides closed-form springs. Nothing moves without a cause.
+  Facts     Only measured numbers. The graph is labelled demo data; no customer, no claim of
+            certificates, no invented percentages.
+  Cost      No webfont, no CDN, no tracking, no external request. Vector graph, transform and
+            opacity only, no blur over large areas, rAF parked while nothing changes.
+-->
+<style>
+/* ============================================================= tokens
+   Two blocks, identical names. Light is Porzellan, dark is Tiefsee.
+   Nothing in a component needs a rule of its own per theme.        */
+:root{
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, "Segoe UI", sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --panel: 20px; --card: 14px; --field: 10px; --chip: 7px; --badge: 5px;
+  --d: 28px; --d2: 22px; --title: 14.5px; --read: 15.5px; --ui: 13px; --meta: 11px;
+  --mast: 58px; --wrap: 1180px; --gut: 24px; --sh: 1vh;
+  --track: -0.02em;
+}
+html[data-theme="light"]{
+  color-scheme: light;
+  --base: #eef0f5; --recess: #e6e9f0; --lift: #f7f8fb;
+  --glass: rgba(255,255,255,.80); --glass-thick: rgba(255,255,255,.96);
+  --edge: rgba(16,21,31,.10); --edge-hard: rgba(16,21,31,.16); --edge-in: rgba(255,255,255,.85);
+  --ink: #10151f; --ink-2: #46505f; --ink-3: #5d6774;
+  --accent: #3e63dd; --on-accent: #ffffff; --accent-line: rgba(62,99,221,.9);
+  --accent-wash: rgba(62,99,221,.09);
+  --shadow: 0 1px 2px rgba(16,21,31,.05), 0 12px 32px -12px rgba(16,21,31,.16);
+  --shadow-lens: 0 2px 4px rgba(16,21,31,.06), 0 26px 60px -18px rgba(16,21,31,.28);
+  --node: rgba(16,21,31,.045); --node-line: rgba(16,21,31,.20); --spec: rgba(255,255,255,1);
+  --line: rgba(16,21,31,.17);
+  --ok: #2a6b4e; --warn: #8a5a12; --bad: #a3283a;
+  --t-decision: #3e63dd; --t-entity: #6a5ac8; --t-note: #2a6b4e;
+  --ambient: rgba(120,150,215,.20);
+}
+html[data-theme="dark"]{
+  color-scheme: dark;
+  --base: #0a0c12; --recess: #0d1017; --lift: #12161f;
+  --glass: rgba(255,255,255,.045); --glass-thick: rgba(22,27,38,.92);
+  --edge: rgba(255,255,255,.10); --edge-hard: rgba(255,255,255,.17); --edge-in: rgba(255,255,255,.07);
+  --ink: #e9edf5; --ink-2: #a9b3c2; --ink-3: #8792a3;
+  --accent: #3e63dd; --on-accent: #ffffff; --accent-line: #869dff;
+  --accent-wash: rgba(62,99,221,.16);
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 18px 44px -16px rgba(0,0,0,.62);
+  --shadow-lens: 0 2px 6px rgba(0,0,0,.45), 0 30px 70px -20px rgba(0,0,0,.78);
+  --node: rgba(255,255,255,.07); --node-line: rgba(255,255,255,.22); --spec: rgba(255,255,255,.5);
+  --line: rgba(255,255,255,.15);
+  --ok: #6dc19a; --warn: #e0a75a; --bad: #f0798d;
+  --t-decision: #869dff; --t-entity: #a99cf0; --t-note: #6dc19a;
+  --ambient: rgba(96,128,220,.14);
+}
+
+/* ============================================================== reset */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{
+  margin:0; background:var(--base); color:var(--ink);
+  font-family:var(--sans); font-size:var(--ui); line-height:1.55;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+body::before{
+  /* the one light source: ambient, from the upper left. Not a wash. */
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:radial-gradient(76% 58% at 8% -10%, var(--ambient), transparent 68%);
+}
+h1,h2,h3,p,dl,dd,figure{margin:0}
+a{color:inherit}
+code{font-family:var(--mono); font-size:.92em; font-variant-numeric:tabular-nums}
+::selection{background:var(--accent); color:var(--on-accent)}
+:focus-visible{outline:2px solid var(--accent-line); outline-offset:3px; border-radius:3px}
+input,button{font:inherit; color:inherit}
+.skip{position:absolute; left:-9999px; top:0; z-index:60; background:var(--lift); color:var(--ink);
+  padding:10px 16px; border-radius:var(--field); border:1px solid var(--edge-hard)}
+.skip:focus{left:var(--gut)}
+
+/* ============================================================== masthead */
+.mast{
+  position:sticky; top:0; z-index:30; height:var(--mast);
+  display:flex; align-items:center; gap:18px;
+  padding:0 var(--gut); background:var(--base);
+  border-bottom:1px solid var(--edge);
+}
+.brand{display:flex; align-items:center; gap:10px; text-decoration:none; flex:0 0 auto}
+.brand .mark{width:26px; height:26px; border-radius:6px; display:block}
+.brand b{font-size:var(--title); font-weight:650; letter-spacing:.10em}
+.search{position:relative; flex:1 1 320px; max-width:390px}
+.search input{
+  width:100%; height:34px; padding:0 34px 0 32px; -webkit-appearance:none; appearance:none;
+  background:var(--lift); border:1px solid var(--edge-hard); border-radius:var(--field);
+  font-size:var(--ui); caret-color:var(--accent);
+  transition:border-color .12s linear, box-shadow .16s cubic-bezier(.2,.7,.3,1);
+}
+.search input::placeholder{color:var(--ink-3)}
+.search input:focus{outline:none; border-color:var(--accent-line);
+  /* the second brave place: the lensing glow, on focus only */
+  box-shadow:0 0 0 3px var(--accent-wash), inset 0 0 12px -6px var(--accent-line)}
+.search .glass-icon{position:absolute; left:10px; top:9px; width:15px; height:15px; pointer-events:none; opacity:.55}
+.search kbd{
+  position:absolute; right:8px; top:8px; font-family:var(--mono); font-size:var(--meta);
+  color:var(--ink-3); border:1px solid var(--edge); border-radius:var(--badge); padding:1px 5px; line-height:1.35}
+.lens{
+  position:absolute; top:calc(100% + 10px); left:0; width:min(430px, 92vw);
+  background:var(--glass-thick); border:1px solid var(--edge-hard); border-radius:var(--card);
+  box-shadow:var(--shadow-lens); padding:8px; opacity:0; transform:translateY(-6px);
+  pointer-events:none; transition:opacity .12s linear, transform .14s cubic-bezier(.2,.7,.3,1);
+}
+.lens[data-open="1"]{opacity:1; transform:none; pointer-events:auto}
+.hit{display:block; width:100%; text-align:left; background:none; border:0; cursor:pointer;
+  padding:9px 10px; border-radius:var(--chip)}
+.hit + .hit{border-top:1px solid var(--edge)}
+.hit:hover,.hit:focus-visible{background:var(--accent-wash)}
+.hit .hl{display:block; font-size:var(--title); font-weight:600; letter-spacing:-.01em}
+.hit .hv{display:block; font-size:var(--ui); color:var(--ink-2)}
+.hit .hm{display:block; font-size:var(--meta); color:var(--ink-3); margin-top:3px}
+.hit .hm span,.strip .why span{display:inline-block}
+.hit .hm span + span{margin-left:13px}
+.hit .rank{font-variant-numeric:tabular-nums; color:var(--ink-2); font-weight:600}
+.empty-lens{padding:12px 12px 14px}
+.empty-lens p{font-size:var(--ui); color:var(--ink-2)}
+.empty-lens b{display:block; font-size:var(--title); font-weight:600; margin-bottom:3px}
+.empty-lens a{color:var(--accent-line); text-underline-offset:3px}
+.mnav{display:flex; align-items:center; gap:20px; margin-left:auto; flex:0 0 auto}
+.mnav a{text-decoration:none; font-size:var(--ui); color:var(--ink-2)}
+.mnav a:hover{color:var(--ink)}
+.themebtn{background:none; border:1px solid var(--edge); border-radius:var(--field);
+  height:30px; padding:0 11px; font-size:var(--meta); letter-spacing:.06em; text-transform:uppercase;
+  color:var(--ink-2); cursor:pointer}
+.themebtn:hover{border-color:var(--edge-hard); color:var(--ink)}
+
+/* ============================================================== buttons */
+.btn{
+  display:inline-flex; align-items:center; gap:8px; height:38px; padding:0 16px;
+  border-radius:var(--field); border:1px solid transparent; text-decoration:none;
+  font-size:var(--ui); font-weight:600; letter-spacing:-.01em; cursor:pointer;
+}
+.btn.primary{background:var(--accent); color:var(--on-accent)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.primary:active{transform:translateY(1px)}
+.btn.ghost{border-color:var(--edge-hard); color:var(--ink); background:var(--glass)}
+.btn.ghost:hover{border-color:var(--accent-line); color:var(--accent-line)}
+.btn:focus-visible{outline:2px solid var(--accent-line); outline-offset:3px}
+
+/* ============================================================== the stage */
+.stage{position:relative; z-index:1}
+.frame{
+  position:sticky; top:var(--mast); height:calc(var(--sh) * 100 - var(--mast));
+  display:flex; flex-direction:column; gap:12px; padding:18px var(--gut) 14px;
+}
+.stage.js-story{height:calc(var(--sh) * 560)}
+.stage.js-reduce .frame,.stage:not(.js-story) .frame{position:static; height:auto}
+.stage:not(.js-story) .panel{min-height:min(560px, 74vh)}
+.stage:not(.js-story) .left{position:absolute; inset:0; width:auto}
+.stage:not(.js-story){height:auto}
+.panel{
+  position:relative; flex:1 1 auto; min-height:0;
+  background:var(--glass); border:1px solid var(--edge); border-radius:var(--panel);
+  box-shadow:var(--shadow); overflow:hidden;
+}
+.panel::after{
+  /* the sheet: a single bright edge at the top, light from above */
+  content:""; position:absolute; inset:0; border-radius:var(--panel); pointer-events:none;
+  box-shadow:inset 0 1px 0 var(--edge-in);
+}
+.right{position:absolute; inset:0}
+.left{position:relative; z-index:2; height:100%; width:min(45%, 560px);
+  padding:34px 20px 26px 34px; display:flex; flex-direction:column; min-width:0}
+svg.graph{position:absolute; inset:0; display:block; width:100%; height:100%}
+.demo{
+  position:absolute; right:14px; top:14px; z-index:3;
+  font-size:var(--meta); letter-spacing:.02em; color:var(--ink-3);
+  background:var(--lift); border:1px solid var(--edge); border-radius:var(--chip); padding:3px 8px;
+}
+h1{font-size:var(--d); line-height:1.16; letter-spacing:var(--track); font-weight:650; max-width:19ch}
+.lede{font-size:var(--read); line-height:1.6; color:var(--ink-2); margin-top:12px; max-width:42ch}
+.acts{display:flex; gap:10px; margin-top:20px; flex-wrap:wrap}
+.beats{
+  margin-top:auto; padding-top:22px; border-top:1px solid var(--edge);
+  min-height:120px;
+}
+.beats .beat{max-width:44ch}
+.beat h2{font-size:var(--title); font-weight:650; letter-spacing:-.01em}
+.beat p{font-size:var(--ui); color:var(--ink-2); margin-top:5px; line-height:1.6}
+.beat .stat{font-size:var(--meta); color:var(--ink-3); font-variant-numeric:tabular-nums; margin-top:7px;
+  letter-spacing:.01em}
+.beat .stat em{font-style:normal; display:inline-block; margin-right:14px; color:var(--ink-2)}
+.beat .stat code{font-size:var(--meta)}
+.stage.js-story .beat{display:none}
+.stage.js-story .beat[data-on="1"]{display:block}
+.stage.js-reduce .beats{min-height:0; display:grid; gap:16px; grid-template-columns:repeat(2,minmax(0,1fr))}
+.stage.js-reduce .beat{display:block}
+.stage.js-reduce .rail{display:none}
+.prov{
+  position:relative; z-index:3; margin-top:24px;
+  background:var(--glass-thick); border:1px solid var(--edge-hard); border-radius:var(--card);
+  box-shadow:var(--shadow-lens); padding:11px 13px; opacity:0; visibility:hidden;
+}
+.prov .pt{font-size:var(--title); font-weight:600; letter-spacing:-.01em}
+.prov .pd{font-size:var(--meta); color:var(--ink-2); margin-top:6px; font-variant-numeric:tabular-nums}
+.prov .pd span{display:block}
+.prov .pk{float:left; clear:left; width:82px; color:var(--ink-3)}
+.prov .pv{color:var(--ink-2)}
+.prov .pf{clear:left; margin-top:6px; letter-spacing:.06em; font-weight:650; color:var(--ink-2)}
+.prov .pf.exp{color:var(--warn)}
+.rail{display:flex; align-items:center; gap:12px; margin-top:14px; flex-wrap:wrap}
+.rail .ticks{display:flex; gap:5px; flex:0 0 auto}
+.rail .tk{display:block; width:20px; height:2px; background:var(--edge-hard); border-radius:1px}
+.rail .tk[data-on="1"]{background:var(--accent)}
+.rail .count{font-size:var(--meta); color:var(--ink-3); font-variant-numeric:tabular-nums; letter-spacing:.02em}
+.rail .hint{margin-left:auto; font-size:var(--meta); color:var(--ink-3)}
+.chainbox{position:absolute; left:50%; right:22px; bottom:18px; z-index:3;
+  display:flex; flex-direction:column; gap:7px; opacity:0; visibility:hidden}
+.chainbox .cl{font-size:var(--meta); color:var(--ink-3); font-variant-numeric:tabular-nums}
+.chainbox .cl.bad{color:var(--bad)}
+.chain{display:flex; align-items:center; flex-wrap:wrap; gap:2px 0}
+.chain .lnk{
+  font-family:var(--mono); font-size:var(--meta); color:var(--ink-2); font-variant-numeric:tabular-nums;
+  background:var(--lift); border:1px solid var(--edge-hard); border-radius:var(--badge);
+  padding:3px 6px; white-space:nowrap;
+}
+.chain .lnk.brk{color:var(--bad); border-color:var(--bad); background:none}
+.chain .arw{width:14px; height:1px; background:currentColor; color:var(--line); position:relative; flex:0 0 14px}
+.chain .arw::after{content:""; position:absolute; right:0; top:-2px; border-left:4px solid currentColor;
+  border-top:2.5px solid transparent; border-bottom:2.5px solid transparent}
+.chain .arw[data-brk]{transition:color .1s linear}
+svg .nlab{font-size:var(--ui); font-weight:600; letter-spacing:-.01em; fill:var(--ink)}
+svg .nmeta{font-size:var(--meta); fill:var(--ink-3); font-variant-numeric:tabular-nums}
+svg .nflag{font-size:var(--meta); font-weight:650; letter-spacing:.06em; fill:var(--ink-2)}
+svg .nflag.exp{fill:var(--warn)}
+svg .edge{fill:none; stroke:var(--line)}
+svg .node{cursor:pointer}
+svg .node.ghost{cursor:default}
+svg .node:focus{outline:none}
+svg .node:focus-visible .body,svg .node:focus-visible circle{stroke:var(--accent-line); stroke-width:2.4}
+
+/* ============================================================== the record */
+.wrap{max-width:var(--wrap); margin:0 auto; padding:0 var(--gut)}
+section.band{position:relative; z-index:1; padding:clamp(52px,7vh,92px) 0}
+section.band + section.band{border-top:1px solid var(--edge)}
+.eyebrow{font-size:var(--meta); color:var(--ink-3); font-variant-numeric:tabular-nums; letter-spacing:.02em}
+h2.sec{font-size:var(--d2); line-height:1.2; letter-spacing:var(--track); font-weight:650; margin-top:6px; max-width:24ch}
+.seclede{font-size:var(--read); color:var(--ink-2); margin-top:10px; max-width:60ch; line-height:1.62}
+.strip{display:flex; align-items:baseline; gap:26px; margin-top:34px; flex-wrap:wrap}
+.strip .fig{display:flex; align-items:baseline; gap:2px; flex:0 0 auto}
+/* DESIGN.md caps display at 28px. Dominance here comes from weight, isolation and a
+   recessed label, not from size. */
+.strip .num{font-size:var(--d); line-height:1; font-weight:650; letter-spacing:-.035em;
+  font-variant-numeric:tabular-nums}
+.strip .unit{font-size:var(--ui); font-weight:600; letter-spacing:.02em; margin-left:9px; color:var(--ink-3);
+  text-transform:uppercase}
+.strip .why{flex:1 1 330px; font-size:var(--read); color:var(--ink-2); line-height:1.6; max-width:44ch;
+  border-left:1px solid var(--edge-hard); padding-left:20px}
+dl.facts{margin-top:34px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 44px}
+dl.facts .fact{padding:15px 0; border-top:1px solid var(--edge)}
+dl.facts dt{font-size:var(--title); font-weight:650; letter-spacing:-.01em; font-variant-numeric:tabular-nums}
+dl.facts dd{font-size:var(--ui); color:var(--ink-2); margin-top:3px; line-height:1.55}
+.two{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:0;
+  border:1px solid var(--edge); border-radius:var(--panel); background:var(--glass);
+  box-shadow:var(--shadow); overflow:hidden; margin-top:34px}
+.two > div{padding:24px 26px 26px}
+.two > div + div{border-left:1px solid var(--edge)}
+.tier .th{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
+.tier h3{font-size:var(--d2); letter-spacing:var(--track); font-weight:650; margin:0}
+.tier .price{font-size:var(--title); color:var(--ink-2); font-variant-numeric:tabular-nums}
+.tier p{font-size:var(--ui); color:var(--ink-2); margin-top:10px; line-height:1.6; max-width:46ch}
+.tier ul{list-style:none; margin:14px 0 18px; padding:0}
+.tier li{font-size:var(--ui); padding:6px 0 6px 16px; position:relative; border-top:1px solid var(--edge); color:var(--ink-2)}
+.tier li:first-child{border-top:0}
+.tier li::before{content:""; position:absolute; left:0; top:14px; width:6px; height:1px; background:var(--edge-hard)}
+.tier li b{color:var(--ink); font-weight:600}
+.rows{margin-top:30px; border-top:1px solid var(--edge)}
+.row{display:grid; grid-template-columns:minmax(0,.34fr) minmax(0,1fr); gap:20px;
+  padding:13px 0; border-bottom:1px solid var(--edge); align-items:baseline}
+.row .k{font-size:var(--ui); font-weight:600; letter-spacing:-.01em}
+.row .v{font-size:var(--ui); color:var(--ink-2)}
+.row .v code{color:var(--ink); background:var(--recess); border-radius:var(--badge); padding:1px 5px}
+.tools{margin-top:26px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0 30px}
+.tool{display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px solid var(--edge)}
+.tool code{font-size:var(--ui)}
+.tool span{font-size:var(--meta); color:var(--ink-3); letter-spacing:.02em}
+.note{margin-top:24px; font-size:var(--ui); color:var(--ink-2); max-width:62ch; line-height:1.62}
+.note b{color:var(--ink); font-weight:600}
+.refused{margin-top:14px; font-size:var(--meta); color:var(--ink-3); max-width:60ch}
+
+/* ============================================================== footer */
+footer{border-top:1px solid var(--edge); padding:40px 0 52px; position:relative; z-index:1}
+.fgrid{display:flex; gap:26px; align-items:flex-start; flex-wrap:wrap}
+.fmark{display:flex; gap:14px; align-items:center}
+.fmark .mark{width:64px; height:64px; border-radius:14px; display:block; flex:0 0 auto}
+.fmark .fw b{display:block; font-size:var(--d2); font-weight:650; letter-spacing:.08em}
+.fmark .fw span{display:block; font-size:var(--ui); color:var(--ink-2); margin-top:2px}
+.flinks{margin-left:auto; display:grid; grid-template-columns:repeat(2,minmax(120px,1fr)); gap:6px 30px}
+.flinks a{font-size:var(--ui); color:var(--ink-2); text-decoration:none; padding:3px 0}
+.flinks a:hover{color:var(--accent-line)}
+.fmeta{margin-top:30px; padding-top:16px; border-top:1px solid var(--edge);
+  display:flex; gap:22px; flex-wrap:wrap; font-size:var(--meta); color:var(--ink-3);
+  font-variant-numeric:tabular-nums}
+
+/* ============================================================== responsive */
+@media (max-width:1024px){
+  .tools{grid-template-columns:repeat(2,minmax(0,1fr))}
+  dl.facts{grid-template-columns:1fr}
+}
+@media (max-width:900px){
+  .mnav .hide{display:none}
+  .frame{padding-top:12px}
+  .panel{display:grid; grid-template-columns:1fr; grid-template-rows:minmax(300px,44%) 1fr}
+  .right{position:relative; grid-row:1; min-height:0}
+  .left{position:relative; grid-row:2; width:auto; height:auto; padding:18px 18px 16px}
+  h1{font-size:24px; max-width:22ch}
+  .lede{margin-top:9px; font-size:var(--ui)}
+  .acts{margin-top:14px}
+  .beats{min-height:96px; padding-top:16px}
+  .stage.js-reduce .beats{grid-template-columns:1fr}
+  .chainbox{left:12px; right:12px; bottom:10px}
+  .two{grid-template-columns:1fr}
+  .two > div + div{border-left:0; border-top:1px solid var(--edge)}
+  .strip .why{border-left:0; padding-left:0; border-top:1px solid var(--edge-hard); padding-top:14px}
+}
+@media (max-width:560px){
+  :root{--gut:16px; --d:23px; --d2:20px}
+  .mast{gap:12px}
+  .mast .mnav a{display:none}
+  .search kbd{display:none}
+  /* on a phone the lens belongs to the masthead, not to the field's left edge */
+  .lens{position:fixed; left:var(--gut); right:var(--gut); width:auto; top:calc(var(--mast) + 6px)}
+  .demo{top:auto; bottom:6px; right:6px}
+  .panel{grid-template-rows:minmax(250px,36%) 1fr}
+  .row{grid-template-columns:1fr; gap:2px}
+  .tools{grid-template-columns:1fr}
+  .flinks{margin-left:0}
+  .rail .hint{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{transition:none !important; animation:none !important}
+}
+/* Reduced motion is a different composition, not a frozen one: the sheet is no
+   longer pinned, so the graph and the seven states of the record stack in flow. */
+.stage.js-reduce .panel{display:flex; flex-direction:column}
+.stage.js-reduce .right{order:-1; position:relative; height:min(42vh,400px); border-bottom:1px solid var(--edge)}
+.stage.js-reduce .left{position:static; width:auto; height:auto; padding:26px 26px 24px; display:block}
+.stage.js-reduce .beats{display:grid; gap:18px 30px; grid-template-columns:repeat(2,minmax(0,1fr));
+  min-height:0; margin-top:24px; padding-top:22px}
+.stage.js-reduce .beat{display:block}
+.stage.js-reduce .rail{display:none}
+@media (max-width:900px){
+  .stage.js-reduce .left{padding:18px}
+  .stage.js-reduce .beats{grid-template-columns:1fr}
+  .stage.js-reduce .right{height:38vh}
+}
+</style>
+</head>
+<body data-page="vault">
+<a class="skip" href="#record">Skip to the record</a>
+
+<header class="mast">
+  <a class="brand" href="#top" aria-label="KEPTA, home">
+    <svg class="mark" viewBox="0 0 512 512" role="img" aria-label="KEPTA Logo"><rect width="512" height="512" rx="112" fill="#0f0f0f"/><circle cx="176" cy="256" r="11" fill="#ffffff"/><path d="M176 256V176 M176 256V336 M176 256L288 176 M176 256L288 336" stroke="#ffffff" stroke-width="24" stroke-linecap="round" fill="none"/><circle cx="336" cy="178" r="17" fill="#ffffff"/></svg>
+    <b>KEPTA</b>
+  </a>
+  <div class="search">
+    <svg class="glass-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10.6 10.6L14 14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    <input id="q" type="search" autocomplete="off" spellcheck="false" placeholder="Search the index" aria-label="Search the demo index" aria-describedby="qhelp">
+    <kbd>/</kbd>
+    <span id="qhelp" hidden="hidden">Type to search the demo record. The first hit is lifted in the graph.</span>
+    <div class="lens" id="lens" role="region" aria-live="polite" aria-label="Search results"></div>
+  </div>
+  <nav class="mnav" aria-label="Primary">
+    <a class="hide" href="#record">The record</a>
+    <a class="hide" href="#door">The door</a>
+    <a href="trust.html">Security</a>
+    <button class="themebtn" id="theme" type="button" aria-pressed="false">Night</button>
+  </nav>
+</header>
+
+<main id="top">
+
+  <!-- ============================ beat 1 to 7: the vault front ============================ -->
+  <section class="stage" id="stage" aria-label="What KEPTA does, in seven beats">
+    <div class="frame">
+      <div class="panel">
+        <div class="left">
+          <h1>Your AI forgets. KEPTA keeps the record.</h1>
+          <p class="lede">One encrypted memory on your own machine, shared by every assistant you use.
+            No cloud, no account, nothing handed to a third party.</p>
+          <div class="acts">
+            <a class="btn primary" href="https://github.com/DamianTodorovic/kepta/releases/latest">Download the app</a>
+            <a class="btn ghost" href="https://github.com/DamianTodorovic/kepta">Read the source</a>
+          </div>
+          <div class="prov" id="prov" role="status" aria-live="polite"></div>
+          <div class="beats" id="beats">            <div class="beat">
+              <h2>Nothing is in the room</h2>
+              <p>Every session starts from zero. What you decided last week has to be explained again today, and nobody can say who set it when. Scroll, and this graph forgets.</p>
+              <p class="stat">Demo record, no customer data.</p>
+            </div>
+            <div class="beat">
+              <h2>Set once, kept</h2>
+              <p>A memory is a node with a type, a weight and a validity, not a text field in a prompt. It is written to one encrypted file on your machine and it stays.</p>
+              <p class="stat"><em>SQLCipher 4</em><em>AES-256</em><em><code>~/.kepta/kepta.db</code></em></p>
+            </div>
+            <div class="beat">
+              <h2>Retrieval is ranking, not quoting</h2>
+              <p>Words and links are scored separately, then fused, and the best-matching memory is lifted. This page ranks words and links in your browser; the product adds trigram vectors and fuses at k=60.</p>
+              <p class="stat">Try the field above. Any node answers.</p>
+            </div>
+            <div class="beat">
+              <h2>Provenance is part of the sentence</h2>
+              <p>Person, agent or import, out of a named file, valid since a date you can query against. An answer without provenance is a guess with good grammar.</p>
+              <p class="stat">Hover or focus any node for its proof.</p>
+            </div>
+            <div class="beat">
+              <h2>A correction keeps its proof</h2>
+              <p>The superseded memory does not disappear. Its weight drops to a residual, its record stays, and the newer version answers instead. The expired one goes amber, not deleted.</p>
+              <p class="stat">SUPERSEDED and EXPIRED are status levels, not decoration.</p>
+            </div>
+            <div class="beat">
+              <h2>The chain reports tampering</h2>
+              <p>Every read and every write is entered, and each entry points to its predecessor. Reach back to change one and the chain breaks where you touched it, and says so.</p>
+              <p class="stat">The break sits on the link into entry 5.</p>
+            </div>
+            <div class="beat">
+              <h2>One client, one door</h2>
+              <p>Claude Desktop, Cursor, Windsurf, Gemini CLI, Zed, Codex or a script over HTTP. They all reach this same record through one MCP door, behind the same wall.</p>
+              <p class="stat">Six tools advertised. Anything else is refused.</p>
+            </div>
+          </div>
+          <div class="rail" aria-hidden="true">
+            <span class="count" id="count">1 of 7</span>
+            <span class="ticks" id="ticks"></span>
+            <span class="hint">Scroll drives the record. Nothing here moves on its own.</span>
+          </div>
+        </div>
+        <div class="right">
+          <span class="demo" id="demoChip">Demo record, no customer data</span>
+          <svg class="graph" id="graph" aria-hidden="true"></svg>
+          <div class="chainbox" id="chainbox">
+            <span class="cl">sealed audit chain, newest on the right</span>
+            <div class="chain" id="chain"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ the record, measured ============================ -->
+  <section class="band" id="record">
+    <div class="wrap">
+      <p class="eyebrow">The record, measured</p>
+      <h2 class="sec">Everything on this page is a number someone can re-run.</h2>
+      <p class="seclede">No customer names, no certificates, no comparison figures. What is finished is
+        measured; what is not finished is listed further down.</p>
+      <div class="strip">
+        <div class="fig"><span class="num">474</span><span class="unit">tests</span></div>
+        <p class="why">in 36 files on the current engine commit, green in under twenty seconds on an
+          M-series laptop. The suite runs against listening servers, never against a request that is
+          mocked away.</p>
+      </div>
+      <dl class="facts">
+        <div class="fact"><dt>AES-256, one file</dt>
+          <dd>SQLCipher 4 at <code>~/.kepta/kepta.db</code>. The whole memory is one file you can back up,
+            copy and hand to nobody.</dd></div>
+        <div class="fact"><dt>Fused at k&#61;60</dt>
+          <dd>BM25, trigram vectors and the entity graph are scored separately and fused at sixty
+            candidates. Retrieval is ranking before it is wording.</dd></div>
+        <div class="fact"><dt>Superseded, not deleted</dt>
+          <dd>A replaced memory keeps its record and falls to a residual weight. Time-travel queries are
+            ordinary: ask for the index as of last Tuesday.</dd></div>
+        <div class="fact"><dt>Protocol 2026-07-28</dt>
+          <dd>MCP over stdio from npm, and over HTTP at <code>POST /api/mcp</code> on the enterprise
+            server, behind the same tenant wall as the REST path.</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ============================ one client, one door ============================ -->
+  <section class="band" id="door">
+    <div class="wrap">
+      <p class="eyebrow">One client, one door</p>
+      <h2 class="sec">Every assistant you use reaches the same memory.</h2>
+      <p class="seclede">One MCP server, one encrypted file. The door advertises six tools and refuses
+        what is not on the list instead of ignoring it.</p>
+      <div class="rows">
+        <div class="row"><span class="k">Claude Desktop</span><span class="v">MCP over stdio, from npm</span></div>
+        <div class="row"><span class="k">Cursor</span><span class="v">MCP over stdio, from npm</span></div>
+        <div class="row"><span class="k">Windsurf, VS Code</span><span class="v">MCP over stdio, from npm</span></div>
+        <div class="row"><span class="k">Gemini CLI, Cline</span><span class="v">MCP over stdio, from npm</span></div>
+        <div class="row"><span class="k">Zed, Codex, Continue</span><span class="v">MCP over stdio, from npm</span></div>
+        <div class="row"><span class="k">Scripts and services</span><span class="v">HTTP, <code>POST /api/mcp</code>, own key per tenant</span></div>
+      </div>
+      <div class="tools" id="tools"></div>
+      <p class="note"><b>The five write paths go through the same human gate as the REST path.</b> On a
+        tenant set to review or approve, the door answers <code>pending</code> with an act number and no
+        effect. A person decides whether the memory lands.</p>
+      <p class="refused">One client, one door, one wall: an agent cannot read across a tenant boundary,
+        and a tool the catalogue does not advertise is refused at the handshake.</p>
+    </div>
+  </section>
+
+  <!-- ============================ two tiers ============================ -->
+  <section class="band" id="tiers">
+    <div class="wrap">
+      <p class="eyebrow">Two tiers, no middle one</p>
+      <h2 class="sec">Free on your own machine, or under contract per tenant.</h2>
+      <div class="two">
+        <div class="tier" id="core">
+          <div class="th"><h3>Core</h3><span class="price">0 &#8364;, forever</span></div>
+          <p>Your own machine. No account, no contract, no remote. The engine and the MCP server,
+            source available.</p>
+          <ul>
+            <li><b>One encrypted file</b> you own and back up</li>
+            <li><b>Ranked retrieval</b> with provenance and time travel</li>
+            <li><b>MCP over stdio</b> in every client that speaks it</li>
+            <li><b>474 tests</b> in 36 files, green in under twenty seconds</li>
+          </ul>
+          <a class="btn primary" href="https://github.com/DamianTodorovic/kepta/releases/latest">Download the app</a>
+          <a class="btn ghost" href="https://github.com/DamianTodorovic/kepta">Read the source</a>
+        </div>
+        <div class="tier" id="enterprise">
+          <div class="th"><h3>Enterprise</h3><span class="price">by contract, per tenant</span></div>
+          <p>For organizations that must show who set what, and who was allowed to read it.</p>
+          <ul>
+            <li><b>Tenant wall</b> across every read and write</li>
+            <li><b>Sealed audit chain</b> that reports a break instead of hiding one</li>
+            <li><b>Human gate</b> on the five write tools, per tenant</li>
+            <li><b>MCP over HTTP</b> at <code>POST /api/mcp</code> with its own key</li>
+          </ul>
+          <a class="btn ghost" href="mailto:damian2212todi@gmail.com?subject=KEPTA%20Enterprise">Talk to us</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ honest limits ============================ -->
+  <section class="band" id="limits">
+    <div class="wrap">
+      <p class="eyebrow">What is not finished</p>
+      <h2 class="sec">Four lines are open. Read them before you sign.</h2>
+      <div class="rows">
+        <div class="row"><span class="k">Tool filter per key</span><span class="v">A key can reach the whole advertised list today, not a chosen subset.</span></div>
+        <div class="row"><span class="k">Read parity at the door</span><span class="v"><code>memory_list</code> and <code>memory_graph</code> are not advertised over MCP yet; they are REST-only.</span></div>
+        <div class="row"><span class="k"><code>asOf</code> at the door</span><span class="v">Time-travel queries work over REST; the MCP door does not carry the parameter yet.</span></div>
+        <div class="row"><span class="k">The private shield</span><span class="v">Agent-scoped shielding is not built. Say so if it is load-bearing for you.</span></div>
+      </div>
+      <p class="note">Security detail, proofs and the threat model live on
+        <a href="trust.html" style="text-underline-offset:3px; color:var(--accent-line)">the security page</a>.</p>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="fgrid">
+        <div class="fmark">
+          <svg class="mark" viewBox="0 0 512 512" role="img" aria-label="KEPTA Logo"><rect width="512" height="512" rx="112" fill="#0f0f0f"/><circle cx="176" cy="256" r="11" fill="#ffffff"/><path d="M176 256V176 M176 256V336 M176 256L288 176 M176 256L288 336" stroke="#ffffff" stroke-width="24" stroke-linecap="round" fill="none"/><circle cx="336" cy="178" r="17" fill="#ffffff"/></svg>
+          <div class="fw"><b>KEPTA</b><span>Local, encrypted memory for your AI.</span></div>
+        </div>
+        <nav class="flinks" aria-label="Footer">
+          <a href="#core">Core, 0 &#8364;</a>
+          <a href="#enterprise">Enterprise</a>
+          <a href="trust.html">Security</a>
+          <a href="#record">Measured facts</a>
+          <a href="https://github.com/DamianTodorovic/kepta">Source</a>
+          <a href="https://github.com/DamianTodorovic/kepta/releases/latest">Download</a>
+          <a href="mailto:damian2212todi@gmail.com">Contact</a>
+          <a href="#top">Back to the vault front</a>
+        </nav>
+      </div>
+      <div class="fmeta">
+        <span>MCP protocol level 2026-07-28</span>
+        <span>SQLCipher 4, AES-256</span>
+        <span>No tracking, no CDN, no webfont, no external request on this page</span>
+        <span>The graph above is demo data, labelled as such</span>
+      </div>
+    </div>
+  </footer>
+</main>
+
+<script>
+(function(){
+"use strict";
+var D=document, W=window, root=D.documentElement;
+
+/* ---------------------------------------------------------------- guards
+   matchMedia must be read here, not only in CSS: the probe asserts that a
+   requested reduced-motion state actually arrives in this script.        */
+var MQ = !!W.matchMedia;
+var mqReduce = MQ ? W.matchMedia("(prefers-reduced-motion: reduce)") : null;
+var REDUCE = !!(mqReduce && mqReduce.matches);
+root.style.setProperty("--sh", (W.innerHeight/100) + "px");
+
+/* ---------------------------------------------------------------- theme */
+var themeBtn = D.getElementById("theme");
+function setTheme(t, save){
+  root.setAttribute("data-theme", t);
+  themeBtn.textContent = t === "dark" ? "Day" : "Night";
+  themeBtn.setAttribute("aria-pressed", t === "dark" ? "true" : "false");
+  themeBtn.setAttribute("aria-label", "Switch to the " + (t === "dark" ? "light" : "dark") + " theme");
+  var m = D.querySelector('meta[name="theme-color"]');
+  if(m) m.setAttribute("content", t === "dark" ? "#0a0c12" : "#eef0f5");
+  if(save){ try{ W.localStorage.setItem("kepta-theme", t); }catch(e){} }
+}
+setTheme(root.getAttribute("data-theme") === "dark" ? "dark" : "light", false);
+themeBtn.addEventListener("click", function(){
+  setTheme(root.getAttribute("data-theme") === "dark" ? "light" : "dark", true);
+});
+
+/* ---------------------------------------------------------------- the model
+   Nine memories a person can read, and the field of smaller ones an index really
+   has around them. Positions are normalized so one table serves both layouts.    */
+var TAU = Math.PI*2;
+var NODES = [
+  {id:"chain", t:"note",     lab:"Audit chain",        val:"every read entered",   nx:.50, ny:.46, bx:.50, by:.54, r:30, src:"human",  act:"act 4117", since:"2026-02-04", w:.94},
+  {id:"conf",  t:"decision", lab:"Confidentiality",    val:"defaults to review",   nx:.26, ny:.24, bx:.31, by:.30, r:27, src:"human",  act:"act 4102", since:"2026-01-27", w:.90},
+  {id:"ret",   t:"decision", lab:"Retention window",   val:"24 months",            nx:.74, ny:.16, bx:.72, by:.20, r:25, src:"agent",  act:"act 4141", since:"2026-03-11", w:.86},
+  {id:"cust",  t:"entity",   lab:"Custodian",          val:"Frankfurt DC",         nx:.13, ny:.62, bx:.16, by:.66, r:22, src:"import", act:"act 3988", since:"2025-11-08", w:.71},
+  {id:"key",   t:"howto",    lab:"Re-key the seal",    val:"keeps history",        nx:.87, ny:.70, bx:.85, by:.52, r:20, src:"human",  act:"act 4160", since:"2026-04-02", w:.68},
+  {id:"draft", t:"pref",     lab:"Drafts",             val:"local until approved", nx:.30, ny:.84, bx:.36, by:.80, r:18, src:"agent",  act:"act 4173", since:"2026-04-19", w:.63},
+  {id:"report",t:"note",     lab:"Chain report",       val:"monthly",              nx:.68, ny:.86, bx:.66, by:.80, r:19, src:"human",  act:"act 4181", since:"2026-05-06", w:.60},
+  {id:"sup",   t:"decision", lab:"Retention window",   val:"12 months",            nx:.91, ny:.40, bx:.89, by:.34, r:12, src:"human",  act:"act 4021", since:"2025-09-30", w:.22, flag:"SUPERSEDED"},
+  {id:"exp",   t:"note",     lab:"Transfer review",    val:"valid to 2026-04-30",  nx:.08, ny:.10, bx:.12, by:.14, r:14, src:"import", act:"act 3966", since:"2025-10-14", w:.30, flag:"EXPIRED"}
+];
+/* the rest of the index: real memories, too small to caption at this distance */
+var GHOSTS = [
+  [.22,.12,5,"conf"],[.45,.10,4,"ret"],[.58,.34,6,"chain"],[.80,.10,3,"ret"],[.94,.22,5,"sup"],
+  [.06,.42,4,"cust"],[.22,.48,6,"conf"],[.40,.44,3,"chain"],[.62,.46,5,"chain"],[.78,.38,4,"key"],
+  [.95,.44,3,"key"],[.10,.86,5,"draft"],[.24,.70,4,"cust"],[.48,.70,6,"chain"],[.56,.92,3,"report"],
+  [.74,.62,5,"key"],[.88,.76,4,"report"],[.96,.60,3,"key"],[.34,.58,4,"conf"],[.68,.14,5,"ret"]
+];
+var GHOST = [];
+GHOSTS.forEach(function(g, i){
+  GHOST.push({id:"g" + (i+1), ghost:true, t:"note", nx:g[0], ny:g[1], bx:g[0], by:g[1], r:g[2], hub:g[3]});
+});
+var ALL = NODES.concat(GHOST);
+var BY = {}; ALL.forEach(function(n,i){ n.i = i; BY[n.id] = n; });
+var EDGES = [["chain","conf"],["chain","cust"],["chain","key"],["chain","draft"],["chain","report"],
+             ["conf","ret"],["conf","cust"],["ret","sup"],["cust","exp"],["key","report"]];
+GHOST.forEach(function(g){ EDGES.push([g.id, g.hub]); });
+var CORE = ["chain","conf","ret","cust"], LATE = ["key","draft","report"], CORRECT = ["sup","exp"];
+var FIELD = GHOST.map(function(g){ return g.id; });
+var TYPE = {decision:"--t-decision", entity:"--t-entity", howto:"--t-entity", note:"--t-note", pref:"--t-note"};
+
+/* the five write tools and the one read tool, as the catalogue advertises them */
+var TOOLS = [["memory_search","read"],["memory_save","write"],["memory_update","write"],
+             ["memory_delete","write"],["memory_forget","write"],["memory_consolidate","write"]];
+var CHAIN = ["9f2c","4a17","c803","61be","0d5a","7e94"];
+
+/* ---------------------------------------------------------------- math */
+function cl(v,a,b){ return v<a?a:(v>b?b:v); }
+function rm(v,a,b){ return cl((v-a)/(b-a||1),0,1); }
+function sm(t){ return t*t*(3-2*t); }
+function eo(t){ return 1-Math.pow(1-t,3); }
+function lerp(a,b,t){ return a+(b-a)*t; }
+
+/* closed-form spring: a value that changes target several times is the sum of
+   one spring per change, so any frame is still a pure function of time.     */
+function Spring(zeta, omega){ this.z=zeta; this.w=omega; this.s=[]; this.target=0; }
+Spring.prototype.to = function(v, t){
+  var d = v - this.target; if(d === 0) return;
+  this.target = v; this.s.push({t:t, d:d});
+  if(this.s.length > 10) this.s.splice(0, this.s.length-10);
+};
+Spring.prototype.at = function(t){
+  var zs = this.z*this.w, wd = this.w*Math.sqrt(Math.max(1e-6, 1-zs*zs)), x = 0, live = 0;
+  for(var i=0;i<this.s.length;i++){
+    var q = t - this.s[i].t;
+    if(q < 0){ live++; continue; }
+    var e = Math.exp(-zs*q);
+    if(e < 1e-3 && this.s[i].done !== false){ this.s[i].done = true; }
+    x += this.s[i].d * (1 - e*(Math.cos(wd*q) + (zs/wd)*Math.sin(wd*q)));
+    if(Math.abs(this.s[i].d*(1-Math.exp(-zs*q))) > 1e-3) live++;
+  }
+  if(this.s.length > live + 1) this.s = this.s.slice(this.s.length-live);
+  return x;
+};
+
+/* ---------------------------------------------------------------- svg build */
+var svg = D.getElementById("graph"), NS = "http://www.w3.org/2000/svg";
+function mk(name, attrs, parent){
+  var e = D.createElementNS(NS, name);
+  for(var k in attrs) e.setAttribute(k, attrs[k]);
+  if(parent) parent.appendChild(e);
+  return e;
+}
+function arc(r, a1, a2){
+  var x1 = r*Math.cos(a1), y1 = r*Math.sin(a1), x2 = r*Math.cos(a2), y2 = r*Math.sin(a2);
+  return "M" + x1.toFixed(2) + " " + y1.toFixed(2) + "A" + r.toFixed(2) + " " + r.toFixed(2) + " 0 0 1 " + x2.toFixed(2) + " " + y2.toFixed(2);
+}
+var edgeLayer, nodeLayer, field;
+field = mk("g", {}, svg);
+edgeLayer = mk("g", {}, field); nodeLayer = mk("g", {}, field);
+EDGES.forEach(function(e){
+  e.p = mk("path", {"class":"edge", pathLength:"1", "stroke-dasharray":"1", "stroke-dashoffset":"1", "stroke-width":"1"}, edgeLayer);
+});
+ALL.forEach(function(n){
+  var g = mk("g", {"class":"node" + (n.ghost ? " ghost" : "")}, nodeLayer);
+  n.g = g;
+  if(!n.ghost){
+    g.setAttribute("tabindex", "0");
+    g.setAttribute("role", "button");
+    g.setAttribute("aria-label", n.lab + ", " + n.val);
+  }
+  n.blob = mk("g", {}, g);
+  n.body = mk("circle", {r:"0", fill:"var(--node)", stroke:"var(--node-line)", "stroke-width":"1"}, n.blob);
+  n.rim = mk("path", {d:"", stroke:"var(--spec)", "stroke-width":"1.4", fill:"none", "stroke-linecap":"round"}, n.blob);
+  if(!n.ghost) n.mark = mk("path", {d:"", stroke:"var(" + (TYPE[n.t] || "--t-note") + ")",
+    "stroke-width":"2.2", fill:"none", "stroke-linecap":"round"}, n.blob);
+  if(!n.ghost){
+    var name = n.lab, text = n.val;
+    n.t1 = mk("text", {x:"0", "class":"nlab", "text-anchor":"middle"}, g);
+    n.t1.textContent = name;
+    n.t2 = mk("text", {x:"0", "class":"nmeta", "text-anchor":"middle"}, g);
+    n.t2.textContent = text;
+    if(n.flag){
+      n.t3 = mk("text", {x:"0", "class":"nflag" + (n.flag === "EXPIRED" ? " exp" : ""), "text-anchor":"middle"}, g);
+      n.t3.textContent = n.flag;
+    }
+    function on(){ focus(n.id); }
+    function off(){ focus(null); }
+    g.addEventListener("pointerenter", on);
+    g.addEventListener("pointerleave", off);
+    g.addEventListener("focus", on);
+    g.addEventListener("blur", off);
+    g.addEventListener("click", function(){ pick(n.id); });
+    g.addEventListener("keydown", function(ev){
+      if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); pick(n.id); }
+    });
+  }
+});
+
+/* ---------------------------------------------------------------- chain strip
+   Six sealed entries, each pointing at its predecessor. The fifth link is where
+   someone reached back, and the chain reports it instead of hiding it.          */
+var chainEl = D.getElementById("chain"), chainCap = chainEl.parentNode.querySelector(".cl");
+var CAP_OK = "sealed audit chain, newest on the right";
+var CAP_BAD = "entry 5 was reached after the fact. the chain reports the break";
+function hme(cls, parent, text){
+  var e = D.createElement("span");
+  e.className = cls;
+  if(text !== undefined) e.textContent = text;
+  if(parent) parent.appendChild(e);
+  return e;
+}
+var chips = [], arrows = [];
+CHAIN.forEach(function(h, i){
+  if(i){
+    var ar = hme("arw", chainEl);
+    arrows.push(ar);
+    if(i === 4) ar.setAttribute("data-brk", "1");
+  }
+  chips.push(hme("lnk", chainEl, h + "\u2026"));
+});
+var brkArrow = arrows[3];
+
+/* ---------------------------------------------------------------- tools list */
+var toolsEl = D.getElementById("tools");
+TOOLS.forEach(function(t){
+  var row = D.createElement("div"); row.className = "tool"; toolsEl.appendChild(row);
+  var c = D.createElement("code"); c.textContent = t[0];
+  var s = D.createElement("span"); s.textContent = t[1];
+  row.appendChild(c); row.appendChild(s);
+});
+
+/* ---------------------------------------------------------------- layout
+   The drawing box is measured once per size change, never per frame: a read
+   in the middle of the write pass would force a layout the scroll cannot afford. */
+var box = {w:0, h:0}, boxDirty = true;
+function measure(){
+  var r = svg.getBoundingClientRect();
+  box.w = Math.max(240, Math.round(r.width));
+  box.h = Math.max(180, Math.round(r.height));
+  boxDirty = false;
+  svg.setAttribute("viewBox", "0 0 " + box.w + " " + box.h);
+  var schmal = box.w < 520;
+  /* below 900px the words leave the sheet, so the field may use the whole width —
+     but the band is short, so it takes the spread-out table and drops the dust.   */
+  var eng = schmal || (MQ && window.matchMedia("(max-width:900px)").matches);
+  box.narrow = schmal;
+  box.eng = eng;
+  var k = cl(Math.min(box.w, box.h*1.35) / 560, .68, 1.15);
+  /* on the wide sheet the words sit on the glass, so the field starts behind them.
+     On a phone the small field is dropped: nine memories, read, is what fits.      */
+  var x0 = eng || !D.querySelector(".stage").classList.contains("js-story") ? 22 : box.w * .44;
+  var x1 = box.w - 26;
+  var y0 = eng ? 44 : 20, y1 = box.h - (eng ? 84 : 46);
+  ALL.forEach(function(n){
+    n.hide = eng && n.ghost;
+    n.x = x0 + (eng ? n.nx : n.bx) * (x1 - x0);
+    n.y = y0 + (eng ? n.ny : n.by) * (y1 - y0);
+    n.r0 = n.r0 || n.r;
+    n.rr = Math.max(3, n.r0 * k);
+  });
+  EDGES.forEach(function(e){
+    var a = BY[e[0]], b = BY[e[1]];
+    e.p.setAttribute("d", "M" + a.x.toFixed(1) + " " + a.y.toFixed(1) + "L" + b.x.toFixed(1) + " " + b.y.toFixed(1));
+  });
+}
+if(W.ResizeObserver){
+  new ResizeObserver(function(){ boxDirty = true; wake(); }).observe(svg);
+}
+
+/* ---------------------------------------------------------------- the seven beats
+   Every value is a pure function of the stage's scroll progress, so a single frame
+   fully determines the picture. Interaction is layered on top of it, not blended in. */
+var B = [0, .14, .28, .42, .56, .70, .85, 1];
+function band(p){ for(var i=0;i<7;i++){ if(p < B[i+1]) return i; } return 6; }
+
+function seek(p, out){
+  var i, n, q, b = band(p), d, a, j;
+  out.b = b; q = rm(p, B[b], B[b+1]);
+  for(i=0;i<ALL.length;i++){ n = ALL[i]; a = out.node[n.id]; a.a = 1; a.sc = 1; a.la = 1; }
+  for(i=0;i<EDGES.length;i++){ out.edge[i] = 1; }
+  out.lift = 0; out.dim = 0; out.prov = 0; out.chain = 0; out.brk = 0; out.door = 0;
+  out.liftNode = "ret";
+
+  if(b === 0){
+    /* Forgetting. The visitor arrives holding a complete record, and their own
+       scrolling is what takes it away: labels go first, edges retract, nodes fall to dust. */
+    var N = ALL.length;
+    for(i=0;i<N;i++){ n = ALL[i];
+      j = (N - 1 - n.i) / N * .45;
+      d = eo(rm(q, j, j + .55));
+      a = out.node[n.id]; a.la = 1 - d; a.a = 1 - .88*d; a.sc = 1 - .34*d;
+    }
+    var E = EDGES.length;
+    for(i=0;i<E;i++){
+      j = i / E * .3;
+      d = eo(rm(q, j, j + .6));
+      out.edge[i] = 1 - d;
+    }
+  } else if(b === 1){
+    /* The record stays. The core four settle out of the hub and edges draw. */
+    CORE.forEach(function(id, k){
+      a = sm(rm(q, k*.14, k*.14 + .52));
+      var o = out.node[id];
+      o.a = a; o.sc = lerp(.5, 1, a); o.la = rm(q, k*.14 + .3, k*.14 + .74);
+    });
+    LATE.concat(CORRECT).concat(FIELD).forEach(function(id){
+      var o = out.node[id]; o.a = 0; o.sc = .5; o.la = 0;
+    });
+    EDGES.forEach(function(e, k){
+      out.edge[k] = (CORE.indexOf(e[0]) >= 0 && CORE.indexOf(e[1]) >= 0) ? sm(rm(q, .25 + k*.02, .8)) : 0;
+    });
+  } else if(b === 2){
+    /* Retrieval. The rest of the index arrives, then one memory is lifted out of the field. */
+    LATE.concat(FIELD).forEach(function(id, k){
+      a = sm(rm(q, .02 + (k%8)*.05, .02 + (k%8)*.05 + .4));
+      var o = out.node[id]; o.a = a; o.sc = lerp(.6, 1, a); o.la = a;
+    });
+    CORRECT.forEach(function(id){
+      var o = out.node[id]; o.a = 0; o.sc = .5; o.la = 0;
+    });
+    out.lift = eo(rm(q, .5, .95));
+    out.dim = out.lift * .62;
+  } else if(b === 3){
+    /* Provenance. The lifted memory shows its proof. */
+    out.lift = 1; out.dim = .62;
+    out.prov = sm(rm(q, .05, .45));
+  } else if(b === 4){
+    /* Superseded and expired. Neither vanishes; one loses weight, one goes amber. */
+    var rel = 1 - sm(rm(q, 0, .38));
+    out.lift = rel; out.dim = rel * .62; out.prov = 1;
+    CORRECT.forEach(function(id, k){
+      a = sm(rm(q, .3 + k*.12, .74 + k*.12));
+      var o = out.node[id];
+      o.a = a * (BY[id].flag === "SUPERSEDED" ? .62 : .92);
+      o.sc = lerp(.55, 1, a); o.la = a;
+    });
+  } else if(b === 5){
+    /* The chain. Entries append, each pointing at its predecessor; one was reached after the fact. */
+    out.prov = 1;
+    out.chain = sm(rm(q, .05, .5));
+    out.brk = sm(rm(q, .58, .86));
+  } else {
+    /* One door. Everything at rest, and the reach hands over to the record below. */
+    out.prov = 1; out.chain = 1; out.brk = 1; out.door = sm(rm(q, .05, .55));
+  }
+  return out;
+}
+
+function frameState(){
+  var s = {b:0, lift:0, dim:0, prov:0, chain:0, brk:0, door:0, liftNode:"ret", node:{}, edge:[]};
+  ALL.forEach(function(n){ s.node[n.id] = {a:1, sc:1, la:1}; });
+  EDGES.forEach(function(e, i){ s.edge[i] = 1; });
+  return s;
+}
+var S1 = frameState();
+
+/* ---------------------------------------------------------------- interaction */
+var focusId = null, picked = null, query = "";
+var lifts = {}, aways = {};
+ALL.forEach(function(n){ lifts[n.id] = new Spring(.72, 11); aways[n.id] = new Spring(.72, 11); });
+var now0 = 0;
+function focus(id){
+  if(id === focusId) return;
+  focusId = id;
+  ALL.forEach(function(n){
+    lifts[n.id].to(id && n.id === id ? 1 : 0, now0);
+    aways[n.id].to(id && n.id !== id ? 1 : 0, now0);
+  });
+  wake();
+}
+function pick(id){
+  picked = picked === id ? null : id;
+  showProv(picked ? id : focusId);
+}
+
+/* ---------------------------------------------------------------- search
+   A real scorer over the demo index: words, then links. Not the product's
+   fusion; the caption says which is which.                                 */
+function words(s){ return s.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").split(" ").filter(Boolean); }
+var INDEX = NODES.map(function(n){
+  return {id:n.id, lw:words(n.lab + " " + n.val), tags:words(n.t + " " + n.src)};
+});
+function adjacent(id, set){
+  for(var i=0;i<EDGES.length;i++){
+    if(EDGES[i][0] === id && set[EDGES[i][1]]) return true;
+    if(EDGES[i][1] === id && set[EDGES[i][0]]) return true;
+  }
+  return false;
+}
+/* two signals, scored apart, then added: wording, then a link to something that
+   did match. The product's third signal, trigram vectors, does not run here.     */
+function rank(str){
+  var q = words(str);
+  if(!q.length) return [];
+  var hits = [], matched = {};
+  INDEX.forEach(function(e){
+    var ws = 0;
+    q.forEach(function(w){
+      e.lw.forEach(function(t){
+        if(t === w) ws += 3;
+        else if(t.length > 3 && (t.indexOf(w) === 0 || w.indexOf(t) === 0)) ws += 1.2;
+      });
+      if(e.tags.indexOf(w) >= 0) ws += 1;
+    });
+    if(ws > 0){ matched[e.id] = 1; hits.push({id:e.id, s:ws}); }
+  });
+  if(!hits.length) return [];
+  hits.forEach(function(h){
+    h.s2 = adjacent(h.id, matched) ? 1 : 0;
+    h.s += h.s2 * 1.2;
+    h.sig = h.s2 ? "word + link" : "word";
+  });
+  hits.sort(function(a,b){ return b.s - a.s; });
+  return hits.slice(0, 4);
+}
+var lensEl = D.getElementById("lens"), qEl = D.getElementById("q");
+function sp(parent, cls, text){
+  var e = D.createElement("span");
+  if(cls) e.className = cls;
+  e.textContent = text;
+  parent.appendChild(e);
+  return e;
+}
+function paintLens(){
+  if(!query){ lensEl.removeAttribute("data-open"); lensEl.innerHTML = ""; return; }
+  var hits = rank(query);
+  lensEl.innerHTML = "";
+  if(!hits.length){
+    var wrap = D.createElement("div"); wrap.className = "empty-lens"; lensEl.appendChild(wrap);
+    hme2(wrap, "b", "No matches");
+    var par = D.createElement("p"); wrap.appendChild(par);
+    par.appendChild(D.createTextNode("Nothing in this demo index holds that wording. "));
+    var link = D.createElement("a"); link.href = "#record"; link.textContent = "see what the record is built from";
+    par.appendChild(link);
+    par.appendChild(D.createTextNode(", or try retention, chain, custodian, drafts."));
+  } else {
+    hits.forEach(function(h, i){
+      var n = BY[h.id];
+      var btn = D.createElement("button");
+      btn.type = "button"; btn.className = "hit";
+      sp(btn, "hl", n.lab);
+      sp(btn, "hv", n.val);
+      var meta = sp(btn, "hm", "");
+      sp(meta, "rank", (i+1) + "  " + h.sig);
+      sp(meta, null, n.t);
+      sp(meta, null, n.src);
+      sp(meta, null, "since " + n.since);
+      btn.addEventListener("pointerenter", function(){ focus(n.id); });
+      btn.addEventListener("focus", function(){ focus(n.id); });
+      btn.addEventListener("click", function(){ pick(n.id); qEl.blur(); });
+      lensEl.appendChild(btn);
+    });
+  }
+  lensEl.setAttribute("data-open", "1");
+}
+function hme2(parent, tag, text){
+  var e = D.createElement(tag);
+  e.textContent = text;
+  parent.appendChild(e);
+  return e;
+}
+var lensTimer = 0;
+qEl.addEventListener("input", function(){
+  query = qEl.value.replace(/^\s+|\s+$/g, "");
+  var hits = rank(query);
+  focus(hits.length && query ? hits[0].id : null);
+  paintLens();
+  if(lensTimer) W.clearTimeout(lensTimer);
+});
+qEl.addEventListener("focus", function(){ if(query) paintLens(); });
+qEl.addEventListener("keydown", function(ev){
+  if(ev.key === "Escape"){ qEl.value = ""; query = ""; focus(null); paintLens(); qEl.blur(); }
+});
+qEl.addEventListener("blur", function(){
+  W.setTimeout(function(){ if(!lensEl.contains(D.activeElement)) { focus(null); } }, 140);
+});
+D.addEventListener("keydown", function(ev){
+  if(ev.key === "/" && D.activeElement !== qEl && !/input|textarea/i.test(D.activeElement.tagName)){
+    ev.preventDefault(); qEl.focus();
+  }
+});
+
+/* ---------------------------------------------------------------- provenance lens
+   The proof line a node carries. Same shape for every node, never a badge wall. */
+var provEl = D.getElementById("prov");
+function showProv(id){
+  var n = id ? BY[id] : null;
+  if(!n){ provEl.innerHTML = ""; provEl.removeAttribute("data-for"); return; }
+  if(provEl.getAttribute("data-for") !== n.id){
+    provEl.setAttribute("data-for", n.id);
+    provEl.innerHTML = "";
+    sp(provEl, "pt", n.lab + ", " + n.val);
+    var d = sp(provEl, "pd", "");
+    [["source", n.src], ["from", n.act], ["valid since", n.since], ["weight", n.w.toFixed(2)]].forEach(function(pair){
+      var row = sp(d, null, "");
+      sp(row, "pk", pair[0]);
+      sp(row, "pv", pair[1]);
+    });
+    if(n.flag) sp(d, "pf" + (n.flag === "EXPIRED" ? " exp" : ""), n.flag);
+  }
+}
+
+/* ---------------------------------------------------------------- rail + captions */
+var beats = [].slice.call(D.querySelectorAll(".beat")),
+    ticksEl = D.getElementById("ticks"), countEl = D.getElementById("count");
+var tickEls = [];
+for(var t = 0; t < 7; t++) tickEls.push(sp(ticksEl, "tk", ""));
+var shownBand = -1;
+function showBeat(b){
+  if(REDUCE || b === shownBand) return;
+  shownBand = b;
+  for(var i = 0; i < 7; i++){
+    var on = i === b ? "1" : "0";
+    if(beats[i].getAttribute("data-on") !== on) beats[i].setAttribute("data-on", on);
+    if(tickEls[i].getAttribute("data-on") !== on) tickEls[i].setAttribute("data-on", on);
+  }
+  countEl.textContent = (b+1) + " of 7";
+}
+
+/* ---------------------------------------------------------------- the draw loop */
+var stage = D.getElementById("stage"), frame = stage.querySelector(".frame"),
+    chainBox = D.getElementById("chainbox");
+var p = 0, springs = false, raf = 0, capBad = false;
+
+function readP(){
+  if(REDUCE){ p = 1; return; }
+  var r = stage.getBoundingClientRect();
+  var span = r.height - frame.offsetHeight;
+  p = span > 4 ? cl(-r.top / span, 0, 1) : 1;
+}
+
+function draw(now){
+  now0 = now/1000;
+  if(boxDirty) measure();
+  readP();
+  seek(p, S1);
+  /* scroll writes the story directly; pointer, focus and typing ride springs on top */
+  var anySpring = false;
+  for(var i = 0; i < ALL.length; i++){
+    var n = ALL[i], id = n.id;
+    var L = lifts[id].at(now0), A = aways[id].at(now0);
+    if(Math.abs(L - lifts[id].target) > 1e-4 || Math.abs(A - aways[id].target) > 1e-4) anySpring = true;
+    var stn = S1.node[id];
+    var storyLift = (S1.liftNode === id) ? S1.lift : 0;
+    var L2 = Math.max(L, storyLift);
+    var storyDim = (S1.dim > 0 && S1.liftNode !== id) ? S1.dim : 0;
+    var A2 = Math.max(A, storyDim);
+    var a = cl(stn.a * (1 - .55*A2), 0, 1) * (n.ghost ? .5 : 1) * (n.hide ? 0 : 1);
+    var sc = stn.sc * (1 + .16*L2 - .05*A2);
+    var la = cl(stn.la * (1 - .78*A2), 0, 1);
+    /* on a phone the field is unnamed until something is lifted out of it */
+    if(box.narrow && L2 < .25) la = 0;
+    var rr = n.rr * sc;
+    n.g.setAttribute("transform", "translate(" + n.x.toFixed(2) + "," + (n.y - 7*L2).toFixed(2) + ")");
+    n.body.setAttribute("r", rr.toFixed(2));
+    n.rim.setAttribute("d", arc(rr, -2.85, -1.9));
+    n.body.setAttribute("opacity", a.toFixed(3));
+    n.rim.setAttribute("opacity", (a * .8).toFixed(3));
+    if(n.ghost) continue;
+    n.mark.setAttribute("d", arc(rr, .55, 1.12));
+    n.mark.setAttribute("opacity", (a * (n.flag ? .5 : .85)).toFixed(3));
+    n.t1.setAttribute("y", (rr + 19).toFixed(1));
+    n.t2.setAttribute("y", (rr + 34).toFixed(1));
+    n.t1.setAttribute("opacity", la.toFixed(3));
+    n.t2.setAttribute("opacity", (la * .9).toFixed(3));
+    if(n.t3){ n.t3.setAttribute("y", (rr + 48).toFixed(1)); n.t3.setAttribute("opacity", la.toFixed(3)); }
+    if(n.flag) n.body.setAttribute("stroke", n.flag === "EXPIRED" ? "var(--warn)" : "var(--ink-3)");
+    else if(L2 > .5) n.body.setAttribute("stroke", "var(--accent-line)");
+    else n.body.setAttribute("stroke", "var(--node-line)");
+    n.body.setAttribute("stroke-width", L2 > .5 && !n.flag ? "1.8" : "1");
+  }
+  for(i = 0; i < EDGES.length; i++){
+    var f = S1.edge[i], e = EDGES[i];
+    var bright = Math.max(lifts[e[0]].at(now0), lifts[e[1]].at(now0),
+                          (S1.liftNode === e[0] ? S1.lift : 0), (S1.liftNode === e[1] ? S1.lift : 0));
+    var ghosty = BY[e[0]].ghost || BY[e[1]].ghost;
+    var rest = (e[1] === "sup" || e[1] === "exp") ? .45 : (ghosty ? .5 : 1);
+    if(BY[e[0]].hide || BY[e[1]].hide) rest = 0;
+    e.p.setAttribute("stroke-dashoffset", (1 - f).toFixed(3));
+    e.p.setAttribute("opacity", (f * rest * (1 - (bright > .5 ? 0 : .5*S1.dim))).toFixed(3));
+    e.p.setAttribute("stroke", bright > .45 ? "var(--accent-line)" : "var(--line)");
+    e.p.setAttribute("stroke-width", bright > .45 ? "1.6" : (ghosty ? ".8" : "1.1"));
+  }
+  /* the two lenses, the chain, the handover */
+  var g = S1.door, s = 1 - .06*g;
+  if(g > .002 || field.getAttribute("data-g") !== "1"){
+    field.setAttribute("data-g", g > .002 ? "1" : "0");
+    field.setAttribute("transform", "translate(" + (BY.chain.x*(1-s)).toFixed(2) + "," + (BY.chain.y*(1-s)).toFixed(2) +
+      ") scale(" + s.toFixed(4) + ")");
+    field.setAttribute("opacity", (1 - .2*g).toFixed(3));
+  }
+  var cause = picked || focusId || (query ? rank(query)[0] && rank(query)[0].id : null);
+  var pa = cl(Math.max(S1.prov, cause ? 1 : 0), 0, 1);
+  var pid = cause || (S1.prov > .02 ? S1.liftNode : null);
+  if(pa > .02 && pid) showProv(pid);
+  else if(pa <= .02) showProv(null);
+  provEl.style.opacity = pa.toFixed(3);
+  provEl.style.visibility = pa > .02 ? "visible" : "hidden";
+  provEl.style.transform = "translateY(" + ((1 - pa) * 8).toFixed(1) + "px)";
+  chainBox.style.opacity = S1.chain.toFixed(3);
+  chainBox.style.visibility = S1.chain > .02 ? "visible" : "hidden";
+  chainBox.style.transform = "translateY(" + ((1 - S1.chain) * 8).toFixed(1) + "px)";
+  brkArrow.style.color = S1.brk > .5 ? "var(--bad)" : "";
+  brkArrow.style.opacity = S1.chain.toFixed(3);
+  chips.forEach(function(c){ c.style.opacity = S1.chain.toFixed(3); });
+  arrows.forEach(function(ar){ if(ar !== brkArrow) ar.style.opacity = S1.chain.toFixed(3); });
+  var wantBad = S1.brk > .6;
+  if(wantBad !== capBad){
+    capBad = wantBad;
+    chainCap.textContent = wantBad ? CAP_BAD : CAP_OK;
+    chainCap.className = wantBad ? "cl bad" : "cl";
+  }
+  showBeat(S1.b);
+  springs = anySpring;
+}
+
+function loop(now){
+  raf = 0;
+  draw(now);
+  if(springs) raf = W.requestAnimationFrame(loop);
+}
+function wake(){
+  if(!raf) raf = W.requestAnimationFrame(loop);
+}
+W.addEventListener("scroll", wake, {passive:true});
+var rt = 0;
+W.addEventListener("resize", function(){
+  root.style.setProperty("--sh", (W.innerHeight/100) + "px");
+  if(rt) W.clearTimeout(rt);
+  rt = W.setTimeout(function(){ rt = 0; boxDirty = true; wake(); }, 120);
+});
+
+/* ---------------------------------------------------------------- mode */
+if(REDUCE){
+  /* Reduced motion is not less content. Every beat's end state stands on the page,
+     the stage is not pinned, and nothing transitions. */
+  stage.classList.add("js-reduce");
+  chainBox.style.opacity = "1";
+  chainCap.textContent = CAP_BAD;
+  chainCap.className = "cl bad";
+  brkArrow.style.color = "var(--bad)";
+  showProv("ret");
+  provEl.style.opacity = "1";
+  provEl.style.visibility = "visible";
+  draw(0);
+  beats.forEach(function(b){ b.setAttribute("data-on", "1"); });
+  shownBand = -1;
+} else {
+  stage.classList.add("js-story");
+  draw(0);
+}
+wake();
+})();
+</script>
+</body>
+</html>
