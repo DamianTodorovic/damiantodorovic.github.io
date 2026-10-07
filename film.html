@@ -49,7 +49,6 @@
 
 *,*::before,*::after{box-sizing:border-box}
 html{background:var(--papier);-webkit-text-size-adjust:100%}
-html.flug{overflow-x:hidden}
 body{
   margin:0;background:transparent;color:var(--tinte);
   font-family:var(--brotd);font-size:17px;line-height:1.62;
@@ -59,7 +58,14 @@ body{
 a{color:inherit;text-decoration:none}
 h1,h2,h3,p,ul,figure{margin:0;padding:0}
 ul{list-style:none}
-::selection{background:rgba(142,47,47,.18)}
+::selection{background:rgba(142,47,47,.22);color:var(--tinte)}
+input,textarea{caret-color:var(--wax)}
+a{text-underline-offset:3px;text-decoration-thickness:1px}
+html{scrollbar-color:rgba(20,22,26,.34) transparent;scrollbar-width:thin}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(20,22,26,.26);border:3px solid transparent;background-clip:content-box;border-radius:10px}
+::-webkit-scrollbar-thumb:hover{background:rgba(20,22,26,.44);background-clip:content-box}
 :focus-visible{outline:2px solid var(--wax);outline-offset:3px;border-radius:2px}
 
 /* ---------- die Bühne: ein Rahmen, der nie mitrollt ---------- */
@@ -112,20 +118,7 @@ html.no-3d #buehne::after{
 }
 
 /* ---------- Tiefe: Staub und Membranen ---------- */
-#luft,#haute{position:absolute;inset:0;pointer-events:none}
-#luft{z-index:3}
-#haute{z-index:2}
-.haut{
-  position:absolute;left:0;top:0;width:760px;height:520px;
-  border:1px solid rgba(20,22,26,.72);
-  box-shadow:inset 0 0 0 1px rgba(20,22,26,.16), inset 0 0 90px rgba(20,22,26,.05);
-  opacity:0;
-}
-.haut::before,.haut::after{
-  content:"";position:absolute;width:30px;height:30px;border:1px solid rgba(20,22,26,.8);
-}
-.haut::before{left:-13px;top:-13px;border-right:0;border-bottom:0}
-.haut::after{right:-13px;bottom:-13px;border-left:0;border-top:0}
+#luft{position:absolute;inset:0;pointer-events:none;z-index:3}
 .stueb{
   position:absolute;left:0;top:0;width:3px;height:3px;border-radius:50%;
   background:rgba(20,22,26,.55);
@@ -137,15 +130,6 @@ html.no-3d #buehne::after{
   opacity:0;will-change:transform,opacity,filter;
 }
 .akt[data-reachbar="0"]{pointer-events:none}
-
-.auge{
-  display:flex;align-items:center;gap:12px;
-  font-family:var(--mono);font-size:11.5px;font-weight:500;
-  letter-spacing:.26em;text-transform:uppercase;color:var(--ton);
-}
-.auge .strich{flex:0 0 auto;width:46px;height:1px;background:var(--linie-stark);transform-origin:left}
-.auge .strich:last-child{transform-origin:right}
-.auge b{color:var(--wax);font-weight:600}
 
 .titel{
   font-family:var(--display);font-weight:200;
@@ -172,14 +156,8 @@ html.no-3d #buehne::after{
 /* Kopfstation */
 #a0 .titel{margin-top:0}
 #a0 .zeile:nth-child(2)>span{transition:none}
-.klappe{
-  margin-top:34px;display:flex;align-items:flex-end;gap:22px;flex-wrap:wrap;
-  font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ton);
-}
-.klappe .rahmen{
-  border:1px solid var(--linie-stark);padding:7px 13px;
-}
-.klappe .zeitcode{color:var(--wax);font-variant-numeric:tabular-nums}
+.klappe{margin-top:30px;font-family:var(--mono);font-size:13px;letter-spacing:.16em;color:var(--ton)}
+.klappe .zeitcode{color:var(--wax);font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
 
 /* ---------- Tafeln & Netze ---------- */
 .brett{
@@ -199,11 +177,11 @@ html.no-3d #buehne::after{
 .faden{fill:none;stroke:rgba(47,65,87,.5);stroke-width:1.15;stroke-linecap:round}
 .ast{
   position:absolute;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50%;
-  background:var(--schiefer);box-shadow:0 0 0 4px rgba(47,65,87,.13);
+  background:var(--schiefer);box-shadow:1px 3px 7px -2px rgba(20,22,26,.45);
 }
-.ast.treffer{background:var(--wax);box-shadow:0 0 0 5px rgba(142,47,47,.15)}
+.ast.treffer{background:var(--wax);box-shadow:1px 3px 8px -2px rgba(142,47,47,.55)}
 .kante{
-  position:absolute;font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;
+  position:absolute;font-family:var(--mono);font-size:11px;letter-spacing:.16em;
   text-transform:uppercase;color:var(--ton);white-space:nowrap;
 }
 
@@ -213,7 +191,7 @@ html.no-3d #buehne::after{
 }
 .zeugnis li:last-child{border-bottom:1px solid var(--linie)}
 .zeugnis dt{
-  font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ton);
+  font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ton);
 }
 .zeugnis dd{font-size:15.5px;line-height:1.5}
 .zeugnis dd b{font-weight:600}
@@ -225,7 +203,7 @@ html.no-3d #buehne::after{
   padding:14px 12px 12px;background:rgba(253,252,249,.7);
   display:flex;flex-direction:column;gap:8px;
 }
-.block .nr{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--ton)}
+.block .nr{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--ton)}
 .block .sig{
   height:34px;border:1px solid var(--linie);display:grid;place-items:center;
   font-family:var(--mono);font-size:11px;color:var(--schiefer);
@@ -240,13 +218,12 @@ html.no-3d #buehne::after{
   border-top:1px solid var(--linie-stark);border-right:1px solid var(--linie-stark);transform:rotate(45deg);
 }
 .kettenstand{
-  margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;
-  font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ton);
+  margin-top:18px;display:flex;gap:26px;align-items:baseline;flex-wrap:wrap;
+  font-size:13.5px;color:var(--ton);border-top:1px solid var(--linie);padding-top:12px;
 }
-.kettenstand i{
-  font-style:normal;border:1px solid var(--linie-stark);padding:4px 9px;color:var(--tinte);
-}
-.kettenstand i.bruch{border-color:var(--wax);color:var(--wax)}
+.kettenstand b{color:var(--tinte);font-weight:600}
+.kettenstand .z{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:500}
+.kettenstand .bruch b{color:var(--wax)}
 
 /* Werkzeuge */
 .tuer{margin-top:34px;border-top:1px solid var(--linie)}
@@ -256,17 +233,17 @@ html.no-3d #buehne::after{
 }
 .wz .name{font-family:var(--mono);font-size:clamp(14px,1.5vw,20px);font-weight:500;letter-spacing:-.01em}
 .wz .art{
-  font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
-  padding:4px 9px;border:1px solid var(--linie-stark);color:var(--ton);white-space:nowrap;
+  font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ton);white-space:nowrap;padding-left:14px;border-left:1px solid var(--linie);
 }
-.wz.schreib .art{border-color:rgba(142,47,47,.38);color:var(--wax)}
+.wz.schreib .art{color:var(--wax);border-left-color:rgba(142,47,47,.42)}
 .wz .balken{
   grid-column:1/-1;height:1px;background:var(--schiefer);opacity:.28;
   transform:scaleX(0);transform-origin:left;
 }
 .schleuse{
   margin-top:22px;display:flex;gap:14px;align-items:flex-start;
-  border-left:2px solid var(--wax);padding:2px 0 2px 16px;
+  border-left:1px solid var(--wax);padding:2px 0 2px 18px;
 }
 .schleuse p{font-size:15.5px;color:var(--ton);max-width:52ch}
 .schleuse p b{color:var(--tinte)}
@@ -343,7 +320,7 @@ html.no-3d #buehne::after{
 .tick{display:flex;align-items:center;gap:9px;height:26px;cursor:pointer;background:none;border:0;padding:0 2px;font:inherit;color:var(--ton)}
 .tick .str{width:16px;height:1px;background:var(--linie-stark);transition:width var(--standard) var(--ease),background var(--standard) var(--ease)}
 .tick .nm{
-  font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;
+  font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;
   opacity:0;transform:translate3d(6px,0,0);
   transition:opacity var(--standard) var(--ease),transform var(--standard) var(--ease);
 }
@@ -362,7 +339,7 @@ html.no-3d #buehne::after{
 #hinweis{
   position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:20;
   display:flex;flex-direction:column;align-items:center;gap:9px;
-  font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--ton);
+  font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--ton);
   opacity:0;transition:opacity var(--slow) var(--ease);
 }
 #hinweis.sichtbar{opacity:1}
@@ -384,7 +361,7 @@ html.no-3d #buehne::after{
 .lade-in svg{width:44px;height:44px;border-radius:10px}
 .lade-leiste{width:200px;height:1px;background:var(--linie);overflow:hidden}
 .lade-leiste i{display:block;height:100%;width:100%;background:var(--tinte);transform:scaleX(0);transform-origin:left;transition:transform 240ms linear}
-.lade-stand{font-family:var(--mono);font-size:10.5px;letter-spacing:.24em;color:var(--ton);font-variant-numeric:tabular-nums}
+.lade-stand{font-family:var(--mono);font-size:11px;letter-spacing:.24em;color:var(--ton);font-variant-numeric:tabular-nums}
 
 /* ----------RESPONSIV---------- */
 @media (max-width:900px){
@@ -407,7 +384,7 @@ html.no-3d #buehne::after{
 /* ---------- reduzierte Bewegung: eigene ruhende Zustände ---------- */
 @media (prefers-reduced-motion:reduce){
   :root{--standard:120ms;--slow:120ms}
-  #luft,#haute,#schleier{display:none}
+  #luft,#schleier{display:none}
   .akt{transition:opacity 120ms linear}
   #hinweis .fall::after{animation:none}
   .knopf:hover{transform:none}
@@ -418,28 +395,21 @@ html.no-3d #buehne::after{
 
 <div id="buehne" aria-hidden="false">
   <canvas id="licht"></canvas>
-  <div id="haute"></div>
   <div id="welt">
 
     <!-- 00 · KLAPPE -->
     <section class="akt" id="a0" aria-label="KEPTA — Erinnerung, die bleibt">
-      <p class="auge"><span class="strich"></span><b>KEPTA</b> · Memory-Layer<span class="strich"></span></p>
       <h1 class="titel">
         <span class="zeile"><span>Was du</span></span>
         <span class="zeile"><span><em>wisst,</em></span></span>
         <span class="zeile"><span class="wax">bleibt.</span></span>
       </h1>
       <p class="ust">Ein Gedächtnis für Claude, Cursor und alles, was danach kommt. <strong>Auf deiner eigenen Platte</strong>, hinter einer Mandanten-Wand, mit einer Kette unter jedem Satz.</p>
-      <p class="klappe">
-        <span class="rahmen">Kamerafahrt</span>
-        <span class="rahmen">sechs Stationen</span>
-        <span class="zeitcode" id="zeitcode">00:00:00:00</span>
-      </p>
+      <p class="klappe"><span class="zeitcode" id="zeitcode">00:00:00:00</span></p>
     </section>
 
     <!-- 01 · AKTE -->
     <section class="akt" id="a1" aria-label="Was eine Erinnerung bei KEPTA ist">
-      <p class="auge"><span class="strich"></span>01 · Die Akte</p>
       <div class="brett">
         <div class="untergrund">
           <i class="ecke i"></i><i class="ecke ii"></i>
@@ -469,18 +439,16 @@ html.no-3d #buehne::after{
 
     <!-- 02 · SPUR -->
     <section class="akt" id="a2" aria-label="Die versiegelte Audit-Kette">
-      <p class="auge"><span class="strich"></span>02 · Die Spur</p>
       <p class="satz">Jeder Zugriff <em>bleibt sichtbar.</em></p>
       <div class="kette" id="kette"></div>
       <p class="kettenstand">
-        <i>Kette intakt</i><i>Hash je Eintrag</i><i class="bruch">Bruch = Meldung</i>
+        <span>Kette <b>intakt</b></span><span>Eintrag <b class="z">06</b> · Vorgänger <b class="z">05</b></span><span class="bruch">Bruch <b>wird gemeldet</b></span>
       </p>
       <p class="ust">Jeder Lese- und jeder Schreibzugriff wird eingetragen, und <strong>jeder Eintrag verweist auf seinen Vorgänger</strong>. Wer nachträglich schreibt, bricht die Kette — und der Bruch selbst ist die Warnung.</p>
     </section>
 
     <!-- 03 · TÜR -->
     <section class="akt" id="a3" aria-label="Die MCP-Tür und ihre sechs Werkzeuge">
-      <p class="auge"><span class="strich"></span>03 · Die Tür</p>
       <p class="satz">Sechs Werkzeuge, <em>eine Wand.</em></p>
       <ul class="tuer" id="tuer"></ul>
       <div class="schleuse">
@@ -490,7 +458,6 @@ html.no-3d #buehne::after{
 
     <!-- 04 · STUFEN -->
     <section class="akt" id="a4" aria-label="Die beiden Stufen: Core und Enterprise">
-      <p class="auge"><span class="strich"></span>04 · Die Stufen</p>
       <p class="satz">Zwei Stufen. <em>Kein Mittelweg.</em></p>
       <div class="stufen">
         <div class="stufe">
@@ -516,7 +483,6 @@ html.no-3d #buehne::after{
 
     <!-- 05 · ENDE -->
     <section class="akt" id="a5" aria-label="Anfangen">
-      <p class="auge"><span class="strich"></span>05 · Klappe zu</p>
       <h2 class="titel" style="font-size:clamp(42px,7vw,112px)">
         <span class="zeile"><span>Fang an,</span></span>
         <span class="zeile"><span>dich zu <em>erinnern.</em></span></span>
@@ -563,7 +529,7 @@ html.no-3d #buehne::after{
   <div class="lade-in">
     <svg viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="112" fill="#14161a"/><circle cx="176" cy="256" r="11" fill="#ffffff"/><path d="M176 256V176" stroke="#fff" stroke-width="22"/><path d="M176 256V336" stroke="#fff" stroke-width="22"/><path d="M176 256L288 176" stroke="#fff" stroke-width="22"/><path d="M176 256L288 336" stroke="#fff" stroke-width="22"/><circle cx="336" cy="178" r="17" fill="#b4544f"/></svg>
     <div class="lade-leiste"><i id="lade-balken"></i></div>
-    <p class="lade-stand" id="lade-stand">BLende</p>
+    <p class="lade-stand" id="lade-stand">Blende</p>
   </div>
 </div>
 
@@ -571,7 +537,7 @@ html.no-3d #buehne::after{
   html.flug{overflow:visible}
   #buehne{position:static;height:auto;background:var(--papier)}
   #welt{position:static}
-  #spur,#luft,#haute,#schleier,#saum,#rand,#licht,#mast,#spur-nav,#hinweis,#lade,#fortschritt{display:none}
+  #spur,#luft,#schleier,#saum,#rand,#licht,#mast,#spur-nav,#hinweis,#lade,#fortschritt{display:none}
   .akt{position:static;opacity:1!important;transform:none!important;filter:none!important;width:auto;max-width:1080px;margin:0 auto;padding:72px 6vw}
 </style></noscript>
 
@@ -619,13 +585,14 @@ var NS=ST.length;
 /* Wie weit der Körper gebaut ist, und wie das Blatt belichtet wird.
    Die Adern sind an den Haltepunkten schmal — dort gehört der Rahmen dem Text —
    und schwellen im Flug an: der Körper atmet mit der Geschwindigkeit. */
-var ZUST=[0.52,0.62,0.74,0.66,0.58,0.48];
+var ZUST=[0.30,0.36,0.44,0.38,0.34,0.28];
 var BEL =[1.00,0.988,1.028,0.996,0.986,1.020];
 for(var s0=0;s0<NS;s0++){
   ST[s0].z=-s0*ABST;
   ST[s0].kz=ST[s0].z+BRENNE;
   ST[s0].atem=0.5+s0*0.17;
   ST[s0].ph=s0*1.31;
+  ST[s0].regie=s0;
 }
 
 var ww=0,hh=0,KF=1, maxlauf=1;
@@ -729,12 +696,11 @@ function Z(tag,klasse,text){
 function W(sel){return D.querySelector(sel);}
 
 /* ---------- Staub & Membranen ---------- */
-var STAEUB=[],HAUTE=[];
+var STAEUB=[];
 function weltzeug(){
-  var luft=W("#luft"), haute=W("#haute");
-  if(!luft||!haute) return;
-  luft.innerHTML=""; haute.innerHTML="";
-  STAEUB=[]; HAUTE=[];
+  var luft=W("#luft");
+  if(!luft) return;
+  luft.innerHTML=""; STAEUB=[];
   var n=ww<780?20:46, tiefe=ABST*(NS-1);
   for(var i=0;i<n;i++){
     var e=D.createElement("i"); e.className="stueb";
@@ -747,13 +713,6 @@ function weltzeug(){
       x:(P(i)*2-1)*1500, y:(P(i+91)*2-1)*900,
       z:BRENNE+520-P(i+13)*(tiefe+1500),
       v:0.13+P(i+7)*0.4, ph:P(i+31)*6.28, dr:5+P(i+57)*26});
-  }
-  var m=ww<780?7:12, schritt=(tiefe+1500)/m;
-  for(var j=0;j<m;j++){
-    var h=D.createElement("div"); h.className="haut";
-    haute.appendChild(h);
-    h._w=h.offsetWidth; h._h=h.offsetHeight;
-    HAUTE.push({el:h,z:BRENNE+700-j*schritt});
   }
 }
 var PSAAT=1;
@@ -820,11 +779,11 @@ function licht(){
   " float z=p.z, b=.24+.76*uZ;",
   " float w1=z*.00105,w2=z*.0008,s1=sin(w1),c1=cos(w1),s2=sin(w2),c2=cos(w2);",
   " vec2 a1=vec2(s1*300.,c2*170.);",
-  " float r1=(74.+46.*sin(z*.0034)+22.*sin(z*.0091+1.7))*b;",
+  " float r1=(46.+18.*sin(z*.0034)+9.*sin(z*.0091+1.7))*b;",
   " float d=length(p.xy-a1)-max(r1,4.);",
   /* zwei Phasenverschiebungen, einmal gerechnet */
   " vec2 a2=vec2((s1*(-.5048)+c1*.8632)*300.,(c2*(-.5048)-s2*.8632)*170.);",
-  " float r2=(34.+21.*sin(z*.0052+.6))*b;",
+  " float r2=(21.+9.*sin(z*.0052+.6))*b;",
   " d=sminw(d,length(p.xy-a2)-max(r2,3.),74.);",
     " return d;}",
   "float map(vec3 p){return korper(p,0.);}",
@@ -889,10 +848,10 @@ function licht(){
   "  float spe=pow(max(dot(reflect(rd,n),L),0.),34.)*sh;",
   "  float adern=pow(max(.28+.34*(sin(ph.x*.019+ph.y*.013)+sin(ph.z*.021-uT*.5)),0.),2.2);",
   "  vec3 grund=s2l(mix(vec3(.048,.055,.070),vec3(.205,.098,.094),.22+.5*adern));",
-  "  vec3 c=grund*(.10+1.30*dif*ao)+vec3(1.30,1.25,1.15)*spe*1.6*ao;",
+  "  vec3 c=grund*(.07+1.55*dif*ao)+vec3(1.35,1.30,1.20)*spe*2.3*ao;",
   "  c+=s2l(vec3(.70,.16,.14))*rim*(.50+.5*ao)*(.45+.55*uZ);",
   "  c+=s2l(vec3(.94,.70,.46))*adern*(.05+.40*uZ)*ao;",
-  "  col=mix(papier,c,(1.-smoothstep(800.,3600.,t))*cov);",
+  "  col=mix(papier,c,(1.-smoothstep(560.,2300.,t))*cov);",
   " }",
   " col+=vec3(1.06,.94,.78)*pow(max(dot(rd,L),0.),30.)*.30*(.4+.6*uZ);",
   " float maske=uM*(1.-smoothstep(.06,.66,length(sp*vec2(.70,1.02))));",
@@ -996,6 +955,7 @@ function kind(e){
   e._fugen  =e.querySelectorAll(".fuge");
   e._wz     =e.querySelectorAll(".wz");
   e._stufen =e.querySelectorAll(".stufe");
+  e._knoepfe =e.querySelectorAll(".knopf");
   e._saetze =e.querySelectorAll(".satz,.ust,.klappe,.kettenstand,.zeugnis li,.untergrund,.schleuse p,.werbung,.klein,.netz");
 }
 
@@ -1015,10 +975,29 @@ function tauch(list,achse,weg){
     }
   }
 }
-function punkt(list){
+function punkt(list,umkehr){
   for(var i=0;i<list.length;i++){
     var v=list[i]._u, s=(0.25+0.75*v).toFixed(3);
     if(list[i]._alt!==s){list[i]._alt=s;list[i].style.transform="scale("+s+")";list[i].style.opacity=v.toFixed(3);}
+  }
+}
+function zeilenheben(list,ein,verf,dauer){
+  for(var i=0;i<list.length;i++){
+    var v=K_EIN(cl((ein-i*verf)/dauer,0,1)), px=Math.round((1-v)*118);
+    if(list[i]._alt!==px){list[i]._alt=px;list[i].style.transform="translate3d(0,"+px+"%,0)";}
+  }
+}
+function knoten(list,ein,umkehr){
+  for(var i=0;i<list.length;i++){
+    var j=umkehr?(list.length-1-i):i;
+    var v=K_EIN(cl((ein-j*0.075)/0.34,0,1)), s=(0.25+0.75*v).toFixed(3);
+    if(list[i]._alt!==s){list[i]._alt=s;list[i].style.transform="scale("+s+")";list[i].style.opacity=v.toFixed(3);}
+  }
+}
+function stab2(list,ein){
+  for(var i=0;i<list.length;i++){
+    var v=K_EIN(cl((ein-0.1-i*0.062)/0.2,0,1)).toFixed(3);
+    if(list[i]._alt!==v){list[i]._alt=v;list[i].style.transform="scaleX("+v+")";list[i].style.opacity=v;}
   }
 }
 function stab(list){
@@ -1075,50 +1054,89 @@ function aktShow(e,p,S,vv,zeit){
 
   erreichbar(e,f.a>0.8);
 
-  var ein=f.ein;
-  if(e._zeilen.length){
-    stufe(e._zeilen,ein,0.13,0.5);
-    for(var i=0;i<e._zeilen.length;i++){
-      var px=Math.round((1-e._zeilen[i]._u)*118);
-      if(e._zeilen[i]._alt!==px){e._zeilen[i]._alt=px;e._zeilen[i].style.transform="translate3d(0,"+px+"%,0)";}
+  /* --- REGIE: sechs Stationen, sechs Ankünfte -----------------------------
+     Eine einzige Choreografie für alle ist genau der Tatbestand, den die
+     Qualitätsliste anklagt: „not one identical entrance on every section".
+     Jede Station stellt sich anders vor, und die Reihenfolge erzählt, was sie
+     zeigt. ---------------------------------------------------------------- */
+  var rg=S.regie, q, ein=f.ein;
+
+  if(rg===0){                                   /* Klappe: Titelkarte. Zeile für
+                                                   Zeile, langsam, von unten. */
+    zeilenheben(e._zeilen,ein,0.19,0.46);
+    q=cl((ein-0.58)/0.42,0,1);
+    stufe(e._saetze,q,0.16,0.6); tauch(e._saetze,"y",14);
+  }
+  else if(rg===1){                              /* Akte: erst ziehen die Drähte,
+                                                   dann zünden die Knoten von der
+                                                   Antwort her, zuletzt der Text. */
+    for(var k=0;k<e._faden.length;k++){
+      var g=K_SCH(cl((ein-0.02-k*0.05)/0.3,0,1));
+      var off=(e._faden[k]._n*(1-g)).toFixed(1);
+      if(e._faden[k]._alt!==off){e._faden[k]._alt=off;e._faden[k].style.strokeDashoffset=off;}
     }
+    knoten(e._ast,cl((ein-0.26)/0.44,0,1),true);
+    q=cl((ein-0.40)/0.44,0,1);
+    stufe(e._saetze,q,0.055,0.42); tauch(e._saetze,"y",13);
+    stufe(e._kanten,cl((ein-0.6)/0.4,0,1),0.14,0.6); tauch(e._kanten,"y",9);
   }
-  if(e._striche.length){
-    stufe(e._striche,ein,0.05,0.4);
-    for(var j=0;j<e._striche.length;j++){
-      var w=e._striche[j]._u.toFixed(3);
-      if(e._striche[j]._alt!==w){e._striche[j]._alt=w;
-        e._striche[j].style.transform="scaleX("+w+")";}
-    }
-  }
-  for(var k=0;k<e._faden.length;k++){
-    var g=K_SCH(cl((ein-0.14-k*0.055)/0.34,0,1));
-    var off=(e._faden[k]._n*(1-g)).toFixed(1);
-    if(e._faden[k]._alt!==off){e._faden[k]._alt=off;e._faden[k].style.strokeDashoffset=off;}
-  }
-  if(e._ast.length){stufe(e._ast,cl((ein-0.26)/0.74,0,1),0.07,0.5);punkt(e._ast);}
-  if(e._kanten.length){stufe(e._kanten,cl((ein-0.5)/0.5,0,1),0.12,0.6);tauch(e._kanten,"y",9);}
-  if(e._blocke.length){
-    stufe(e._blocke,ein,0.075,0.42);
+  else if(rg===2){                              /* Spur: harter Takt von links. Der
+                                                   gebrochene Block kommt zu spät —
+                                                   das ist die Meldung. */
     for(var b=0;b<e._blocke.length;b++){
-      var pb=Math.round((1-e._blocke[b]._u)*16);
+      var spaet=(b===4)?0.19:0;
+      var vb=K_EIN(cl((ein-0.06-b*0.062-spaet)/0.2,0,1));
+      var pb=Math.round((1-vb)*15), ob=vb.toFixed(3);
       if(e._blocke[b]._alt!==pb){e._blocke[b]._alt=pb;
-        e._blocke[b].style.transform="translate3d(0,"+pb+"px,0)";
-        e._blocke[b].style.opacity=(0.1+0.9*e._blocke[b]._u).toFixed(3);}
+        e._blocke[b].style.transform="translate3d("+((1-vb)*7).toFixed(1)+"px,"+pb+"px,0)";
+        e._blocke[b].style.opacity=ob;}
     }
+    stab2(e._fugen,ein);
+    q=cl((ein-0.62)/0.38,0,1);
+    stufe(e._saetze,q,0.1,0.5); tauch(e._saetze,"y",12);
   }
-  if(e._fugen.length){stufe(e._fugen,ein,0.075,0.42);stab(e._fugen);}
-  if(e._wz.length){
-    stufe(e._wz,ein,0.062,0.4);
+  else if(rg===3){                              /* Tür: die eine lesende Zeile geht
+                                                   voran, dann kommt die Gruppe
+                                                   der schreibenden nach. Führen,
+                                                   dann folgen — 1-3-Prinzip. */
+    var fuehrender=cl((ein-0.1)/0.22,0,1);
+    var gruppe=cl((ein-0.34)/0.34,0,1);
     for(var t=0;t<e._wz.length;t++){
-      var sw=Math.round(e._wz[t]._u*100)/100;
+      var vt=K_EIN(t===0?fuehrender:(gruppe-(t-1)*0.075));
+      var sw=Math.round(vt*100)/100;
       if(e._wz[t]._alt!==sw){e._wz[t]._alt=sw;
         e._wz[t].style.opacity=sw.toFixed(2);
+        e._wz[t].style.transform="translate3d("+((1-vt)*18).toFixed(1)+"px,0,0)";
         if(e._wz[t].lastElementChild) e._wz[t].lastElementChild.style.transform="scaleX("+sw+")";}
     }
+    q=cl((ein-0.66)/0.34,0,1);
+    stufe(e._saetze,q,0.14,0.55); tauch(e._saetze,"y",12);
   }
-  if(e._stufen.length){stufe(e._stufen,ein,0.12,0.5);tauch(e._stufen,"y",20);}
-  if(e._saetze.length){stufe(e._saetze,ein,0.055,0.44);tauch(e._saetze,"y",13);}
+  else if(rg===4){                              /* Stufen: zwei Flächen, zwei
+                                                   Herkünfte, zwei Massen. Die
+                                                   schwere landet früher, die
+                                                   leichte rutscht nach. */
+    q=cl((ein-0.16)/0.4,0,1);
+    stufe(e._saetze,q,0.1,0.45); tauch(e._saetze,"y",13);
+    for(var r2=0;r2<e._stufen.length;r2++){
+      var vr=K_EIN(cl((ein-(r2===0?0.3:0.46))/0.4,0,1));
+      if(e._stufen[r2]._alt!==vr){e._stufen[r2]._alt=vr;
+        e._stufen[r2].style.transform="translate3d("+((1-vr)*(r2===0?-26:34)).toFixed(1)+"px,"+((1-vr)*20).toFixed(1)+"px,0)";
+        e._stufen[r2].style.opacity=(0.1+0.9*vr).toFixed(3);}
+    }
+  }
+  else {                                        /* Ende: die Zeilen, zuletzt die Handlung */
+    zeilenheben(e._zeilen,ein,0.15,0.44);
+    q=cl((ein-0.5)/0.34,0,1);
+    stufe(e._saetze,q,0.12,0.45); tauch(e._saetze,"y",12);
+    var kn=e._knoepfe;
+    for(var c2=0;kn&&c2<kn.length;c2++){
+      var vc=K_EIN(cl((ein-0.62-c2*0.09)/0.3,0,1));
+      if(kn[c2]._alt!==vc){kn[c2]._alt=vc;
+        kn[c2].style.transform="translate3d(0,"+((1-vc)*13).toFixed(1)+"px,0)";
+        kn[c2].style.opacity=vc.toFixed(3);}
+    }
+  }
 }
 
 /* ---------- Staub und Membranen, durch dieselbe Projektion ---------- */
@@ -1134,21 +1152,6 @@ function staubMalen(zeit){
     e._on=1;
     e.style.transform="translate3d("+(q.x-2).toFixed(1)+"px,"+(q.y-2).toFixed(1)+"px,0) scale("+cl(q.s,0.05,7).toFixed(3)+")";
     var op=(band*0.72).toFixed(3);
-    if(e._op!==op){e._op=op;e.style.opacity=op;}
-  }
-}
-function hauteMalen(){
-  for(var i=0;i<HAUTE.length;i++){
-    var o=HAUTE[i], e=o.el;
-    if(REDUCE){if(e._on!==0){e._on=0;e.style.opacity="0";}continue;}
-    var q=proj(0,0,o.z);
-    if(!q){if(e._on!==0){e._on=0;e.style.opacity="0";}continue;}
-    var band=0.225*cl((2760-q.d)/2200,0,1)*cl((q.d-260)/520,0,1);
-    if(band<0.008){if(e._on!==0){e._on=0;e.style.opacity="0";}continue;}
-    e._on=1;
-    var sk=q.s;
-    e.style.transform="translate3d("+(q.x-e._w*sk/2).toFixed(1)+"px,"+(q.y-e._h*sk/2).toFixed(1)+"px,0) scale("+sk.toFixed(3)+")";
-    var op=band.toFixed(3);
     if(e._op!==op){e._op=op;e.style.opacity=op;}
   }
 }
@@ -1186,7 +1189,7 @@ function frame(ms){
   var maske=0;
   for(var m2=0;m2<AKTE.length;m2++) if(AKTE[m2]._a>maske) maske=AKTE[m2]._a;
 
-  hauteMalen(); staubMalen(zeit);
+  staubMalen(zeit);
   lichtMalen(vv,zeit,K.zust+(1.0-K.zust)*vv*0.85,maske,K.bel);
 
   if(SCHLEIER){
@@ -1316,7 +1319,7 @@ function anlassen(){
     var mq=matchMedia("(prefers-reduced-motion: reduce)");
     var um= function(e){
       REDUCE=e.matches;
-      if(REDUCE){MX=MY=MXT=MYT=0;for(var i=0;i<HAUTE.length;i++){HAUTE[i].el.style.opacity="0";}
+      if(REDUCE){MX=MY=MXT=MYT=0;
         for(var j=0;j<STAEUB.length;j++){STAEUB[j].el.style.opacity="0";}}
     };
     if(mq.addEventListener) mq.addEventListener("change",um);
