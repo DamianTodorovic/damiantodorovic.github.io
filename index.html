@@ -17,7 +17,7 @@
 <meta property="og:image" content="https://damiantodorovic.github.io/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="KEPTA - local, encrypted memory for your AI. Below the rule: Core €0 · Enterprise on request, and KEEPS WHAT MATTERS">
+<meta property="og:image:alt" content="KEPTA - local, encrypted memory for your AI, with the three tiers Core, Pro and Enterprise">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="KEPTA - Local, encrypted memory for your AI">
@@ -400,58 +400,6 @@
     .spec div{grid-template-columns:minmax(0,1fr); gap:6px}
     section{padding:72px 0}
   }
-
-  /* ===== Preise und FAQ =====
-     Diese beiden Abschnitte trugen Klassen, für die in dieser Datei nie eine Regel
-     gestanden hat: Markup von der Entwurfs-Linie übernommen, CSS nicht mitgenommen.
-     Ohne diese Regeln fiel der Text ungestylt untereinander. */
-  #enterprise{background:linear-gradient(180deg, rgba(36,49,63,.05), transparent 62%)}
-  .pricing-lead{font-size:clamp(17px,1.8vw,21px); line-height:1.5; color:var(--text-2); max-width:58ch; margin-top:18px}
-  .pricing-grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:22px; margin-top:48px; align-items:stretch}
-  .karte{display:flex; flex-direction:column; padding:34px 30px 30px;
-    border:1px solid var(--line-2); border-radius:14px;
-    background:linear-gradient(180deg,#fdfcf9,#f7f5f0);
-    box-shadow:0 50px 80px -64px rgba(20,22,26,.5)}
-  .karte h3{margin-bottom:4px}
-  .karte ul{list-style:none; margin:22px 0 0; padding:0; display:flex; flex-direction:column; gap:13px}
-  .karte li{position:relative; padding-left:26px; font-size:15.5px; line-height:1.55; color:var(--text-2)}
-  .karte li::before{content:""; position:absolute; left:0; top:.42em; width:14px; height:14px; background:var(--wax);
-    -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
-    mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
-    -webkit-mask-size:contain; mask-size:contain; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat}
-  .karte .mono{margin-top:auto; padding-top:26px; font-family:var(--mono); font-size:12.5px; color:var(--text-3); word-break:break-word}
-  .karte > p:not(.mono){margin-top:auto; padding-top:26px; font-size:14px; line-height:1.6}
-  .karte > p:not(.mono) a{color:var(--text); text-decoration:none; border-bottom:1px solid var(--wax-dim)}
-  .karte > p:not(.mono) a:hover{border-bottom-color:var(--wax)}
-
-  /* ===== Produktplatten: die echten Fenster der App ===== */
-  .plates{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:30px 26px; margin-top:48px}
-  .plates figure{margin:0}
-  .plate{border:1px solid var(--line-2); border-radius:14px; padding:10px;
-    background:linear-gradient(180deg,#fdfcf9,#f7f5f0);
-    box-shadow:0 50px 80px -64px rgba(20,22,26,.5)}
-  .plate img{display:block; width:100%; height:auto; border-radius:8px}
-  .plates figcaption{margin-top:15px; font-size:14.5px; line-height:1.6; color:var(--text-2); max-width:62ch}
-  .plates figcaption code{font-family:var(--mono); font-size:.88em; color:var(--text)}
-  .plates .num{display:block; font-family:var(--mono); font-size:10.5px; letter-spacing:.16em;
-    text-transform:uppercase; color:var(--wax-2); margin-bottom:6px}
-  @media (max-width:860px){ .plates{grid-template-columns:minmax(0,1fr); gap:34px} }
-
-  #faq > h2{max-width:var(--maxw); margin:0 auto; padding:0 40px}
-  .faq-artikel{position:relative; display:grid; grid-template-columns:44px minmax(200px,300px) minmax(0,1fr);
-    gap:6px 34px; align-items:baseline; max-width:var(--maxw); margin:0 auto; padding:30px 40px;
-    border-bottom:1px solid var(--line)}
-  .faq-artikel:first-of-type{border-top:1px solid var(--line)}
-  .faq-artikel .n{font-family:var(--mono); font-size:11px; letter-spacing:.16em; color:var(--wax-2); padding-top:5px}
-  .faq-artikel h3{font-size:clamp(19px,1.7vw,23px); line-height:1.28; letter-spacing:-.015em}
-  .faq-artikel p{font-size:15.5px; line-height:1.65; color:var(--text-2); max-width:78ch}
-  .faq-artikel p code, .faq-artikel p .k{font-family:var(--mono); font-size:.92em}
-  @media (max-width:860px){
-    .pricing-grid{grid-template-columns:minmax(0,1fr)}
-    #faq > h2{padding:0 22px}
-    .faq-artikel{grid-template-columns:32px minmax(0,1fr); gap:8px 16px; padding:26px 22px}
-    .faq-artikel p{grid-column:1 / -1}
-  }
 </style>
 <script type="application/ld+json">
 {
@@ -459,11 +407,17 @@
   "@type": "SoftwareApplication",
   "name": "KEPTA",
   "applicationCategory": "BusinessApplication",
-  "operatingSystem": "macOS (desktop app), Windows and Linux (engine)",
+  "operatingSystem": "macOS, Windows",
   "description": "KEPTA gives every AI assistant one encrypted memory on your own machine. Hybrid search, time travel, an MCP server for Claude, Cursor and any client. No cloud. No account.",
   "author": { "@type": "Person", "name": "Damian Todorovic" },
   "license": "https://spdx.org/licenses/BUSL-1.1.html",
   "downloadUrl": "https://github.com/DamianTodorovic/kepta"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  
 }
 </script>
 </head>
@@ -482,7 +436,6 @@
     </button>
     <nav id="mainnav" aria-label="Main">
       <a href="#how">Mechanism</a>
-      <a href="#app">The app</a>
       <a href="#enterprise">Enterprise</a>
       <a href="#time">Time</a>
       <a href="#faq">FAQ</a>
@@ -574,7 +527,7 @@
 
             <rect x="418" y="66" width="248" height="122" rx="10" fill="#24313f" stroke="#24313f"/>
             <text x="542" y="112" text-anchor="middle" fill="#f6f4ef">kepta-mcp</text>
-            <text x="542" y="136" text-anchor="middle" font-size="10.5" fill="#b6c2ce">stdio from npm · HTTP from source</text>
+            <text x="542" y="136" text-anchor="middle" font-size="10.5" fill="#b6c2ce">MCP stdio + Streamable HTTP</text>
             <text x="542" y="158" text-anchor="middle" font-size="10.5" fill="#b6c2ce">one code path</text>
 
             <rect x="790" y="66" width="289" height="122" rx="10" fill="#f4f2eb" stroke="#cbc5b5"/>
@@ -609,31 +562,6 @@
       </div>
     </div>
   </section>
-  <!-- ============ PRODUKTPLATTEN ============ -->
-  <section id="app"><div class="wrap">
-    <p class="eyebrow">The app itself</p>
-    <h2>Four screens, captured from the running app.</h2>
-    <p class="lead">Not a design comp. These are the windows you get: what arrived since you left, the index behind it, the graph the links draw, and one note while you edit it.</p>
-    <div class="plates">
-      <figure>
-        <div class="plate"><img src="assets/img/07-today.webp" width="1600" height="960" alt="The KEPTA Today view: one new note since the last visit, a disagreement between two notes about a retainer figure, and the call counts of Claude and Cursor." loading="lazy" decoding="async"></div>
-        <figcaption><span class="num">Today</span>What happened since you left: Claude saved one note, and two notes disagree about a retainer — 4,500 signed against 4,000 in the proposal. You pick which one stands.</figcaption>
-      </figure>
-      <figure>
-        <div class="plate"><img src="assets/img/01-index.webp" width="1600" height="960" alt="The KEPTA knowledge index showing 75 entries with counts by type, a tag list, a semantic search toggle, version and encryption chips and a toast reading Claude saved Lumen retainer." loading="lazy" decoding="async"></div>
-        <figcaption><span class="num">The index</span>Seventy-five entries: 36 facts, 15 events, 10 how-tos, 14 documents across 37 categories. Tags down the left, semantic search one switch away, and the running build on the top line — version, node count, encryption, which embedding model.</figcaption>
-      </figure>
-      <figure>
-        <div class="plate"><img src="assets/img/03-graph.webp" width="1600" height="960" alt="The KEPTA graph view showing 75 notes, 86 concepts and 328 links, with force, tree and similar toggles, a filter field, a time slider at now, and a legend separating a claimed link from a mention." loading="lazy" decoding="async"></div>
-        <figcaption><span class="num">The graph</span>75 notes, 86 concepts, 328 links — coloured by memory type. Force, tree or similar layout, a filter field, and a time slider that runs up to now. A claimed link and a bare mention are drawn as two different lines.</figcaption>
-      </figure>
-      <figure>
-        <div class="plate"><img src="assets/img/04-editor.webp" width="1600" height="960" alt="The KEPTA editor open on a fact titled Project Atlas goals, with wiki-links to Client Portal, Lumen and Co., Mara Lind and Q4 Close in the content." loading="lazy" decoding="async"></div>
-        <figcaption><span class="num">The note</span>A fact in the editor. <code>[[Client Portal]]</code>, <code>[[Lumen &amp; Co.]]</code>, <code>[[Mara Lind]]</code> and <code>[[Q4 Close]]</code> are written as plain text; the engine turns them into the linked entities the graph draws.</figcaption>
-      </figure>
-    </div>
-  </div></section>
-
   <!-- ============ SEALED ============ -->
   <section id="time">
     <div class="wrap">
@@ -693,9 +621,9 @@
         <h3>KEPTA — free</h3>
         <ul>
           <li>The full engine: hybrid search (BM25 + vectors + graph), bi-temporal validity, supersede chains</li>
-          <li>8 MCP tools, protocol 2026-07-28 — stdio from npm, Streamable HTTP from source</li>
+          <li>8 MCP tools, protocol 2026-07-28 — stdio and Streamable HTTP</li>
           <li>One SQLCipher-encrypted file on your machine. No cloud, no account.</li>
-          <li>61.5 % on LongMemEval-S — every run's per-question log is public in the repository</li>
+          <li>61.5 % on LongMemEval-S — every answer public in the repository</li>
         </ul>
         <p class="mono">npx kepta-mcp &nbsp;·&nbsp; pip install kepta</p>
       </div>
@@ -703,9 +631,9 @@
         <h3>KEPTA Enterprise</h3>
         <ul>
           <li>Team and tenant memory — many people, many agents, one infrastructure</li>
-          <li>Tamper-evident audit chain with one-click verification, human review for agent writes</li>
-          <li>Point-in-time recovery, scope per key (read / write / admin), agent registry</li>
-          <li>Self-hosted, firewall or air-gapped — licensed by agreement</li>
+          <li>Tamper-proof audit chain with one-click verification, human review for agent writes</li>
+          <li>Point-in-time recovery, rights matrix, agent registry</li>
+          <li>SSO, MDM, air-gapped deployment — licensed by agreement</li>
         </ul>
         <p><a href="/trust.html">Trust Center — the open architecture answer</a> · <a href="https://www.linkedin.com/in/damian-todorovic-244235434">Write to me on LinkedIn</a></p>
       </div>
@@ -720,7 +648,7 @@
           <h2 class="rv" style="margin-top:22px">Inspect it before you trust it.</h2>
           <p class="lead rv d1" style="margin-top:24px">The memory engine is BUSL-1.1 and free forever (converts to AGPL-3.0 four years after each release). The Python client is MIT, standard library only. Read the code, fork it, ship your own product from it.</p>
           <div class="cta-row rv d2"><a class="btn lg ghost" href="https://github.com/DamianTodorovic/kepta">github.com/DamianTodorovic/kepta</a></div>
-          <p class="fine rv d2" style="margin-top:22px">1,500+ automated tests in the desktop app, 474 in this open core.</p>
+          <p class="fine rv d2" style="margin-top:22px">1,500+ automated tests in the desktop app, 439 in this open core.</p>
         </div>
         <div class="cmd rv d2">
           <div class="head" aria-hidden="true"><i></i><i></i><i></i><span>the whole memory layer</span></div>
@@ -750,7 +678,7 @@
   <article class="faq-artikel">
     <span class="n" aria-hidden="true">03</span>
     <h3>Where do the benchmark numbers come from?</h3>
-    <p>From LongMemEval-S: 500 questions, a fixed dataset with a pinned checksum, graded by a local judge. 61.5 % — and every question record of every run is committed to the public repository: its id, type and skill, the judge's verdict, how many notes retrieval returned and which of them settled the answer. The question and answer <em>texts</em> are not in the repo; they come from the pinned upstream dataset. Read the number as what it measures: context sufficiency rather than end-to-end answer accuracy, a partial verdict counting as half a point, and every setting (top-k, temporal split, HyDE, judge size) chosen on these same 500 questions — an in-sample figure. You can rerun the whole benchmark yourself.</p>
+    <p>From LongMemEval-S: 500 questions, a fixed dataset with a pinned checksum, graded by a local judge. 61.5 % — and every question, every answer and every judge verdict of every run is committed to the public repository. You can rerun the whole benchmark yourself.</p>
   </article>
   <article class="faq-artikel">
     <span class="n" aria-hidden="true">04</span>
@@ -760,7 +688,7 @@
   <article class="faq-artikel">
     <span class="n" aria-hidden="true">05</span>
     <h3>What is KEPTA Enterprise?</h3>
-    <p>The same engine as an organization infrastructure: tenant memory for many people and agents, a tamper-evident audit chain with one-click verification, human review for agent writes, point-in-time recovery, scope per key and retention policies with legal hold. Single sign-on against an existing identity system and centralised device management are not built — say that plainly in the pilot. Enterprise is licensed by agreement and delivered on your own hardware, behind your firewall or air-gapped; write to me on LinkedIn.</p>
+    <p>The same engine as an organization infrastructure: tenant memory for many people and agents, a tamper-proof audit chain with one-click verification, human review for agent writes, point-in-time recovery, rights and policies — SSO, MDM and air-gapped deployment included. Licensed by agreement; write to me on LinkedIn.</p>
   </article>
   </section>
 
