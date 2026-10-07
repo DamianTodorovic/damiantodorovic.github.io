@@ -527,7 +527,7 @@
 
             <rect x="418" y="66" width="248" height="122" rx="10" fill="#24313f" stroke="#24313f"/>
             <text x="542" y="112" text-anchor="middle" fill="#f6f4ef">kepta-mcp</text>
-            <text x="542" y="136" text-anchor="middle" font-size="10.5" fill="#b6c2ce">MCP stdio + Streamable HTTP</text>
+            <text x="542" y="136" text-anchor="middle" font-size="10.5" fill="#b6c2ce">stdio from npm · HTTP from source</text>
             <text x="542" y="158" text-anchor="middle" font-size="10.5" fill="#b6c2ce">one code path</text>
 
             <rect x="790" y="66" width="289" height="122" rx="10" fill="#f4f2eb" stroke="#cbc5b5"/>
@@ -621,9 +621,9 @@
         <h3>KEPTA — free</h3>
         <ul>
           <li>The full engine: hybrid search (BM25 + vectors + graph), bi-temporal validity, supersede chains</li>
-          <li>8 MCP tools, protocol 2026-07-28 — stdio and Streamable HTTP</li>
+          <li>8 MCP tools, protocol 2026-07-28 — stdio from npm, Streamable HTTP from source</li>
           <li>One SQLCipher-encrypted file on your machine. No cloud, no account.</li>
-          <li>61.5 % on LongMemEval-S — every answer public in the repository</li>
+          <li>61.5 % on LongMemEval-S — every run's per-question log is public in the repository</li>
         </ul>
         <p class="mono">npx kepta-mcp &nbsp;·&nbsp; pip install kepta</p>
       </div>
@@ -631,9 +631,9 @@
         <h3>KEPTA Enterprise</h3>
         <ul>
           <li>Team and tenant memory — many people, many agents, one infrastructure</li>
-          <li>Tamper-proof audit chain with one-click verification, human review for agent writes</li>
-          <li>Point-in-time recovery, rights matrix, agent registry</li>
-          <li>SSO, MDM, air-gapped deployment — licensed by agreement</li>
+          <li>Tamper-evident audit chain with one-click verification, human review for agent writes</li>
+          <li>Point-in-time recovery, scope per key (read / write / admin), agent registry</li>
+          <li>Self-hosted, firewall or air-gapped — licensed by agreement</li>
         </ul>
         <p><a href="/trust.html">Trust Center — the open architecture answer</a> · <a href="https://www.linkedin.com/in/damian-todorovic-244235434">Write to me on LinkedIn</a></p>
       </div>
@@ -648,7 +648,7 @@
           <h2 class="rv" style="margin-top:22px">Inspect it before you trust it.</h2>
           <p class="lead rv d1" style="margin-top:24px">The memory engine is BUSL-1.1 and free forever (converts to AGPL-3.0 four years after each release). The Python client is MIT, standard library only. Read the code, fork it, ship your own product from it.</p>
           <div class="cta-row rv d2"><a class="btn lg ghost" href="https://github.com/DamianTodorovic/kepta">github.com/DamianTodorovic/kepta</a></div>
-          <p class="fine rv d2" style="margin-top:22px">1,500+ automated tests in the desktop app, 439 in this open core.</p>
+          <p class="fine rv d2" style="margin-top:22px">1,500+ automated tests in the desktop app, 474 in this open core.</p>
         </div>
         <div class="cmd rv d2">
           <div class="head" aria-hidden="true"><i></i><i></i><i></i><span>the whole memory layer</span></div>
@@ -678,7 +678,7 @@
   <article class="faq-artikel">
     <span class="n" aria-hidden="true">03</span>
     <h3>Where do the benchmark numbers come from?</h3>
-    <p>From LongMemEval-S: 500 questions, a fixed dataset with a pinned checksum, graded by a local judge. 61.5 % — and every question, every answer and every judge verdict of every run is committed to the public repository. You can rerun the whole benchmark yourself.</p>
+    <p>From LongMemEval-S: 500 questions, a fixed dataset with a pinned checksum, graded by a local judge. 61.5 % — and every question record of every run is committed to the public repository: its id, type and skill, the judge's verdict, how many notes retrieval returned and which of them settled the answer. The question and answer <em>texts</em> are not in the repo; they come from the pinned upstream dataset. Read the number as what it measures: context sufficiency rather than end-to-end answer accuracy, a partial verdict counting as half a point, and every setting (top-k, temporal split, HyDE, judge size) chosen on these same 500 questions — an in-sample figure. You can rerun the whole benchmark yourself.</p>
   </article>
   <article class="faq-artikel">
     <span class="n" aria-hidden="true">04</span>
@@ -688,7 +688,7 @@
   <article class="faq-artikel">
     <span class="n" aria-hidden="true">05</span>
     <h3>What is KEPTA Enterprise?</h3>
-    <p>The same engine as an organization infrastructure: tenant memory for many people and agents, a tamper-proof audit chain with one-click verification, human review for agent writes, point-in-time recovery, rights and policies — SSO, MDM and air-gapped deployment included. Licensed by agreement; write to me on LinkedIn.</p>
+    <p>The same engine as an organization infrastructure: tenant memory for many people and agents, a tamper-evident audit chain with one-click verification, human review for agent writes, point-in-time recovery, scope per key and retention policies with legal hold. Single sign-on against an existing identity system and centralised device management are not built — say that plainly in the pilot. Enterprise is licensed by agreement and delivered on your own hardware, behind your firewall or air-gapped; write to me on LinkedIn.</p>
   </article>
   </section>
 

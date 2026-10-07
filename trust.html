@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>KEPTA Enterprise — Trust Center</title>
-<meta name="description" content="The open architecture answer instead of certificate seals: encryption layers, tamper-proof audit chain, §203 position, GDPR, HIPAA/BAA stance — every claim provable in the app.">
+<meta name="description" content="The open architecture answer instead of certificate seals: encryption layers, tamper-evident audit chain, §203 position, GDPR, HIPAA/BAA stance — every claim provable in the app.">
 <meta name="robots" content="index">
 <style>
 :root{--line:#e5e1d8;--text-1:#141b22;--text-3:#6b7280;--accent:#8e2f2f}
@@ -40,10 +40,10 @@ footer{border-top:1px solid var(--line);padding:24px 5vw;color:var(--text-3);fon
 <tr><td>Data at rest</td><td>SQLCipher 4: AES-256 plus an HMAC-SHA512 over every page, WAL included</td></tr>
 <tr><td>Per tenant</td><td>Every tenant brain carries its own derived key — one compromised tenant key never opens the others</td></tr>
 <tr><td>Key custody</td><td>The master key lives in the operator's OS keychain; BYOK/KMS adapter on the roadmap</td></tr>
-<tr><td>Transport</td><td>Console is loopback-only; deployments sit behind your firewall or run air-gapped</td></tr>
+<tr><td>Transport</td><td>Console binds loopback by default; deployments sit behind your firewall or run air-gapped</td></tr>
 </table>
 
-<h2>Tamper-proof audit chain</h2>
+<h2>Tamper-evident audit chain</h2>
 <p>Every read and write of a tenant brain appends to a SHA-256 hash chain: line <em>n</em> carries the hash of line <em>n−1</em>. An edited, deleted or reordered entry visibly breaks the chain — and the app shows the exact row. The <strong>verify button</strong> recomputes the whole chain live and issues a seal with server timestamp and chain-tip fingerprint.</p>
 
 <h2>Human review for agent writes</h2>
@@ -75,7 +75,7 @@ footer{border-top:1px solid var(--line);padding:24px 5vw;color:var(--text-3);fon
 <h2>Provability — the part nobody else offers</h2>
 <ol>
 <li><strong>In the app:</strong> audit verify with seal, human review, time machine — demonstrable live, in front of you</li>
-<li><strong>In code:</strong> the private enterprise repository, 229+ tests per release</li>
+<li><strong>In code:</strong> the private enterprise repository — 746 tests in 61 files, measured 07.10.2026</li>
 <li><strong>Manipulation demo:</strong> on request we show how tampering visibly breaks the chain — the opposite of security through obscurity</li>
 </ol>
 </main>
