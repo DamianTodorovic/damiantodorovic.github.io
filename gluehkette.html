@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KEPTA — Eine Lichtspur aus Erinnerungen</title>
+<meta name="description" content="KEPTA ist der Memory-Layer für Claude, Cursor und alles, was danach kommt. Sieben Paneele aus Licht: Akte, Spur, Tür, Stufen.">
+<meta name="theme-color" content="#0b0d14">
+<link rel="icon" href="favicon.svg">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+/* ============================================================
+   KEPTA — GLÜHKETTE
+   Licht statt Pigment: drei Farben tragen Bedeutung (Azur =
+   Mensch, Koralle = Agent, Zitrone = Import), sieben Paneele
+   laufen in einem echten 3D-Karussell an der Linse vorbei,
+   und der Satz oben wird hart umgeschaltet, nicht geblendet.
+   Kein Raymarch, kein blur(): alles Kompositor.
+   ============================================================ */
+@font-face{font-family:'Geist';font-style:normal;font-weight:100 900;font-display:swap;src:url('assets/fonts/geist-latin-wght-normal.woff2') format('woff2')}
+@font-face{font-family:'Geist Mono';font-style:normal;font-weight:100 900;font-display:swap;src:url('assets/fonts/geist-mono-latin-wght-normal.woff2') format('woff2')}
+@font-face{font-family:'Newsreader';font-style:normal;font-weight:100 900;font-display:swap;src:url('assets/fonts/newsreader-latin-wght-normal.woff2') format('woff2')}
+
+@property --p   {syntax:'<number>';initial-value:0;inherits:true}
+@property --ein {syntax:'<number>';initial-value:0;inherits:true}
+@property --nahe{syntax:'<number>';initial-value:0;inherits:true}
+
+:root{
+  --nacht:#0b0d14;
+  --grund:#131728;
+  --helle:#f4f6ff;
+  --muted:#98a1c4;
+  --azur:#37a6ff;      /* Mensch   */
+  --koralle:#ff5c47;   /* Agent    */
+  --zitrone:#ffd93d;   /* Import   */
+  --minze:#3ce0bd;
+  --ease:cubic-bezier(.4,0,.2,1);
+  --stech:cubic-bezier(.05,.7,.1,1);
+  --s:220ms; --m1:420ms; --l:680ms;
+  --kante:1px solid rgba(244,246,255,.14);
+}
+*{box-sizing:border-box}
+html{background:var(--nacht);-webkit-text-size-adjust:100%}
+body{
+  margin:0;color:var(--helle);background:transparent;
+  font-family:'Geist',system-ui,sans-serif;
+  font-size:clamp(15px,1vw + 12px,18px);line-height:1.6;
+  font-variant-numeric:tabular-nums;overflow-x:hidden;
+}
+a{color:inherit}
+::selection{background:var(--azur);color:var(--nacht)}
+:focus-visible{outline:2px solid var(--zitrone);outline-offset:3px}
+img,svg{display:block}
+
+/* ---------- Grund: drei Lichtfelder ---------- */
+#licht{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:
+  radial-gradient(120% 90% at 50% 120%,#151a30 0%,var(--nacht) 62%)}
+#licht i{position:absolute;display:block;border-radius:50%;mix-blend-mode:screen;will-change:transform}
+.l1{width:64vw;height:64vw;left:-16vw;top:-18vw;background:radial-gradient(circle,rgba(55,166,255,.5),rgba(55,166,255,0) 66%)}
+.l2{width:56vw;height:56vw;right:-14vw;top:18vh;background:radial-gradient(circle,rgba(255,92,71,.42),rgba(255,92,71,0) 66%)}
+.l3{width:70vw;height:40vw;left:14vw;bottom:-16vw;background:radial-gradient(circle,rgba(255,217,61,.3),rgba(255,217,61,0) 68%)}
+.l4{width:40vw;height:40vw;right:6vw;bottom:6vh;background:radial-gradient(circle,rgba(60,224,189,.3),rgba(60,224,189,0) 66%)}
+#raster{
+  position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.5;
+  background-image:linear-gradient(rgba(244,246,255,.045) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(244,246,255,.045) 1px,transparent 1px);
+  background-size:64px 64px;
+  -webkit-mask-image:radial-gradient(120% 80% at 50% 40%,#000 20%,transparent 78%);
+          mask-image:radial-gradient(120% 80% at 50% 40%,#000 20%,transparent 78%);
+}
+
+/* ---------- Kopf ---------- */
+#mast{
+  position:fixed;left:0;top:0;right:0;z-index:40;
+  display:flex;align-items:center;gap:14px;
+  padding:16px clamp(16px,3.4vw,40px) 20px;
+  background:linear-gradient(180deg,rgba(11,13,20,.96) 0%,rgba(11,13,20,.78) 55%,rgba(11,13,20,0) 100%);
+}
+.marke{display:flex;align-items:center;gap:11px;text-decoration:none}
+.marke svg{width:28px;height:28px}
+.marke span{font-weight:800;font-size:15px;letter-spacing:.19em}
+#mast .rechts{margin-left:auto;display:flex;align-items:center;gap:4px}
+.mlink{
+  font-family:'Geist Mono';font-size:11px;letter-spacing:.17em;text-transform:uppercase;
+  color:var(--muted);text-decoration:none;padding:9px 12px;position:relative;overflow:hidden;isolation:isolate;
+}
+.mlink i{position:absolute;inset:0;background:var(--helle);transform:scaleY(0);transform-origin:bottom;
+  transition:transform var(--s) var(--stech);z-index:-1}
+.mlink span{position:relative;z-index:0}
+.mlink:hover{color:var(--nacht)}
+.mlink:hover i{transform:scaleY(1)}
+.mlink.kern{border:1px solid var(--azur);color:var(--azur)}
+.mlink.kern:hover{color:var(--nacht)}
+@media (max-width:760px){#mast .rechts .nicht-kern{display:none}}
+
+/* ---------- Die Bühne: ein echtes 3D-Karussell ---------- */
+#raum{position:fixed;inset:0;z-index:5;perspective:1500px;perspective-origin:50% 44%}
+#schiene{
+  position:absolute;left:50%;top:50%;width:0;height:0;
+  transform-style:preserve-3d;will-change:transform;
+}
+.paneel{
+  position:absolute;left:0;top:0;width:min(940px,84vw);
+  transform-style:flat;backface-visibility:hidden;
+  padding:clamp(20px,2.6vw,34px);
+  border:var(--kante);border-radius:4px;
+  background:linear-gradient(150deg,rgba(19,23,40,.92),rgba(11,13,20,.86));
+  box-shadow:0 40px 90px -40px rgba(0,0,0,.9);
+}
+.paneel .kopf{
+  display:flex;align-items:center;gap:10px;
+  font-family:'Geist Mono';font-size:11px;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 clamp(14px,2.4vh,24px);
+}
+.paneel .kopf b{width:8px;height:8px;border-radius:50%;display:block;background:var(--azur)}
+.paneel.z2 .kopf b{background:var(--koralle)}
+.paneel.z3 .kopf b{background:var(--zitrone)}
+.paneel h2{
+  font-family:'Newsreader';font-weight:300;margin:0 0 clamp(12px,2vh,20px);
+  font-size:clamp(20px,2.3vw,33px);line-height:1.08;letter-spacing:-.02em;
+  color:var(--muted);
+}
+.paneel h2 em{font-style:italic;color:var(--helle)}
+/* Der feste Satz oben ist die Schlagzeile; die Überschrift eines Paneels
+   darunter bleibt die Kapitelklammer. Zwei Plakate übereinander lesen sich
+   als zwei Seiten, nicht als eine. */
+.paneel p{margin:0;color:var(--helle)}
+.paneel .leise{color:var(--muted)}
+
+/* --- Satz 01: der Knotensatz --- */
+.zeugnis{display:grid;grid-template-columns:1fr 1fr;gap:clamp(10px,1.6vw,18px);margin:0;padding:0;list-style:none}
+.zi{border-left:2px solid var(--azur);padding:2px 0 2px 14px}
+.zi:nth-child(2){border-color:var(--koralle)}
+.zi:nth-child(3){border-color:var(--zitrone)}
+.zi:nth-child(4){border-color:var(--minze)}
+.zi dt{font-family:'Geist Mono';font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.zi dd{margin:6px 0 0;font-size:clamp(14px,1.15vw,17px)}
+.zi b{font-weight:700;color:var(--helle)}
+@media (max-width:700px){.zeugnis{grid-template-columns:1fr}}
+
+/* --- Satz 02: der Graph --- */
+.netz{position:relative;height:clamp(180px,26vh,260px);margin:6px 0 14px}
+.netz svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.netz .faden{fill:none;stroke:rgba(244,246,255,.5);stroke-width:1.4}
+.netz .ast{fill:var(--nacht);stroke:var(--azur);stroke-width:2.4}
+.netz .ast.agent{stroke:var(--koralle);fill:rgba(255,92,71,.18)}
+.netz .ast.import{stroke:var(--zitrone);fill:rgba(255,217,61,.16)}
+.netz .ast.hub{fill:var(--azur);stroke:var(--azur)}
+.netz .ast.treffer{fill:var(--koralle);stroke:var(--koralle)}
+@keyframes puls{0%,100%{r:14}50%{r:19}}
+.netz .ast.treffer{animation:puls 2.4s var(--ease) infinite}
+.netz .beleg{
+  position:absolute;font-family:'Geist Mono';font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  padding:3px 7px;border:1px solid var(--azur);color:var(--azur);background:rgba(11,13,20,.8)
+}
+.netz .beleg.k{border-color:var(--koralle);color:var(--koralle)}
+
+/* --- Satz 03: die Kette --- */
+.kette{display:flex;align-items:stretch;flex-wrap:wrap;gap:0;margin:0 0 14px}
+.block{
+  flex:1 1 108px;min-width:96px;padding:10px 9px;border:var(--kante);
+  background:rgba(19,23,40,.7);position:relative;
+  transition:transform var(--s) var(--ease),border-color var(--s) var(--ease);
+}
+.block:hover{transform:translate3d(0,-4px,0);border-color:var(--azur)}
+.block .kopf{font-family:'Geist Mono';font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.block .wert{font-family:'Newsreader';font-weight:400;font-size:clamp(15px,1.5vw,21px);margin:0}
+.block .hash{font-family:'Geist Mono';font-size:9px;color:var(--muted);margin:7px 0 0;word-break:break-all}
+.block.bruch{border-color:var(--koralle);background:rgba(255,92,71,.1)}
+.block.bruch .wert{color:var(--koralle)}
+.fuge{flex:0 0 20px;align-self:center;height:1px;background:rgba(244,246,255,.4);position:relative}
+.fuge::after{content:"";position:absolute;right:-1px;top:-3px;border:4px solid transparent;border-left-color:rgba(244,246,255,.55)}
+@keyframes zund{0%,100%{box-shadow:0 0 0 0 rgba(255,92,71,0)}40%{box-shadow:0 0 0 7px rgba(255,92,71,.26)}}
+.block.bruch.gezundet{animation:zund 1.2s var(--ease) 2}
+.stand{
+  display:flex;flex-wrap:wrap;gap:clamp(12px,2.4vw,30px);margin:0;
+  font-family:'Geist Mono';font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)
+}
+.stand b{color:var(--helle);font-weight:600}
+.stand .bruch b{color:var(--koralle)}
+
+/* --- Satz 04: die Tür --- */
+.tuer{list-style:none;margin:0 0 16px;padding:0}
+.tuer li{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:baseline;
+  padding:9px 8px;border-top:var(--kante);position:relative;overflow:clip;isolation:isolate;
+}
+.tuer li:last-child{border-bottom:var(--kante)}
+.tuer li::before{
+  content:"";position:absolute;inset:0;background:rgba(55,166,255,.16);
+  transform:scaleX(0);transform-origin:left;transition:transform var(--m1) var(--stech);z-index:-1;
+}
+.tuer li:hover::before{transform:scaleX(1)}
+.tuer .name{font-family:'Geist Mono';font-size:clamp(13px,1.5vw,19px);font-weight:600;margin:0}
+.tuer .art{font-size:clamp(12px,1vw,15px);color:var(--muted);margin:0;text-align:right}
+.schleuse{
+  margin:0;padding:clamp(14px,1.8vw,22px);border:1px solid rgba(255,217,61,.4);
+  background:linear-gradient(140deg,rgba(255,217,61,.1),rgba(11,13,20,.4));
+}
+.schleuse p{margin:0;font-size:clamp(13px,1.1vw,16px)}
+.schleuse b{color:var(--zitrone)}
+@media (max-width:700px){.tuer li{grid-template-columns:1fr}.tuer .art{text-align:left}}
+
+/* --- Satz 05: die Stufen --- */
+.stufen{display:grid;grid-template-columns:1fr 1fr;gap:clamp(10px,1.6vw,18px)}
+.stufe{padding:clamp(14px,1.8vw,22px);border:var(--kante);position:relative;overflow:hidden}
+.stufe.core{border-color:rgba(55,166,255,.5)}
+.stufe.ent{border-color:rgba(255,92,71,.5)}
+.stufe::after{
+  content:"";position:absolute;left:0;right:0;top:0;height:2px;transform:scaleX(0);transform-origin:left;
+  transition:transform var(--l) var(--stech)
+}
+.stufe.core::after{background:var(--azur)}
+.stufe.ent::after{background:var(--koralle)}
+.paneel .stufen:hover .stufe::after,.stufe:hover::after{transform:scaleX(1)}
+.stufe .name{font-family:'Geist Mono';font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);margin:0}
+.stufe .preis{font-family:'Newsreader';font-weight:300;font-size:clamp(34px,4.6vw,66px);line-height:.95;margin:8px 0 0;letter-spacing:-.03em}
+.stufe.core .preis{color:var(--azur)}
+.stufe.ent .preis{color:var(--koralle)}
+.stufe .preis small{font-family:'Geist';font-size:clamp(11px,1vw,14px);color:var(--muted);letter-spacing:0}
+.stufe ul{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:7px}
+.stufe li{font-size:clamp(12px,1.05vw,15px);color:var(--helle);display:flex;gap:8px}
+.stufe li::before{content:"";flex:0 0 auto;width:7px;height:7px;margin-top:.5em;border-radius:50%}
+.stufe.core li::before{background:var(--azur)}
+.stufe.ent li::before{background:var(--koralle)}
+@media (max-width:700px){.stufen{grid-template-columns:1fr}}
+
+/* --- Satz 06: die Handlung --- */
+.werbung{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 16px}
+.knopf{
+  --fg:var(--nacht);--bg:var(--helle);
+  position:relative;display:inline-block;padding:13px 22px;text-decoration:none;
+  font-weight:700;font-size:14px;background:var(--bg);color:var(--fg);
+  overflow:hidden;transition:transform var(--s) var(--ease);
+}
+.knopf i{position:absolute;inset:0;background:var(--azur);transform:translate3d(-101%,0,0);
+  transition:transform var(--m1) var(--stech);z-index:0}
+.knopf span{position:relative;z-index:1}
+.knopf:hover{transform:translate3d(0,-3px,0)}
+.knopf:hover i{transform:translate3d(0,0,0)}
+.knopf.rand{background:transparent;color:var(--helle);border:1px solid rgba(244,246,255,.36)}
+.knopf.rand i{background:var(--koralle)}
+.knopf.zwei i{background:var(--zitrone)}
+.knopf.drei i{background:var(--minze)}
+.klein{display:flex;flex-wrap:wrap;gap:clamp(10px,2vw,24px);margin:0;
+  font-family:'Geist Mono';font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.klein a{text-decoration:none;border-bottom:1px solid rgba(152,161,196,.5);padding-bottom:2px;
+  transition:color var(--s) var(--ease),border-color var(--s) var(--ease)}
+.klein a:hover{color:var(--zitrone);border-color:var(--zitrone)}
+
+/* ---------- Der feste Satz oben: RGB-Split, hart umgeschaltet ---------- */
+#spruch{
+  position:fixed;left:0;right:0;top:clamp(76px,11vh,116px);z-index:20;pointer-events:none;
+  text-align:center;padding:0 clamp(16px,4vw,40px);
+}
+#spruch .zeile{position:relative;display:inline-block;line-height:.9}
+#spruch h1,#spruch .ersatz,#spruch .sp{
+  font-family:'Newsreader';font-weight:300;margin:0;
+  font-size:clamp(24px,4.9vw,68px);letter-spacing:-.03em;
+  font-variation-settings:'wght' var(--w,320);
+}
+#spruch h1 em,#spruch .ersatz em,#spruch .sp em{font-style:italic}
+#spruch h1{color:var(--helle);position:relative;z-index:2}
+#spruch .sp{position:absolute;left:0;top:0;mix-blend-mode:screen;z-index:1;white-space:nowrap}
+#spruch .sp.a{color:var(--azur);transform:translate3d(calc(-1 * var(--sp,3px)),calc(-.5 * var(--sp,3px)),0)}
+#spruch .sp.b{color:var(--koralle);transform:translate3d(var(--sp,3px),calc(.5 * var(--sp,3px)),0)}
+#spruch .ersatz{position:absolute;left:0;top:0;opacity:0;visibility:hidden}
+#spruch .ersatz.sichtbar{opacity:1;visibility:visible}
+@keyframes glitch{
+  0%{clip-path:inset(0 0 62% 0);transform:translate3d(-9px,0,0)}
+  22%{clip-path:inset(48% 0 22% 0);transform:translate3d(7px,0,0)}
+  46%{clip-path:inset(78% 0 0 0);transform:translate3d(-5px,0,0)}
+  70%{clip-path:inset(12% 0 70% 0);transform:translate3d(4px,0,0)}
+  100%{clip-path:inset(0 0 0 0);transform:translate3d(0,0,0)}
+}
+#spruch.stech .sp{animation:glitch 240ms steps(1,end) 1}
+#spruch.stech .sp.b{animation-duration:200ms}
+
+/* ---------- Kopfzeilen-Leiste unten: Schiene + Legende ---------- */
+#schiene-leiste{
+  position:fixed;left:0;right:0;bottom:0;z-index:30;
+  display:flex;align-items:center;gap:clamp(10px,2vw,22px);
+  padding:14px clamp(16px,3.4vw,40px) 16px;
+  background:linear-gradient(0deg,rgba(11,13,20,.96),rgba(11,13,20,.6) 60%,rgba(11,13,20,0));
+  font-family:'Geist Mono';font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);
+}
+#takten{display:flex;gap:6px;flex:1 1 auto}
+#takten button{
+  appearance:none;border:0;background:none;padding:0;cursor:pointer;
+  width:26px;height:14px;position:relative;color:inherit;font:inherit;
+}
+#takten button::before{content:"";position:absolute;left:0;right:0;top:6px;height:2px;background:rgba(244,246,255,.28);
+  transition:background var(--s) var(--ease),transform var(--s) var(--ease)}
+#takten button[aria-current="true"]::before{background:var(--zitrone);transform:scaleX(1.5)}
+#takten button:hover::before{background:var(--helle)}
+.legende{display:flex;gap:clamp(8px,1.6vw,18px);align-items:center;white-space:nowrap}
+.legende i{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+#fortschritt{position:fixed;left:0;top:0;height:2px;width:100%;z-index:45;
+  background:linear-gradient(90deg,var(--azur),var(--koralle) 52%,var(--zitrone));
+  transform:scaleX(0);transform-origin:left;will-change:transform}
+
+/* ---------- Wegmaß ---------- */
+#spur{height:660vh}
+@media (max-width:900px){#spur{height:600vh}#spruch{top:clamp(66px,9vh,86px)}}
+
+/* ---------- Bewegung abschalten: andere Zustände, nicht weniger ---------- */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;
+    transition-duration:.01ms !important}
+  #spruch .sp{transform:none !important}
+  .netz .ast.treffer{animation:none}
+}
+</style>
+</head>
+<body>
+
+<div id="licht" aria-hidden="true"><i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i></div>
+<div id="raster" aria-hidden="true"></div>
+<div id="fortschritt" aria-hidden="true"></div>
+
+<header id="mast">
+  <a class="marke" href="#anfang" aria-label="KEPTA, zum Anfang">
+    <svg viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="112" fill="#131728" stroke="#37a6ff" stroke-width="14"/><circle cx="176" cy="256" r="11" fill="#f4f6ff"/><path d="M176 256V176" stroke="#f4f6ff" stroke-width="22"/><path d="M176 256V336" stroke="#f4f6ff" stroke-width="22"/><path d="M176 256L288 176" stroke="#f4f6ff" stroke-width="22"/><path d="M176 256L288 336" stroke="#f4f6ff" stroke-width="22"/><circle cx="336" cy="178" r="17" fill="#ff5c47"/></svg>
+    <span>KEPTA</span>
+  </a>
+  <div class="rechts">
+    <a class="mlink nicht-kern" href="#p4"><i></i><span>Die Tür</span></a>
+    <a class="mlink nicht-kern" href="#p5"><i></i><span>Stufen</span></a>
+    <a class="mlink kern" href="https://github.com/DamianTodorovic/kepta/releases/latest"><i></i><span>Core laden</span></a>
+  </div>
+</header>
+
+<!-- Der feste Satz: wird umgeschaltet, nicht überblendet. -->
+<div id="spruch" aria-live="polite">
+  <span class="zeile">
+    <span class="sp a" aria-hidden="true"></span><span class="sp b" aria-hidden="true"></span>
+    <h1>Was du weißt, <em>bleibt.</em></h1>
+    <span class="ersatz" aria-hidden="true"></span>
+  </span>
+</div>
+
+<!-- Das 3D-Karussell -->
+<div id="raum" aria-hidden="false">
+  <div id="schiene">
+
+    <section class="paneel" id="p0" aria-label="KEPTA — Erinnerung, die bleibt">
+      <p class="kopf"><b></b>Akt 00 · Anlegen</p>
+      <h2>Ein Gedächtnis auf <em>deiner Platte.</em></h2>
+      <p>Für Claude, Cursor und alles, was danach kommt — hinter einer Mandanten-Wand, mit einer Kette unter jedem Satz. Kein Konto, kein Fern.</p>
+      <p class="leise" style="margin-top:14px">Scrollen treibt das Karussell. Sieben Paneele, ein Satz.</p>
+    </section>
+
+    <section class="paneel z2" id="p1" aria-label="Was eine Erinnerung bei KEPTA ist">
+      <p class="kopf"><b></b>Akt 01 · Akte</p>
+      <h2>Vier Felder, <em>ein Gedanke.</em></h2>
+      <dl class="zeugnis">
+        <div class="zi"><dt>Knoten</dt><dd>Ein Gedanke, <b>nicht ein Textfeld</b> — mit Typ, Gewicht und Gültigkeit.</dd></div>
+        <div class="zi"><dt>Herkunft</dt><dd>Wer ihn gesetzt hat: Mensch, Agent, Import, und aus welcher Akte.</dd></div>
+        <div class="zi"><dt>Zeit</dt><dd>Wann er galt. Abfragen <b>für gestern</b> sind normales Handwerk.</dd></div>
+        <div class="zi"><dt>Gültigkeit</dt><dd>Ersetzen, Ablauf, Widerspruch — der alte Knoten bleibt nachweisbar.</dd></div>
+      </dl>
+    </section>
+
+    <section class="paneel z3" id="p2" aria-label="Abruf: von der Frage zum Treffer">
+      <p class="kopf"><b></b>Akt 02 · Abruf</p>
+      <h2>Rangfolge <em>vor Wortlaut.</em></h2>
+      <div class="netz">
+        <svg viewBox="0 0 520 262" preserveAspectRatio="none" aria-hidden="true">
+          <path class="faden" d="M96 132 L236 62"/>
+          <path class="faden" d="M96 132 L236 138"/>
+          <path class="faden" d="M96 132 L236 214"/>
+          <path class="faden" d="M236 62 L424 104"/>
+          <path class="faden" d="M236 138 L424 104"/>
+          <path class="faden" d="M236 214 L424 178"/>
+          <path class="faden" d="M424 104 L424 178"/>
+          <circle class="ast hub" cx="96" cy="132" r="13"/>
+          <circle class="ast agent" cx="236" cy="62" r="10"/>
+          <circle class="ast import" cx="236" cy="138" r="10"/>
+          <circle class="ast" cx="236" cy="214" r="10"/>
+          <circle class="ast agent" cx="424" cy="104" r="10"/>
+          <circle class="ast treffer" cx="424" cy="178" r="14"/>
+        </svg>
+        <p class="beleg" style="left:8%;top:62%">Herkunft</p>
+        <p class="beleg k" style="right:8%;top:72%">Treffer</p>
+      </div>
+      <p class="leise">Rangfolge vor Wortlaut. Jeder Treffer trägt, wer ihn gesetzt hat und seit wann.</p>
+    </section>
+
+    <section class="paneel z2" id="p3" aria-label="Die versiegelte Audit-Kette">
+      <p class="kopf"><b></b>Akt 03 · Spur</p>
+      <h2>Sechs Einträge, <em>einer zu viel.</em></h2>
+      <div class="kette" id="kette"></div>
+      <p class="stand">
+        <span>Kette <b>intakt</b></span>
+        <span>Eintrag <b>06</b> · Vorgänger <b>05</b></span>
+        <span class="bruch">Bruch <b>wird gemeldet</b></span>
+      </p>
+      <p class="leise" style="margin-top:12px">Jeder Lese- und jeder Schreibzugriff wird eingetragen, und jeder Eintrag verweist auf seinen Vorgänger. Wer nachträglich schreibt, bricht die Kette — der Bruch selbst ist die Warnung.</p>
+    </section>
+
+    <section class="paneel" id="p4" aria-label="Die MCP-Tür und ihre sechs Werkzeuge">
+      <p class="kopf"><b></b>Akt 04 · Tür</p>
+      <h2>Was die Tür <em>durchlässt.</em></h2>
+      <ul class="tuer" id="tuer"></ul>
+      <div class="schleuse">
+        <p>Agenten schreiben durch <b>POST /api/mcp</b> — durch dieselbe Menschenschleuse wie der REST-Weg. Steht ein Mandant auf Review, antwortet die Tür mit einer Aktennummer <b>und ohne Wirkung</b>.</p>
+      </div>
+    </section>
+
+    <section class="paneel z3" id="p5" aria-label="Die beiden Stufen: Core und Enterprise">
+      <p class="kopf"><b></b>Akt 05 · Stufen</p>
+      <h2>Was du zahlst, <em>wenn überhaupt.</em></h2>
+      <div class="stufen">
+        <div class="stufe core">
+          <p class="name">Core</p>
+          <p class="preis">0 €<small> · für immer</small></p>
+          <ul><li>Gedächtnis auf deiner Platte</li><li>Claude Desktop &amp; Cursor über MCP</li><li>Kein Konto, kein Vertrag, kein Fern</li></ul>
+        </div>
+        <div class="stufe ent">
+          <p class="name">Enterprise</p>
+          <p class="preis">Vertrag<small> · pro Mandant</small></p>
+          <ul><li>Mandanten-Wand vor jedem Lesezugriff</li><li>Versiegelte Audit-Kette</li><li>Menschenschleuse für jeden Schreibweg</li></ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="paneel z2" id="p6" aria-label="Anfangen">
+      <p class="kopf"><b></b>Akt 06 · Anfang</p>
+      <h2>Drei Wege <em>nach KEPTA.</em></h2>
+      <div class="werbung">
+        <a class="knopf" href="https://github.com/DamianTodorovic/kepta/releases/latest"><i></i><span>Core laden</span></a>
+        <a class="knopf rand zwei" href="mailto:damian2212todi@gmail.com?subject=KEPTA%20Enterprise"><i></i><span>Enterprise anfragen</span></a>
+        <a class="knopf rand drei" href="trust.html"><i></i><span>Nachweise</span></a>
+      </div>
+      <p class="klein">
+        <a href="https://github.com/DamianTodorovic/kepta">Quelltext Kern</a>
+        <a href="https://damiantodorovic.github.io/">Übersicht</a>
+        <span>Stand Oktober 2026</span>
+      </p>
+    </section>
+
+  </div>
+</div>
+
+<div id="schiene-leiste">
+  <span id="takten" role="group" aria-label="Paneele"></span>
+  <span class="legende">
+    <span><i style="background:var(--azur)"></i>Mensch</span>
+    <span><i style="background:var(--koralle)"></i>Agent</span>
+    <span><i style="background:var(--zitrone)"></i>Import</span>
+  </span>
+</div>
+
+<div id="spur"></div>
+
+<script>
+/* ============================================================
+   Eine Schleife, ein Weg. Das Karussell steht in echtem 3D:
+   x, z und Drehung eines Paneels folgen seiner Entfernung vom
+   aktiven Stand. Der Satz oben wird nicht geblendet, er wird
+   umgestochen — mit einem Glitch, der genau so lang dauert wie
+   ein Bild.
+   ============================================================ */
+(function(){
+"use strict";
+var D=document, RR=Math.round, CX=Math.max, CN=Math.min;
+var H=D.documentElement;
+var REDUCE=!!(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+function klemm(v){return v<0?0:(v>1?1:v);}
+function K_SCH(t){return t*t*(3-2*t);}
+
+/* ---------- Bestückung ---------- */
+var WERKZEUGE=[
+  ["memory_search","lesen — Rangfolge vor Wortlaut, mit Herkunft und Stand"],
+  ["memory_save","schreiben — ein Knoten, ein Typ, ein Gewicht"],
+  ["memory_update","ändern — der alte Satz bleibt nachweisbar"],
+  ["memory_delete","zurücknehmen — gelöscht heißt hier: gültig bis"],
+  ["memory_forget","verjähren lassen — Ablauf als eigene Setzung"],
+  ["memory_consolidate","verdichten — aus vielen Treffern einen Satz"]
+];
+var t=D.getElementById("tuer");
+if(t) for(var w=0;w<WERKZEUGE.length;w++){
+  var li=D.createElement("li"), n=D.createElement("p"), a=D.createElement("p");
+  n.className="name"; n.textContent=WERKZEUGE[w][0];
+  a.className="art";  a.textContent=WERKZEUGE[w][1];
+  li.appendChild(n); li.appendChild(a); t.appendChild(li);
+}
+var HASH=["a91f0c","4d7b2e","c2a551","8e10bd","f04617","73ca9d","b18e40","05ff2a"];
+var kt=D.getElementById("kette");
+if(kt) for(var b=0;b<6;b++){
+  var e=D.createElement("div");
+  e.className="block"+(b===4?" bruch":"");
+  var vorg=(b===4?"03":("0"+b));
+  e.innerHTML='<p class="kopf">Eintrag 0'+(b+1)+'</p>'+
+    '<p class="wert">'+(b===4?"nachträglich":"gesetzt")+'</p>'+
+    '<p class="hash">'+(b===4?"⚠ Vorgänger "+vorg:(HASH[b+2]+" → 0"+vorg))+'</p>';
+  kt.appendChild(e);
+  if(b<5){var f=D.createElement("i");f.className="fuge";kt.appendChild(f);}
+}
+
+/* ---------- die Sprüche: einer pro Paneel ---------- */
+var SPRUCH=[
+  "Was du weißt, <em>bleibt.</em>",
+  "Nicht ein Textfeld, <em>ein Knoten.</em>",
+  "Die Frage zuerst, <em>dann der Treffer.</em>",
+  "Jeder Zugriff <em>bleibt sichtbar.</em>",
+  "Sechs Werkzeuge, <em>eine Wand.</em>",
+  "Zwei Stufen. <em>Kein Mittelweg.</em>",
+  "Fang an, dich zu <em>erinnern.</em>"
+];
+var spr=D.getElementById("spruch");
+var h1=spr.querySelector("h1");
+var ersatz=spr.querySelector(".ersatz");
+var spa=spr.querySelector(".sp.a"), spb=spr.querySelector(".sp.b");
+function setzeSpruch(i){
+  var txt=SPRUCH[i]||SPRUCH[0];
+  ersatz.innerHTML=txt;
+  spa.innerHTML=txt; spb.innerHTML=txt;
+  h1.innerHTML=txt;
+  if(!REDUCE){
+    spr.classList.remove("stech");
+    void spr.offsetWidth;              /* den Stich wirklich neu anfangen */
+    spr.classList.add("stech");
+  }
+}
+
+/* ---------- Messen ---------- */
+var P=[].slice.call(D.querySelectorAll(".paneel"));
+var NP=P.length;
+var SCHIRM=0, SCHRITT=0, WEG=0, BREIT=0;
+function messen(){
+  SCHIRM=window.innerHeight;
+  WEG=CX(1,D.documentElement.scrollHeight-SCHIRM);
+  BREIT=window.innerWidth;
+  /* Ein Schritt pro Paneel; das erste steht bei 0. */
+  SCHRITT=WEG/Math.max(1,NP-1);
+  var pw=P[0].getBoundingClientRect().width;
+  /* Paneelabstand: breit genug, dass nie zwei mittig stehen */
+  ABSTAND=CX(pw+40, BREIT*0.72);
+}
+var ABSTAND=900;
+
+/* ---------- Zeiger: das Karussell kippt mit, kaum spürbar ---------- */
+var kx=0,ky=0,kxz=0,kyz=0;
+if(!REDUCE&&window.matchMedia("(hover:hover)").matches){
+  window.addEventListener("pointermove",function(ev){
+    kxz=(ev.clientX/BREIT-.5)*2; kyz=(ev.clientY/SCHIRM-.5)*2;
+  },{passive:true});
+}
+
+/* ---------- Taktanzeigen ---------- */
+var tak=D.getElementById("takten");
+var TAK=[];
+for(var q=0;q<NP;q++){
+  var bt=D.createElement("button");
+  bt.type="button"; bt.setAttribute("aria-label","Akt "+RR(q));
+  bt.dataset.i=q; tak.appendChild(bt); TAK.push(bt);
+}
+var FORT=D.getElementById("fortschritt");
+var LICHT=[].slice.call(D.querySelectorAll("#licht i"));
+var alter=-1;
+
+function frame(){
+  requestAnimationFrame(frame);
+  var y=window.pageYOffset||D.documentElement.scrollTop||0;
+  var st=y/SCHRITT;                        /* aktive Stelle, gebrochen */
+  var s=klemm(y/WEG);
+  FORT.style.transform="scaleX("+s.toFixed(4)+")";
+
+  kx+=(kxz-kx)*0.07; ky+=(kyz-ky)*0.07;
+
+  /* Der Satz gehört auf ein Paneel, nicht zwischen zwei. */
+  var aktiv=RR(CN(CX(st,0),NP-1));
+  if(aktiv!==alter){
+    alter=aktiv;
+    setzeSpruch(aktiv);
+    for(var r=0;r<TAK.length;r++) TAK[r].setAttribute("aria-current",r===aktiv?"true":"false");
+    var br=D.querySelector(".block.bruch");
+    if(br&&!REDUCE){br.classList.remove("gezundet");void br.offsetWidth;br.classList.add("gezundet");}
+  }
+
+  /* Gewicht des festen Satzes: in Stufen, damit er nicht jedes Bild neu gesetzt wird */
+  var nahe=1-CN(Math.abs(st-aktiv),1);
+  var wght=RR((300+nahe*460)/20)*20;
+  if(spr._w!==wght){spr._w=wght;spr.style.setProperty("--w",wght);}
+  /* Der chromatische Saum: zwei, drei Pixel, nicht mehr. Ein Satz, der um
+     zwanzig Pixel gespalten ist, liest sich als drei Sätze. */
+  spr.style.setProperty("--sp",(2.5+Math.abs(kx)*3).toFixed(2)+"px");
+
+  /* Das Karussell: ein Transform pro Paneel, sonst nichts. Erst die eigene
+     Halbierung (die Panele hängen an der Achse), dann Weg, Tiefe, Drehung. */
+  for(var i=0;i<NP;i++){
+    var d=i-st;                            /* Entfernung vom aktiven Stand */
+    var x=-d*ABSTAND;
+    var z=-Math.abs(d)*620;
+    var ry=d*-13;
+    var sk=1/(1+Math.abs(d)*0.55);
+    P[i].style.transform="translate3d(-50%,-50%,0) translate3d("+RR(x)+"px,0,"+RR(z)+"px) "+
+      "rotateY("+ry.toFixed(1)+"deg) scale("+sk.toFixed(3)+")";
+    var deck=CN(1,CX(0,1-Math.abs(d)*0.66));
+    P[i].style.opacity=deck.toFixed(3);
+    P[i].style.zIndex=RR(100-Math.abs(d)*10);
+  }
+
+  /* Die Lichtfelder atmen mit dem Weg, nicht mit der Uhr. */
+  for(var l=0;l<LICHT.length;l++){
+    var rich=(l%2?1:-1);
+    LICHT[l].style.transform="translate3d("+RR(s*rich*90)+"px,"+RR(s*140*(l<2?1:-1))+"px,0) "+
+      "scale("+(1+s*(l%2?0.2:0.34)).toFixed(3)+")";
+  }
+}
+
+/* ---------- Sprung auf ein Paneel ---------- */
+D.addEventListener("click",function(ev){
+  var el=ev.target, bt=el.closest?el.closest("#takten button"):null;
+  if(bt){ev.preventDefault();
+    window.scrollTo({top:RR((+bt.dataset.i)*SCHRITT),behavior:REDUCE?"auto":"smooth"});return;}
+  var a=el.closest?el.closest('a[href^="#p"]'):null;
+  if(!a) return;
+  var id=a.getAttribute("href").slice(1);
+  for(var i=0;i<NP;i++) if(P[i].id===id){
+    ev.preventDefault();
+    window.scrollTo({top:RR(i*SCHRITT),behavior:REDUCE?"auto":"smooth"});return;
+  }
+});
+
+/* ---------- Start ---------- */
+function anlauf(){
+  messen();
+  setzeSpruch(0);
+  if(REDUCE){
+    /* Ruhende Zustände: ein Paneel, gerade, voll; die Lichter stehen. */
+    for(var i=0;i<NP;i++){
+      P[i].style.transform="translate3d(-50%,-50%,0)";
+      P[i].style.opacity=i===0?"1":"0";
+    }
+    spr.style.setProperty("--sp","0px");
+    FORT.style.transform="scaleX(0)";
+  }
+  requestAnimationFrame(frame);
+}
+var rz=0;
+window.addEventListener("resize",function(){clearTimeout(rz);rz=setTimeout(messen,140)},{passive:true});
+if(D.readyState==="loading") D.addEventListener("DOMContentLoaded",anlauf); else anlauf();
+if(D.fonts&&D.fonts.ready&&D.fonts.ready.then) D.fonts.ready.then(function(){messen();});
+})();
+</script>
+
+<noscript><style>
+#p0{transform:translate3d(-50%,-50%,0) !important;opacity:1 !important}
+.paneel{opacity:0}
+#spruch .sp{display:none}
+</style></noscript>
+
+</body>
+</html>
