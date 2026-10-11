@@ -17,7 +17,7 @@
 <meta property="og:image" content="https://damiantodorovic.github.io/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="KEPTA - Your AI forgets. KEPTA keeps the record. One encrypted memory on your own machine, no cloud, no account; along the bottom: SQLCipher 4 AES-256, 8 MCP tools, 476 tests, free forever under BUSL-1.1">
+<meta property="og:image:alt" content="KEPTA - Your AI forgets. KEPTA keeps the record. One encrypted memory on your own machine, no cloud, no account; along the bottom: SQLCipher 4 AES-256, 8 MCP tools, 977 engine tests, free forever under BUSL-1.1">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="KEPTA - Local, encrypted memory for your AI">
@@ -436,7 +436,7 @@
       "name": "Does KEPTA send anything anywhere?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "None. No account, no analytics, no call home. Loopback only, 127.0.0.1. There is no server that could receive your notes, because there is no server."
+        "text": "None. No account, no analytics, no call home. Loopback only, 127.0.0.1. The only listener is a process on your own machine. There is no server of ours anywhere that could receive your notes."
       }
     },
     {
@@ -460,7 +460,7 @@
       "name": "Where do the benchmark numbers come from?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "From LongMemEval-S: 500 questions, a fixed dataset with a pinned checksum, graded by a local judge. 61.5 % — and every question record of every run is committed to the public repository: its id, type and skill, the judge's verdict, how many notes retrieval returned and which of them settled the answer. The question and answer <em>texts</em> are not in the repo; they come from the pinned upstream dataset. Read the number as what it measures: context sufficiency rather than end-to-end answer accuracy, a partial verdict counting as half a point, and every setting (top-k, temporal split, HyDE, judge size) chosen on these same 500 questions — an in-sample figure. You can rerun the whole benchmark yourself."
+        "text": "From LongMemEval-S: 500 questions, a fixed dataset with a pinned checksum, graded by a local judge. No headline score is quoted here, on purpose: every record in that series names a kepta_version between 2.13.2 and 2.13.22, while the engine that ships is 3.3.0 — until the chain runs again against the shipped engine, the numbers stay in the records and out of the page. And every question record of every run is committed to the public repository: its id, type and skill, the judge's verdict, how many notes retrieval returned and which of them settled the answer. The question and answer texts are not in the repo; they come from the pinned upstream dataset. Read the number as what it measures: context sufficiency rather than end-to-end answer accuracy, a partial verdict counting as half a point, and every setting (top-k, temporal split, HyDE, judge size) chosen on these same 500 questions — an in-sample figure. Three more conditions stand in that run's own report: the engine was 2.13.22, not the 3.2.0 you would download today; the judge was qwen2.5:14b while the runner pins llama3.2:3b, and on the same 60 questions those two judges score 54.2 % against 42.5 %; and the abstention skill had no questions in that run, so four of the five skills are measured. The runner and its flags are committed, so the benchmark is yours to rerun — read the figure as a tuned retrieval result, not as a score of the release you install."
       }
     },
     {
@@ -562,7 +562,7 @@
           <p class="eyebrow rv">The mechanism</p>
           <h2 class="rv" style="margin-top:22px">One engine between every app and your disk.</h2>
         </div>
-        <p class="lead rv d1">Your assistants speak MCP. KEPTA answers, and keeps a single encrypted file. The same code path serves the apps, the HTTP API and the browser, so every client gets the same answers.</p>
+        <p class="lead rv d1">Your assistants speak MCP. KEPTA answers, and keeps a single encrypted file. One engine sits behind every door — the MCP server, the loopback HTTP API and the desktop app all read and write the same file, so every client gets the same answers.</p>
       </div>
 
       <div class="pipe rv d2" style="margin-top:56px">
@@ -608,10 +608,10 @@
           <button class="copy" type="button" data-copy="npx -y kepta-mcp setup">Copy</button>
         </div>
         <div class="cmd">
-          <div class="head" aria-hidden="true"><i></i><i></i><i></i><span>open your memory</span></div>
-          <pre><span class="c"># the same encrypted file, in your browser, live</span>
-<span class="k">$</span> npx -y kepta-mcp ui</pre>
-          <button class="copy" type="button" data-copy="npx -y kepta-mcp ui">Copy</button>
+          <div class="head" aria-hidden="true"><i></i><i></i><i></i><span>ask from the shell</span></div>
+          <pre><span class="c"># the same encrypted file, no client in between</span>
+<span class="k">$</span> npx -y kepta-mcp recall DuckDB</pre>
+          <button class="copy" type="button" data-copy="npx -y kepta-mcp recall DuckDB">Copy</button>
         </div>
       </div>
     </div>
@@ -627,7 +627,7 @@
           <dl class="spec rv d2" style="margin-top:38px">
             <div><dt>At rest</dt><dd>SQLCipher 4: AES-256 with an HMAC-SHA512 over every page, the write-ahead log included.</dd></div>
             <div><dt>The key</dt><dd>256 random bits, created and kept in the macOS Keychain, Windows DPAPI or the Linux Secret Service.</dd></div>
-            <div><dt>Exposure</dt><dd>Loopback only, <code>127.0.0.1</code>. There is no server that could receive your notes, because there is no server.</dd></div>
+            <div><dt>Exposure</dt><dd>Loopback only, <code>127.0.0.1</code>. The only listener is a process on your own machine. There is no server of ours anywhere that could receive your notes.</dd></div>
             <div><dt>Telemetry</dt><dd>None. No account, no analytics, no call home. This page runs no tracking either.</dd></div>
             <div><dt>Licensing</dt><dd>Nothing to activate. The engine is source-available under BUSL-1.1 and free forever; the enterprise side is a contract, not a key.</dd></div>
           </dl>
@@ -647,10 +647,10 @@
         <div class="head"><h4>Privacy shield</h4><span>live example, edit the text</span></div>
         <div class="body">
           <label for="shield-in" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Text to shield</label>
-          <textarea id="shield-in" spellcheck="false">Call Anna Weber on +49 170 5551234 about the Miller case. Her address is Bahnhofstrasse 12, Hamburg. The invoice should go to anna.weber@example.com.</textarea>
+          <textarea id="shield-in" spellcheck="false">Please send the Lumen invoice to billing@lumen.example, IBAN DE89 3704 0044 0532 0130 00 &#8212; questions to +49 170 1234567. Card 4111 1111 1111 1111, password s3cret-8841.</textarea>
           <div class="out" id="shield-out" aria-live="polite"></div>
         </div>
-        <div class="foot">Names, phone numbers, addresses and email addresses become placeholders before a cloud model would ever see them.</div>
+        <div class="foot">Email addresses, phone numbers, IBANs, card numbers and passwords become placeholders before a cloud model ever sees them. Names stay visible on purpose &#8212; an assistant that cannot tell who you mean cannot help you.</div>
       </div>
     </div>
   </section>
@@ -777,7 +777,7 @@
           <h2 class="rv" style="margin-top:22px">Inspect it before you trust it.</h2>
           <p class="lead rv d1" style="margin-top:24px">The memory engine is BUSL-1.1 and free forever (converts to AGPL-3.0 four years after each release). The Python client is MIT, standard library only. Read the code, fork it, ship your own product from it.</p>
           <div class="cta-row rv d2"><a class="btn lg ghost" href="https://github.com/DamianTodorovic/kepta">github.com/DamianTodorovic/kepta</a></div>
-          <p class="fine rv d2" style="margin-top:22px">1,900+ automated tests in the desktop app, 476 in this open core.</p>
+          <p class="fine rv d2" style="margin-top:22px">977 in this open core, measured at v3.3.0 (<code>8bc48eb</code>) on 11.10.2026: <code>npm run test:cov</code> — 79 files, 977 executed cases, 3 skipped not counted, <code>node scripts/doku-check.mjs</code> green. 2,241 in the desktop app, measured on 3.2.0 the same evening (142 files, lint 0 errors). Both numbers are the cases a run executed, not a static count of test declarations.</p>
         </div>
         <div class="cmd rv d2">
           <div class="head" aria-hidden="true"><i></i><i></i><i></i><span>the whole memory layer</span></div>
@@ -804,10 +804,10 @@
       </div>
       <div class="faq rv d2">
         <article class="qa"><div class="q"><span class="n" aria-hidden="true">01</span><h3>Where does my data live?</h3></div><p>The knowledge base is a single encrypted database. SQLCipher 4: AES-256 with an <span class="nb">HMAC-SHA512</span> over every page, the write-ahead log included.</p></article>
-        <article class="qa"><div class="q"><span class="n" aria-hidden="true">02</span><h3>Does KEPTA send anything anywhere?</h3></div><p>None. No account, no analytics, no call home. Loopback only, 127.0.0.1. There is no server that could receive your notes, because there is no server.</p></article>
+        <article class="qa"><div class="q"><span class="n" aria-hidden="true">02</span><h3>Does KEPTA send anything anywhere?</h3></div><p>None. No account, no analytics, no call home. Loopback only, 127.0.0.1. The only listener is a process on your own machine. There is no server of ours anywhere that could receive your notes.</p></article>
         <article class="qa"><div class="q"><span class="n" aria-hidden="true">03</span><h3>Is it really free?</h3></div><p>Yes. The engine is source-available under BUSL-1.1 and free forever — running it in your own organization is always allowed. There are no tiers inside the memory: everything that makes it smart is in the free engine.</p></article>
         <article class="qa"><div class="q"><span class="n" aria-hidden="true">04</span><h3>Which AI clients are supported?</h3></div><p>Claude Desktop, Claude Code, Cursor, Windsurf, VS Code, Gemini CLI, Cline, Roo Code, Zed, Codex, Continue, any MCP client.</p></article>
-        <article class="qa"><div class="q"><span class="n" aria-hidden="true">05</span><h3>Where do the benchmark numbers come from?</h3></div><p>From LongMemEval-S: 500 questions, a fixed dataset with a pinned checksum, graded by a local judge. 61.5 % — and every question record of every run is committed to the public repository: its id, type and skill, the judge's verdict, how many notes retrieval returned and which of them settled the answer. The question and answer <em>texts</em> are not in the repo; they come from the pinned upstream dataset. Read the number as what it measures: context sufficiency rather than end-to-end answer accuracy, a partial verdict counting as half a point, and every setting (top-k, temporal split, HyDE, judge size) chosen on these same 500 questions — an in-sample figure. You can rerun the whole benchmark yourself.</p></article>
+        <article class="qa"><div class="q"><span class="n" aria-hidden="true">05</span><h3>Where do the benchmark numbers come from?</h3></div><p>From LongMemEval-S: 500 questions, a fixed dataset with a pinned checksum, graded by a local judge. <strong>No headline score is quoted here, on purpose:</strong> every record in that series names a <code>kepta_version</code> between 2.13.2 and 2.13.22, while the engine that ships is <strong>3.3.0</strong> — until the chain runs again against the shipped engine, the numbers stay in the records and out of the page. And every question record of every run is committed to the public repository: its id, type and skill, the judge's verdict, how many notes retrieval returned and which of them settled the answer. The question and answer <em>texts</em> are not in the repo; they come from the pinned upstream dataset. Read the number as what it measures: context sufficiency rather than end-to-end answer accuracy, a partial verdict counting as half a point, and every setting (top-k, temporal split, HyDE, judge size) chosen on these same 500 questions — an in-sample figure. Three more conditions stand in that run's own report: the engine was 2.13.22, not the 3.2.0 you would download today; the judge was qwen2.5:14b while the runner pins llama3.2:3b, and on the same 60 questions those two judges score 54.2 % against 42.5 %; and the abstention skill had no questions in that run, so four of the five skills are measured. The runner and its flags are committed, so the benchmark is yours to rerun — read the figure as a tuned retrieval result, not as a score of the release you install.</p></article>
         <article class="qa"><div class="q"><span class="n" aria-hidden="true">06</span><h3>What is KEPTA Enterprise?</h3></div><p>The same engine as an organization infrastructure: tenant memory behind one wall, a tamper-evident audit chain with one-click verification, human review for agent writes, point-in-time recovery, scope per key and per-tenant keys. Self-hosted, firewall or air-gapped. Licensed by agreement.</p></article>
       </div>
     </div>
@@ -843,7 +843,7 @@
           <h3>Security</h3>
           <p>The database is SQLCipher 4 with AES-256 and an HMAC-SHA512 over every page. Every read and write is entered in an append-only journal whose entries point at their predecessor, so an edit after the fact breaks the chain and the break is reported rather than hidden.</p>
           <h4>What is not claimed</h4>
-          <p>No certificates, no seals, no customer references. Where a number is shown, it was measured on the commit named beside it and can be run again.</p>
+          <p>No certificates, no seals, no customer references. Where a number is shown, it was measured on the commit named beside it and can be run again — the engine's on the public repository, the benchmark's on the records committed with it. The desktop app's test count is measured in the app's repository, which is not public: that one is our word, and it is marked as such.</p>
         </article>
       </div>
     </div>
@@ -1056,7 +1056,7 @@
     { kind: 'Section', label: 'Pricing', go: '#pricing' },
     { kind: 'Section', label: 'Legal', go: '#legal' },
     { kind: 'Command', label: 'npx -y kepta-mcp setup', copy: 'npx -y kepta-mcp setup' },
-    { kind: 'Command', label: 'npx -y kepta-mcp ui', copy: 'npx -y kepta-mcp ui' },
+    { kind: 'Command', label: 'npx -y kepta-mcp recall DuckDB', copy: 'npx -y kepta-mcp recall DuckDB' },
     { kind: 'Command', label: 'pip install kepta', copy: 'pip install kepta' },
     { kind: 'Link', label: 'Download KEPTA Core — free', href: 'https://github.com/DamianTodorovic/kepta/releases/latest' },
     { kind: 'Link', label: 'Source on GitHub', href: 'https://github.com/DamianTodorovic/kepta' }
@@ -1102,29 +1102,47 @@
   }
 
   /* ================= privacy shield (live) ================= */
+  // Fuenf Arten, dieselbe Reihenfolge wie im Produkt: secret, iban, card,
+  // email, phone (kepta-app: src/lib/schild.ts). IBAN prueft mod-97, die
+  // Kartennummer Luhn \u2014 sonst waere jede Zahl mit genug Ziffern eine Karte.
   var shieldIn = $('#shield-in'), shieldOut = $('#shield-out');
-  var SHIELD_STOP = { call: 1, tell: 1, ask: 1, meet: 1, email: 1, write: 1, note: 1, the: 1, her: 1, his: 1, our: 1, your: 1, their: 1, invoice: 1, mail: 1, about: 1, for: 1, from: 1, with: 1, and: 1, but: 1, if: 1, when: 1, please: 1, send: 1, forward: 1, today: 1, tomorrow: 1 };
-  function maskNames(t) {
-    var parts = t.split(/(\s+)/), cap = /^[A-Z\u00c4\u00d6\u00dc][a-z\u00e4\u00f6\u00fc\u00df]+$/;
-    for (var i = 0; i < parts.length; i += 2) {
-      var w = parts[i];
-      if (!cap.test(w) || SHIELD_STOP[w.toLowerCase()]) continue;
-      var j = i + 2;
-      if (j < parts.length && cap.test(parts[j]) && !SHIELD_STOP[parts[j].toLowerCase()]) { parts[i] = '[NAME]'; parts[i + 1] = ''; parts[j] = ''; }
-    }
-    return parts.join('');
+  function luhn(z) { var s = 0, j = 0; for (var i = z.length - 1; i >= 0; i--) { var d = +z[i]; if (j++ % 2) { d *= 2; if (d > 9) d -= 9; } s += d; } return s % 10 === 0 && z.length >= 13; }
+  function istIban(roh) {
+    var v = roh.replace(/\s+/g, '').toUpperCase();
+    if (!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(v)) return false;
+    var rest = 0, k = v.slice(4) + v.slice(0, 4);
+    for (var i = 0; i < k.length; i++) { var c = k[i], z = /[A-Z]/.test(c) ? String(c.charCodeAt(0) - 55) : c; for (var n = 0; n < z.length; n++) rest = (rest * 10 + +z[n]) % 97; }
+    return rest === 1;
   }
+  var SCHILD_ARTEN = [
+    { art: 'SECRET', muster: /\b(password|passwort|api[ _-]?key|secret|token)\b([ \t]*[=:]?[ \t]*)([^\s,;.]+)/gi, wert: 3 },
+    { art: 'IBAN', muster: /\b[A-Z]{2}\d{2}[ \t]?(?:[A-Z0-9][ \t]?){11,30}\b/gi, prueft: istIban },
+    { art: 'CARD', muster: /\b(?:\d[ \t-]?){13,19}\b/g, prueft: function (m) { return luhn(m.replace(/\D/g, '')); } },
+    { art: 'EMAIL', muster: /[\w.+-]+@[\w-]+\.[\w.]{2,}/g },
+    { art: 'PHONE', muster: /\+?\d[\d\s().-]{6,}\d/g }
+  ];
   function shieldText(t) {
-    var s = t
-      .replace(/[\w.+-]+@[\w-]+\.[\w.]{2,}/g, '[EMAIL]')
-      .replace(/\+?\d[\d\s().-]{6,}\d/g, '[PHONE]')
-      .replace(/\b[A-Z\u00c4\u00d6\u00dc][a-z\u00e4\u00f6\u00fc\u00df]+(?:strasse|stra\u00dfe|str\.|weg|allee|platz)\s*\d+[a-z]?\b/g, '[ADDRESS]');
-    return maskNames(s);
+    var nummern = {}, bekannte = {};
+    for (var a = 0; a < SCHILD_ARTEN.length; a++) {
+      var art = SCHILD_ARTEN[a];
+      t = t.replace(art.muster, function () {
+        var m = arguments[0];
+        var wert = art.wert ? arguments[art.wert] : m;
+        if (art.prueft && !art.prueft(wert)) return m;
+        var key = art.art + ':' + wert.toLowerCase();
+        if (bekannte[key] !== undefined) return art.wert ? m.slice(0, m.length - wert.length) + bekannte[key] : bekannte[key];
+        nummern[art.art] = (nummern[art.art] || 0) + 1;
+        var marke = '\u0001' + art.art + '-' + nummern[art.art] + '\u0001';
+        bekannte[key] = marke;
+        return art.wert ? m.slice(0, m.length - wert.length) + marke : marke;
+      });
+    }
+    return t;
   }
   function renderShield() {
     if (!shieldIn || !shieldOut) return;
     var t = shieldText(shieldIn.value);
-    shieldOut.innerHTML = esc(t).replace(/\[(EMAIL|PHONE|ADDRESS|NAME)\]/g, '<mark>[$1]</mark>');
+    shieldOut.innerHTML = esc(t).replace(/\u0001/g, '').replace(/(SECRET|IBAN|CARD|EMAIL|PHONE)-(\d+)/g, '<mark>[$1-$2]</mark>');
   }
   if (shieldIn && shieldOut) {
     renderShield();

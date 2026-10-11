@@ -44,7 +44,7 @@ Platte.
   abgewiesen statt ignoriert. Schreibwege gehen durch dieselbe Menschenschleuse
   wie der REST-Weg; auf `review` oder `approve` antwortet die Tür mit einer
   Aktennummer und ohne Wirkung.
-- Suite auf dem aktuellen Engine-Commit: 474 Tests in 36 Dateien, grün in unter
+- Suite auf dem aktuellen Engine-Commit: **977 ausgeführte Fälle in 79 Dateien** (Lauf 11.10.2026 23:26, `npm run test:cov`, 3 übersprungene nicht gezählt, `node scripts/doku-check.mjs` grün), grün in unter
   zwanzig Sekunden auf einem M-Series-Laptop.
 - Protokollstand 2026-07-28; MCP über stdio aus npm, HTTP über `POST /api/mcp`.
 
