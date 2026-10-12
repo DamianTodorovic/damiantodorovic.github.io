@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f1f2ed">
+  <meta name="description" content="One local, encrypted memory for your AI tools. Keep decisions, connect context and pick up where you left off with KEPTA.">
+  <meta name="robots" content="noindex,nofollow">
+  <title>KEPTA — Intelligence moves on. Memory stays.</title>
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="../assets/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <a href="#main" class="skip">Skip to content</a>
+  <header class="header">
+    <a href="#top" class="brand" aria-label="KEPTA home"><svg viewBox="0 0 512 512" aria-hidden="true"><path d="M176 176 V336 M176 256 L288 176 M176 256 L288 336"/><circle cx="336" cy="178" r="17"/></svg><span translate="no">KEPTA</span></a>
+    <nav aria-label="Main navigation"><a href="#memory">The memory</a><a href="#control">Your control</a><a href="#enterprise">For teams</a></nav>
+    <a class="header-cta" href="#start">Get KEPTA <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main id="main">
+    <section class="experience" id="top" aria-label="Meet KEPTA">
+      <div class="stage">
+        <div class="stage-grid" aria-hidden="true"></div>
+        <div class="sculpture-wrap" aria-hidden="true">
+          <div class="object-shadow"></div>
+          <svg class="sculpture-fallback" viewBox="0 0 600 600"><defs><linearGradient id="metal"><stop stop-color="#182d45"/><stop offset=".28" stop-color="#bfcbd1"/><stop offset=".48" stop-color="#fff"/><stop offset=".64" stop-color="#677687"/><stop offset="1" stop-color="#142d45"/></linearGradient></defs><g transform="translate(300 300) rotate(-32)"><ellipse rx="180" ry="218" fill="none" stroke="url(#metal)" stroke-width="70"/><ellipse rx="184" ry="218" fill="none" stroke="#f1f2ed" stroke-opacity=".5" stroke-width="2"/><ellipse rx="180" ry="218" fill="none" stroke="#dc634e" stroke-width="6" transform="rotate(18)"/></g></svg>
+          <canvas id="sculpture"></canvas>
+        </div>
+
+        <div class="scene scene-intro" data-scene="0">
+          <div class="hero-note"><span class="status-dot"></span> A memory of your own.</div>
+          <h1>Intelligence<br>moves on.<br><span>Memory stays.</span></h1>
+          <div class="hero-bottom"><p>One local, encrypted memory for your AI.<br>So the next conversation starts<br>where the last one left off.</p><a href="#start" class="button button-dark">Make it yours <span aria-hidden="true">↗</span></a></div>
+          <div class="artifact-caption"><span class="caption-cross" aria-hidden="true">+</span><span>Your context.<br>Kept together.</span></div>
+        </div>
+
+        <div class="scene scene-fragments" data-scene="1">
+          <div class="scene-copy"><p class="chapter-label">Remember what matters</p><h2>A new chat.<br>Not a blank slate.</h2><p>The decisions. The preferences. The reason you chose one thing over another. Give them a life beyond the conversation.</p></div>
+          <div class="memory-fragment fragment-a"><span>Project decision</span><strong>Keep the client data local.</strong><i>Saved to your memory</i></div>
+          <div class="memory-fragment fragment-b"><span>Working preference</span><strong>Explain the trade-offs first.</strong><i>Ready for the next conversation</i></div>
+          <div class="memory-fragment fragment-c"><span>Useful context</span><strong>We chose PostgreSQL.</strong><i>Connected to your project</i></div>
+        </div>
+
+        <div class="scene scene-connected" data-scene="2">
+          <div class="scene-copy"><p class="chapter-label">Carry it forward</p><h2>Different tools.<br>The same you.</h2><p>Connect your AI tools through MCP.<br>Your memory stays with you when your workflow moves on.</p></div>
+          <div class="client-label client-one">Claude <span>↘</span></div><div class="client-label client-two">Cursor <span>↗</span></div><div class="client-label client-three">Your agents <span>↙</span></div>
+          <div class="connected-caption"><span class="status-dot"></span> One memory. On your machine.</div>
+        </div>
+
+        <div class="stage-bottom"><a href="#memory" class="scroll-cue"><span aria-hidden="true">↓</span> Scroll to remember</a><div class="chapter-progress" aria-label="Story progress"><span class="progress-title">A lasting memory</span><div class="progress-tracks" aria-hidden="true"><i></i><i></i><i></i></div></div><button class="motion-toggle" type="button" aria-pressed="false" disabled>Reduce motion <span aria-hidden="true">Ⅱ</span></button></div>
+      </div>
+    </section>
+
+    <div class="story-static section-shell">
+      <article><span class="section-marker">Remember what matters</span><h2>A new chat.<br>Not a blank slate.</h2><p>Save the decisions, preferences and context worth keeping. Give them a life beyond the conversation.</p><div class="static-memory">“Keep the client data local.”<span>A saved project decision</span></div></article>
+      <article><span class="section-marker">Carry it forward</span><h2>Different tools.<br>The same you.</h2><p>Connect your AI tools through MCP. Your memory stays with you when your workflow moves on.</p><div class="static-clients">Claude <span>↔</span> KEPTA <span>↔</span> Cursor</div></article>
+    </div>
+
+    <section class="memory-section section-shell" id="memory">
+      <div class="section-top"><span class="section-marker"><span aria-hidden="true">↳</span> A little context changes everything.</span><span class="small-note">Explore an example</span></div>
+      <div class="demo-intro"><h2>Pick up the thought.<br>Keep going.</h2><p>KEPTA brings the relevant context back.<br>Search by what you mean. Find the decision,<br>its source, and what changed since.</p></div>
+      <div class="demo">
+        <div class="demo-questions"><p class="demo-label">Ask your memory</p><div class="question-options" role="group" aria-label="Choose a memory example"><button class="question active" type="button" data-example="decision" aria-pressed="true" disabled><span>Why did we choose PostgreSQL?</span><span aria-hidden="true">↗</span></button><button class="question" type="button" data-example="preference" aria-pressed="false" disabled><span>How do I like feedback?</span><span aria-hidden="true">↗</span></button><button class="question" type="button" data-example="change" aria-pressed="false" disabled><span>What changed with the launch?</span><span aria-hidden="true">↗</span></button></div><noscript><p class="no-script-note">JavaScript is off. The example below is a static illustration.</p></noscript><p class="demo-disclosure">An interactive illustration with sample memories.<br>Your actual memory stays in your KEPTA installation.</p></div>
+        <div class="memory-answer" aria-live="polite" aria-atomic="true"><div class="answer-top"><span><span class="status-dot"></span> Context found</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5v14m0-7L16 5M5 12l11 7"/><circle cx="20" cy="5" r="1.5"/></svg></div><div id="answer-content"><p class="answer-type">Project decision</p><h3>Room to grow.<br>Less to manage.</h3><p class="answer-text">“We chose PostgreSQL because the project needs relational queries and the team already knows how to run it.”</p><div class="answer-source"><span>From</span><strong>Architecture review</strong><span class="source-state">Current memory</span></div></div><div class="answer-bottom"><span class="memory-tag">Project Atlas</span><span class="memory-tag">Database</span><span class="answer-kept">Kept by KEPTA <span aria-hidden="true">↗</span></span></div></div>
+      </div>
+      <div class="retrieval-line"><span>Words</span><span aria-hidden="true">+</span><span>Similarity*</span><span aria-hidden="true">+</span><span>Connections</span><span class="retrieval-result">Context that belongs together.</span></div><p class="search-detail">* Semantic search uses an optional local embedding model through Ollama. Text search works without it.</p>
+    </section>
+
+    <section class="ownership section-shell" id="control">
+      <div class="ownership-heading"><span class="section-marker"><span aria-hidden="true">↳</span> Built around your control.</span><h2>Your memory.<br>Your machine.<br>Your terms.</h2><p>Your memory is stored on your machine, encrypted at rest. You decide which AI tools can use it.</p><a class="text-link" href="https://github.com/DamianTodorovic/kepta/blob/main/SECURITY.md" target="_blank" rel="noopener noreferrer">Read the security model <span aria-hidden="true">↗</span></a></div>
+      <div class="vault-visual" aria-hidden="true"><div class="vault-grid"></div><div class="vault-orbit orbit-one"></div><div class="vault-orbit orbit-two"></div><div class="vault-orbit orbit-three"></div><div class="vault-core"><svg viewBox="0 0 512 512"><path d="M176 176 V336 M176 256 L288 176 M176 256 L288 336"/><circle cx="336" cy="178" r="17"/></svg></div><div class="vault-label label-top">Your machine</div><div class="vault-label label-bottom"><span class="status-dot"></span> Encrypted at rest</div><span class="vault-file">~/.kepta/kepta.db</span></div>
+      <div class="ownership-facts"><div><span class="fact-icon" aria-hidden="true">⌁</span><h3>A file you own.</h3><p>Your memory lives in a local, encrypted database. No KEPTA cloud account required.</p></div><div><span class="fact-icon" aria-hidden="true">↶</span><h3>A history you can follow.</h3><p>Replace outdated facts without losing their history. See what was valid at a point in time.</p></div><div><span class="fact-icon" aria-hidden="true">⌘</span><h3>A core you can inspect.</h3><p>Read the source. Run the engine yourself. Available under the Business Source License.</p></div></div>
+      <p class="privacy-detail">Connected AI tools receive the memories they request. Their own data policies still apply.</p>
+    </section>
+
+    <section class="team-section section-shell" id="enterprise"><div class="team-heading"><span class="section-marker"><span aria-hidden="true">↳</span> A shared memory. A clear responsibility.</span><h2>When the work<br>gets bigger than you.</h2></div><div class="team-body"><p>Bring memory to your team, with the boundaries and oversight shared work needs.</p><ul><li><span>Separate workspaces</span><span>Keep tenant data apart.</span></li><li><span>Human approval</span><span>Review proposed changes.</span></li><li><span>Traceable activity</span><span>Follow a sealed audit trail.</span></li></ul><div class="enterprise-action"><a href="https://www.linkedin.com/in/damian-todorovic-244235434" target="_blank" rel="noopener noreferrer" class="button button-light">Talk about Enterprise <span aria-hidden="true">↗</span></a><span>Self-hosted. Available by arrangement.</span></div></div><div class="team-lines" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div></section>
+
+    <section class="start-section section-shell" id="start"><div class="start-top"><span class="section-marker"><span aria-hidden="true">↳</span> Make the next conversation count.</span><a class="text-link" href="https://github.com/DamianTodorovic/kepta" target="_blank" rel="noopener noreferrer">Explore the source <span aria-hidden="true">↗</span></a></div><h2>Start with<br>something<br><span>worth keeping.</span></h2><div class="start-bottom"><div><p>The memory engine is free.<br>No account. Your machine. Your context.</p><p class="requirements">Requires Node.js 22.13 or later.</p><a class="download-link" href="https://github.com/DamianTodorovic/kepta/releases/latest" target="_blank" rel="noopener noreferrer">Looking for the Mac app? <span aria-hidden="true">↗</span></a></div><div class="install"><span class="install-label">Connect your AI tools</span><div class="command"><code>npx -y kepta-mcp setup</code><button id="copy-command" type="button" disabled aria-label="Copy setup command"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg></button></div><div class="install-bottom"><a href="https://github.com/DamianTodorovic/kepta#-quick-start" target="_blank" rel="noopener noreferrer">Setup guide <span aria-hidden="true">↗</span></a><span id="copy-status" role="status">Copy. Run. Remember.</span></div></div></div></section>
+  </main>
+
+  <footer class="footer"><div class="footer-wordmark" aria-hidden="true">KEPTA</div><div class="footer-bottom"><p>Intelligence moves on. Memory stays.</p><div><a href="https://github.com/DamianTodorovic/kepta" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://github.com/DamianTodorovic/kepta/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">License</a><a href="https://www.linkedin.com/in/damian-todorovic-244235434" target="_blank" rel="noopener noreferrer">Contact</a><a href="#top">Back to top ↑</a></div><span>© 2026 KEPTA</span></div></footer>
+</body>
+</html>

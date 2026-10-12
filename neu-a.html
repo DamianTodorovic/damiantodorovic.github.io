@@ -1,0 +1,919 @@
+<!doctype html>
+<!--
+  variant A — the cinematic dark ground
+  Ein selbstständiger Entwurf neben index.html. index.html wird hier nicht angefasst.
+
+  These: die Seite ist das, was ein Speicher aussieht, wenn man das Licht ausmacht —
+  Schiefergrund, eine warme Lampe von oben, Elfenbein-Buchstaben, und als einziger
+  gesättigter Gegenstand das Siegelwachs.
+
+  Subject:  der Weg EINER Erinnerung (gespeichert -> verknüpft -> gereiht); die Fläche
+            verkauft KEPTA Enterprise.
+  Scene:    eine durchgehende Welt in canvas 2D (eigene Lochkamera, keine Bibliothek),
+            eine Kamera, die über den Scroll fährt. Drei Sätze, ein Objekt nach dem
+            anderen, kein Schnitt: dieselben Karten ziehen um.
+  Network:  keiner. Keine Schrift-Datei, kein Bild, kein Skript von außen. Alle
+            Schriften sind Systemstapel, die Welt ist gemalt.
+-->
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KEPTA — das Leben einer Erinnerung</title>
+<meta name="description" content="KEPTA ist eine Memory-Schicht für KI-Assistenten. Eine Erinnerung wird auf deinem Rechner gespeichert, sie ruft fünf andere, und sie wird gereiht statt nur gematcht. KEPTA Core frei, KEPTA Enterprise nach Vertrag.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0b0d10">
+<script>document.documentElement.className+=' js'</script>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+
+/* ==========================================================================
+   1 · GRUND
+   Die Palette ist KEPTAs eigene, in einem Zustand zusammengezogen: der Nacht-
+   modus des Produkts (#0b0d10) als Boden, das Papier des Produkts (#f6f4ef) als
+   Buchstabe, das Siegelwachs (#8e2f2f) als einziger gesättigter GEGENSTAND.
+   Wachs bleibt Material, nie Textfarbe: #8e2f2f auf #0b0d10 misst 2,4:1 und
+   fiele als Schrift durch. Für warme Schrift gibt es darum eigene Glut-Töne
+   (#d99a72 = 8,2:1, --text #dfe2e6 = 15,9:1, --asche #8d96a1 = 6,5:1).
+   ========================================================================== */
+:root{
+  --grund:#0b0d10;
+  --schiefer:#151a21;
+  --elfenbein:#f6f4ef;
+  --text:#dfe2e6;
+  --asche:#8d96a1;
+  --glut:#d99a72;
+  --wachs:#8e2f2f;
+  --haar:rgba(246,244,239,.13);
+  --haar-2:rgba(246,244,239,.26);
+
+  /* Display: eine Schottische mit hauchdünnen Waagerechten — Didot, Bodoni. Sie
+     hält 142 px auf Schiefer aus, ohne anzuschwellen, und sie ist die einzige
+     Stimme im Raum: nie unter 40 px. Der Stapel fällt über Baskerville und Iowan
+     auf Georgia ab, also überall nach einer Serif mit echtem Kontrast.
+     Körper: Avenir Next / Segoe UI — zwei humanistische Grotesken, eine pro
+     Plattform, keine von beiden das neutrale system-ui.
+     Nutzen: Mono. Ein Gedächtnis, das Evidence zeigt, schreibt seine Randnotizen
+     in der Schrift des Werkzeugs, das sie ausspuckt. */
+  --display:'Didot','Bodoni 72','Bodoni 72 Oldstyle','Baskerville','Iowan Old Style','Palatino Linotype',Palatino,Georgia,'Times New Roman',serif;
+  --korpus:'Avenir Next','Segoe UI','Helvetica Neue',system-ui,-apple-system,sans-serif;
+  --nutz:'SFMono-Regular',ui-monospace,'Cascadia Mono',Menlo,Consolas,monospace;
+
+  --rand:clamp(20px,4.4vw,72px);
+  --ease:cubic-bezier(.16,1,.3,1);
+  --szene:178svh;
+}
+html,body{margin:0;padding:0}
+html{background:var(--grund);-webkit-text-size-adjust:100%}
+body{
+  background:var(--grund);color:var(--text);
+  font-family:var(--korpus);font-size:17px;line-height:1.62;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+::selection{background:var(--wachs);color:var(--elfenbein)}
+canvas{display:block}
+p{margin:0}
+:focus-visible{outline:2px solid var(--glut);outline-offset:4px;border-radius:2px}
+
+/* ---------- Sprungmarke ---------- */
+.skip{
+  position:absolute;left:var(--rand);top:10px;z-index:40;
+  transform:translateY(-200%);
+  font-family:var(--nutz);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  background:var(--elfenbein);color:#0b0d10;padding:9px 14px;text-decoration:none;
+}
+.skip:focus{transform:none}
+
+/* ---------- Masthead: dünn genug, dass die Szene ihn nicht erträgt ---------- */
+.marke{
+  position:fixed;top:0;left:0;right:0;z-index:20;
+  display:flex;align-items:baseline;justify-content:space-between;gap:18px;
+  padding:clamp(16px,2.4svh,26px) var(--rand);
+  pointer-events:none;opacity:1;visibility:visible;
+  transition:opacity .5s var(--ease),visibility 0s;
+}
+.marke.weg{opacity:0;visibility:hidden;transition:opacity .5s var(--ease),visibility 0s .5s}
+.marke>*{pointer-events:auto}
+.wort{
+  display:inline-flex;align-items:baseline;gap:11px;
+  font-family:var(--nutz);font-size:12.5px;font-weight:600;
+  letter-spacing:.34em;text-transform:uppercase;text-decoration:none;
+  color:var(--elfenbein);
+}
+.wort small{font-weight:400;letter-spacing:.16em;font-size:10.5px;color:var(--asche);text-transform:uppercase}
+.marke .aus{
+  font-family:var(--nutz);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--asche);text-decoration:none;border-bottom:1px solid transparent;padding-bottom:2px;
+}
+.marke .aus:hover{color:var(--elfenbein);border-bottom-color:var(--haar-2)}
+
+/* ==========================================================================
+   2 · BÜHNE — klebt exakt einen Viewport; die Bahn darunter ist Laufstrecke.
+   Kein Letterbox: Canvas, Boden und Saum füllen 100 % der Bühne.
+   ========================================================================== */
+.bahn{position:relative;height:calc(3 * var(--szene))}
+@supports not (height:178svh){.bahn{height:calc(3 * 178vh)}}
+.buehne{
+  position:sticky;top:0;height:100svh;overflow:hidden;isolation:isolate;
+  background:
+    radial-gradient(78% 52% at 50% 0%,rgba(217,154,114,.055),transparent 62%),
+    linear-gradient(180deg,#08090b,#0b0d10 58%,#0c0f13);
+}
+@supports not (height:100svh){.buehne{height:100vh}}
+#welt{position:absolute;inset:0;width:100%;height:100%;z-index:1}
+/* Der Rand, der die Szene schließt: ein statischer Verlauf, einmal gemalt.
+   Kein backdrop-filter, kein Blur auf bewegter Fläche. */
+.saum{
+  position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:radial-gradient(126% 96% at 50% 44%,transparent 38%,rgba(0,0,0,.42) 74%,rgba(0,0,0,.72) 100%);
+}
+
+/* ---------- 2a · DER SATZ — mitten im Bild, nicht in einer Ecke ---------- */
+.satz{
+  position:absolute;z-index:3;
+  left:var(--rand);right:var(--rand);top:50%;
+  transform:translateY(-50%);
+  margin:0;text-align:center;
+  font-family:var(--display);font-weight:400;font-style:normal;
+  font-size:clamp(40px,8.3vw,142px);
+  line-height:.92;letter-spacing:-.035em;
+  color:var(--elfenbein);
+  opacity:0;visibility:hidden;
+  pointer-events:none;text-wrap:balance;
+}
+.satz.in{opacity:1;visibility:visible}
+.satz .w{display:inline-block;white-space:pre}
+.satz .ziffer{font-style:italic;color:var(--glut)}
+/* Die Buchstaben tragen ihre Kante selbst, nicht einen Scrim: ein enger und ein
+   weiter dunkler Hof halten sie von jeder hellen Stelle der Welt ab — vom
+   Lichtsaum einer Karte ebenso wie vom Wachs. Auf Grund, der schon dunkel ist,
+   ist der Hof unsichtbar; er wirkt nur, wo es ihn braucht. */
+.satz.in .w{text-shadow:0 0 11px rgba(8,9,11,.95),0 0 44px rgba(8,9,11,.85),0 1px 0 rgba(8,9,11,.40)}
+
+/* ---------- 2b · SIEGELLEISTE ----------
+   Drei Striche, keiner nummeriert: die Szene, an der du vorüber bist, trägt ein
+   Siegel — dasselbe Zeichen wie in der Welt, nicht ein Fortschrittsbalken. */
+.rail{
+  position:fixed;z-index:20;right:var(--rand);top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:20px;margin:0;padding:0;list-style:none;
+  opacity:0;visibility:hidden;transition:opacity .5s var(--ease),visibility 0s .5s;
+}
+.rail.on{opacity:1;visibility:visible;transition:opacity .5s var(--ease)}
+.ritze{display:block;width:26px;height:26px;position:relative;text-decoration:none}
+.ritze::before{
+  content:"";position:absolute;left:0;top:50%;width:15px;height:1px;
+  background:var(--haar-2);transform:translateY(-50%);
+  transition:width .5s var(--ease),background .5s var(--ease);
+}
+.ritze:hover::before{width:24px;background:var(--elfenbein)}
+.ritze .s{
+  position:absolute;right:0;top:50%;width:9px;height:9px;margin-top:-4.5px;
+  border-radius:50%;background:var(--wachs);opacity:0;transform:scale(.4);
+  transition:opacity .45s var(--ease),transform .45s var(--ease);
+  box-shadow:0 0 0 1px rgba(0,0,0,.5),inset 0 1px 1px rgba(255,206,180,.45);
+}
+.ritze[aria-current="true"]::before{width:24px;background:var(--elfenbein)}
+.ritze.erledigt .s{opacity:1;transform:scale(1)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+/* ---------- 2c · HINWEIS ---------- */
+.hinweis{
+  position:absolute;z-index:3;left:50%;bottom:clamp(22px,4.4svh,44px);
+  transform:translateX(-50%);
+  font-family:var(--nutz);font-size:10px;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--asche);display:flex;flex-direction:column;align-items:center;gap:11px;
+  transition:opacity .6s var(--ease);
+}
+.hinweis i{display:block;width:1px;height:34px;background:linear-gradient(var(--haar-2),transparent)}
+.hinweis.weg{opacity:0}
+
+/* ==========================================================================
+   3 · DAS ANGEBOT — vierte Fläche. Keine Kartenreihe, kein Glas: ein Auszug.
+   Zwei Stufen, je eine Zeile, getrennt durch eine Haarlinie — die Form, in der
+   ein Archive Preise anschreibt.
+   ========================================================================== */
+.angebot{
+  position:relative;z-index:5;min-height:100svh;display:flex;align-items:center;
+  padding:clamp(88px,14svh,150px) 0 clamp(56px,9svh,96px);
+  background:
+    radial-gradient(64% 40% at 50% -6%,rgba(217,154,114,.07),transparent 70%),
+    linear-gradient(180deg,#0c0f13,#0b0d10 42%);
+}
+@supports not (min-height:100svh){.angebot{min-height:100vh}}
+.angebot::before{
+  content:"";position:absolute;top:0;left:var(--rand);right:var(--rand);height:1px;
+  background:linear-gradient(90deg,transparent,rgba(217,154,114,.34),transparent);
+}
+.blatt{width:100%;max-width:1120px;margin:0 auto;padding:0 var(--rand)}
+.eyebrow{
+  font-family:var(--nutz);font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--asche);display:flex;align-items:center;gap:12px;margin-bottom:clamp(22px,3.4svh,40px);
+}
+.eyebrow b{color:var(--glut);font-weight:400}
+.eyebrow i{display:block;width:clamp(28px,7vw,96px);height:1px;background:var(--haar-2)}
+.anrede{
+  font-family:var(--display);font-weight:400;
+  font-size:clamp(38px,5.6vw,86px);line-height:.96;letter-spacing:-.035em;
+  color:var(--elfenbein);margin-bottom:clamp(14px,2svh,24px);text-wrap:balance;
+}
+.anrede em{font-style:italic;color:var(--glut)}
+.vorbemerkung{max-width:54ch;color:var(--text);font-size:clamp(16px,1.25vw,18.5px);margin-bottom:clamp(34px,5.4svh,64px)}
+.vorbemerkung strong{font-weight:600;color:var(--elfenbein)}
+
+.stufen{border-top:1px solid var(--haar)}
+.stufe{
+  display:grid;gap:clamp(10px,1.4vw,26px);
+  grid-template-columns:minmax(0,1.05fr) minmax(0,1.5fr) minmax(0,auto);
+  align-items:start;padding:clamp(26px,3.8svh,44px) 0;border-bottom:1px solid var(--haar);
+}
+.stufe:last-child{border-bottom-color:var(--haar-2)}
+.kopf .n{
+  display:flex;align-items:center;gap:10px;
+  font-family:var(--display);font-size:clamp(25px,3.1vw,43px);
+  line-height:1;letter-spacing:-.03em;color:var(--elfenbein);
+}
+.kopf .n svg{flex:0 0 auto}
+.kopf .art{margin-top:11px;font-family:var(--nutz);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--asche)}
+.preis{font-family:var(--nutz);font-size:clamp(13px,1.1vw,15px);letter-spacing:.06em;color:var(--glut);white-space:nowrap;margin:0 0 12px}
+.texte{list-style:none;margin:0;padding:0;display:grid;gap:9px;max-width:46ch}
+.texte li{position:relative;padding-left:19px;font-size:15.5px;line-height:1.5;color:var(--text)}
+.texte li::before{content:"";position:absolute;left:0;top:.62em;width:8px;height:1px;background:var(--haar-2)}
+.texte b{font-weight:600;color:var(--elfenbein)}
+.tun{display:flex;flex-direction:column;align-items:flex-start;gap:12px;min-width:190px}
+.knauf{
+  display:inline-flex;align-items:center;gap:12px;
+  font-family:var(--korpus);font-size:15.5px;font-weight:600;letter-spacing:-.005em;
+  background:var(--elfenbein);color:#0b0d10;border:1px solid var(--elfenbein);
+  padding:14px 20px;text-decoration:none;
+  transition:background .28s var(--ease),transform .28s var(--ease),border-color .28s var(--ease);
+}
+.knauf svg{transition:transform .34s var(--ease)}
+.knauf:hover{background:#fffdf8;transform:translateY(-1px)}
+.knauf:hover svg{transform:translateX(3px)}
+.knauf:active{transform:translateY(0)}
+.knauf.zweit{background:transparent;color:var(--elfenbein);border-color:var(--haar-2);font-weight:500}
+.knauf.zweit:hover{background:rgba(246,244,239,.07);border-color:var(--elfenbein)}
+.bei{font-family:var(--nutz);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--asche)}
+.bei a{color:var(--asche);text-decoration:none;border-bottom:1px solid var(--haar)}
+.bei a:hover{color:var(--elfenbein);border-bottom-color:var(--haar-2)}
+.fuss{
+  margin-top:clamp(38px,6svh,72px);padding-top:20px;border-top:1px solid var(--haar);
+  display:flex;flex-wrap:wrap;gap:8px 26px;align-items:baseline;
+  font-family:var(--nutz);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--asche);
+}
+.fuss a{color:var(--asche);text-decoration:none}
+.fuss a:hover{color:var(--elfenbein)}
+.fuss .frei{margin-left:auto;max-width:34ch;color:rgba(141,150,161,.8);letter-spacing:.1em}
+
+/* ==========================================================================
+   4 · ZUSTÄNDE
+   ========================================================================== */
+@media (max-width:900px){
+  .stufe{grid-template-columns:1fr auto;gap:14px 22px}
+  .stufe .kopf{grid-column:1}
+  .stufe .preis{grid-column:2;grid-row:1;text-align:right;margin-bottom:0}
+  .stufe .texte{grid-column:1/-1}
+  .stufe .tun{grid-column:1/-1;flex-direction:row;flex-wrap:wrap;align-items:center}
+}
+@media (max-width:760px){
+  :root{--szene:152svh}
+  .satz{font-size:clamp(31px,9.4vw,58px);line-height:.98;letter-spacing:-.03em}
+  .rail{display:none}
+  .anrede{font-size:clamp(32px,9vw,52px)}
+}
+@media (max-width:520px){
+  .marke .aus{display:none}
+  .satz{font-size:clamp(28px,8.6vw,40px)}
+  .stufe .tun{flex-direction:column;align-items:stretch}
+  .knauf{justify-content:center}
+  .fuss .frei{margin-left:0}
+}
+
+/* reduced motion: die Welt hält still, der Inhalt nicht. Keine Kamerafahrt,
+   kein Staub, kein Wort-Herheben — zu jedem Abschnitt steht ein fertiges
+   Standbild, und die Übergänge sind Zustandswechsel statt Reisen. */
+.rm .satz .w{text-shadow:none}
+.rm .knauf,.rm .knauf svg,.rm .ritze::before,.rm .ritze .s,.rm .hinweis,.rm .marke,.rm .rail{transition:none}
+
+/* ohne Script: kein Kameraweg, also auch keine leeren Bildschirme. Die Sätze
+   stehen als Dokument untereinander, die Welt bleibt aus. */
+html:not(.js) .bahn{height:auto}
+html:not(.js) .buehne{position:static;height:auto;padding:120px 0 40px;background:#0b0d10}
+html:not(.js) #welt,html:not(.js) .saum,html:not(.js) .hinweis,html:not(.js) .rail{display:none}
+html:not(.js) .marke{position:static}
+html:not(.js) .satz{
+  position:static;transform:none;opacity:1;visibility:visible;
+  padding:clamp(52px,10svh,110px) 0;max-width:15ch;margin:0 auto;
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#angebot">Zum Angebot</a>
+
+<header class="marke">
+  <a class="wort" href="#top">KEPTA <small>Memory&nbsp;Layer</small></a>
+  <a class="aus" href="#angebot">Zwei Stufen</a>
+</header>
+
+<main id="top">
+  <!-- ============ DIE ERÖFFNUNG: drei Szenen, eine Welt ============ -->
+  <div class="bahn" id="bahn">
+    <span id="s1" aria-hidden="true"></span>
+    <span id="s2" aria-hidden="true" style="position:absolute;top:var(--szene)"></span>
+    <span id="s3" aria-hidden="true" style="position:absolute;top:calc(var(--szene) * 2)"></span>
+    <div class="buehne" id="buehne">
+      <canvas id="welt" aria-hidden="true"></canvas>
+      <div class="saum" aria-hidden="true"></div>
+
+      <p class="satz" id="sz1" lang="en"><span class="w">Stored</span> <span class="w">on</span> <span class="w">your</span> <span class="w">own</span> <span class="w">machine.</span></p>
+      <p class="satz" id="sz2" lang="en"><span class="w">One</span> <span class="w">note</span> <span class="w">calls</span> <span class="w ziffer">five</span> <span class="w">others.</span></p>
+      <p class="satz" id="sz3" lang="en"><span class="w">Ranked,</span> <span class="w">not</span> <span class="w">matched.</span></p>
+
+      <p class="hinweis" id="hinweis"><span>Scrollen</span><i></i></p>
+    </div>
+  </div>
+
+  <nav aria-label="Szenen" class="rail" id="rail">
+    <a class="ritze" href="#s1"><span class="sr">Szene 1: gespeichert</span><span class="s" aria-hidden="true"></span></a>
+    <a class="ritze" href="#s2"><span class="sr">Szene 2: verknüpft</span><span class="s" aria-hidden="true"></span></a>
+    <a class="ritze" href="#s3"><span class="sr">Szene 3: gereiht</span><span class="s" aria-hidden="true"></span></a>
+  </nav>
+
+  <!-- ============ VIERTE FLÄCHE: das Angebot ============ -->
+  <section class="angebot" id="angebot" aria-labelledby="ag-t">
+    <div class="blatt">
+      <p class="eyebrow"><i></i><b>Angebot</b> — zwei Stufen, keine Zwischenstufe</p>
+      <h1 class="anrede" id="ag-t">Der Speicher bleibt <em>deiner.</em></h1>
+      <p class="vorbemerkung">Alles, was die drei Szenen zeigen, ist das Produkt: eine
+        Erinnerung, die auf einem Rechner liegt, die mit anderen verknüpft ist und die
+        nach Rang wiederkommt. Core läuft damit allein. Enterprise ist dasselbe für eine
+        Organisation — deployt auf deiner Hardware, lizenziert nach Vertrag.</p>
+
+      <div class="stufen">
+        <article class="stufe">
+          <div class="kopf">
+            <p class="n">
+              <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11.2" fill="#8e2f2f"/><circle cx="12" cy="12" r="2.4" fill="#5a1919"/><g stroke="#5a1919" stroke-width="1.5" stroke-linecap="round"><path d="M12 9.6V4.8M14.3 13.1l4.1 2.9M13 14.2l-2.8 5.2M9.8 10.9 5.7 8.2M11 9.5l1.5-4.6"/></g></svg>
+              KEPTA Core
+            </p>
+            <p class="art">Quelltext einsehbar · BUSL-1.1</p>
+          </div>
+          <div>
+            <p class="preis">0&nbsp;€</p>
+            <ul class="texte">
+              <li>Ein Knoten auf <b>deinem</b> Rechner, Speicher in einer verschlüsselten Datei.</li>
+              <li>Assistenten lesen und schreiben über <b>MCP</b> — Claude Desktop, Cursor, was du sonst laufen lässt.</li>
+              <li>Verknüpfung, Ablaufdatum und Wiederfinden nach Monaten: ohne Konto, ohne Cloud, ohne Fernmeldung.</li>
+            </ul>
+          </div>
+          <div class="tun">
+            <a class="knauf" href="https://github.com/DamianTodorovic/kepta/releases/latest">App laden
+              <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+            </a>
+            <p class="bei">macOS · Windows · <a href="https://github.com/DamianTodorovic/kepta">Quelle</a></p>
+          </div>
+        </article>
+
+        <article class="stufe">
+          <div class="kopf">
+            <p class="n">
+              <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11.2" fill="#8e2f2f"/><circle cx="12" cy="12" r="7.4" fill="none" stroke="#5a1919" stroke-width="1"/><circle cx="12" cy="12" r="2.4" fill="#5a1919"/><g stroke="#5a1919" stroke-width="1.5" stroke-linecap="round"><path d="M12 9.6V4.8M14.3 13.1l4.1 2.9M13 14.2l-2.8 5.2M9.8 10.9 5.7 8.2M11 9.5l1.5-4.6"/></g></svg>
+              KEPTA Enterprise
+            </p>
+            <p class="art">Lizenz nach Vertrag</p>
+          </div>
+          <div>
+            <p class="preis">auf Anfrage</p>
+            <ul class="texte">
+              <li><b>Mandanten-Wand:</b> getrennte Speicher für Teams und Agenten, Schlüssel je Mandant.</li>
+              <li><b>Versiegelte Prüf-Kette:</b> jede Schreibung append-only, vorzeigbar, zeitlich zurückholbar.</li>
+              <li><b>Menschenschleuse:</b> was ein Agent schreiben will, geht vor der Wirkung durch eine Freigabe — auch durch die MCP-Tür.</li>
+              <li>Containers auf <b>eigener Hardware</b>, air-gapped möglich.</li>
+            </ul>
+          </div>
+          <div class="tun">
+            <a class="knauf zweit" href="https://www.linkedin.com/in/damian-todorovic-244235434">Sprechen
+              <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+            </a>
+            <p class="bei"><a href="mailto:damian2212todi@gmail.com">damian2212todi@gmail.com</a></p>
+          </div>
+        </article>
+      </div>
+
+      <p class="fuss">
+        <a href="#top">Hoch</a>
+        <a href="index.html">Zur ausführlichen Seite</a>
+        <span>Impressum: Damian Todorovic, Deutschland</span>
+        <span class="frei">Kein Tracking, keine Cookies, keine Anfrage nach draußen — auch auf dieser Fläche nicht.</span>
+      </p>
+    </div>
+  </section>
+</main>
+
+<script>
+/* ==========================================================================
+   DIE WELT — eine eigene Lochkamera in canvas 2D.
+   Punkte werden rotiert, geteilt, gemalt. Kein WebGL, keine Bibliothek, kein
+   Engine-Nachbau: damit die Bildregie (eine Lampe, ein Boden, ein Satz pro
+   Bildschirm) das Einzige bleibt, was sich bewegt.
+   Pro Bild: eine Rechteckfüllung für den Boden, ~8 Vierecke, ~30 Linien,
+   ~130 Punkte, drei vorgefertigte Sprites.
+   ========================================================================== */
+(function(){
+'use strict';
+var root=document.documentElement;
+var RMQ=window.matchMedia('(prefers-reduced-motion: reduce)');
+var RM=RMQ.matches;
+root.classList.toggle('rm',RM);
+
+var bahn=document.getElementById('bahn');
+var buehne=document.getElementById('buehne');
+var cv=document.getElementById('welt');
+var g=cv.getContext('2d');
+var rail=document.getElementById('rail');
+var marke=document.querySelector('.marke');
+var ritzen=[].slice.call(document.querySelectorAll('.ritze'));
+var saetze=[].slice.call(document.querySelectorAll('.satz'));
+var hinweis=document.getElementById('hinweis');
+
+var BODEN=-1.45;                 /* y der Fläche, auf der die Körper stehen */
+var W=0,H=0,DPR=1,f=1,STREU=1;
+
+/* ---------- Kameras: vier Haltestellen, drei Fahrten.
+   Die Welt schneidet nie: Station n endet genau dort, wo n+1 beginnt. ---------- */
+var KAM=[
+  {x: 0.00,y:0.36,z:5.95,yaw: 0.00,pitch:-0.050},   /* 0 Weite — ein Blatt im Nichts, angestrahlt */
+  {x: 0.00,y:0.09,z:3.55,yaw: 0.03,pitch:-0.018},   /* 1 nah am Einzelstück */
+  {x:-0.20,y:0.48,z:7.90,yaw:-0.10,pitch:-0.052},   /* 2 zurück — der Fächer öffnet sich */
+  {x:-2.60,y:0.30,z:6.20,yaw:-0.30,pitch:-0.036}    /* 3 seitlich entlang der Kolonne */
+];
+
+/* ---------- Besetzung: eine Karte und fünf verbundene.
+   Nichts verschwindet, alles zieht um: unter der Fläche weg in den Fächer
+   (Szene 2) und von dort in die Kolonne (Szene 3). ----------
+   je Haltestelle: [x, y, z, yaw, Ton] */
+var HERO={w:1.58,h:2.08,zeilen:6,st:[
+  [ 0.00,-0.10, 0.00,-0.30,0.46],
+  [ 0.00, 0.10, 0.00,-0.10,1.00],
+  [-1.55, 0.16, 0.30, 0.13,0.95],
+  [-1.50, 0.10, 0.60,-0.24,1.00]
+]};
+/* Der Fächer greift um die eine Karte herum, die links aus der Mitte gerückt
+   ist — sonst stünde die fünfte hinter ihrem eigenen Objekt. */
+var BOGEN =[[-4.30,-0.15,-1.30],[-3.30,0.85,-2.90],[-0.30,1.35,-3.60],[1.30,0.30,-2.60],[2.30,-0.55,-1.20]];
+var KOL_X =[ 0.30, 1.75, 3.20, 4.65, 6.10];
+var KOL_Z =[-1.20,-2.00,-2.80,-3.60,-4.40];
+var RANG  =[0.62,0.47,0.38,0.29,0.20];
+var SAT=[];
+(function(){
+  for(var i=0;i<5;i++){
+    var b=BOGEN[i];
+    SAT.push({w:1.02,h:1.36,zeilen:4,st:[
+      [b[0],-2.30,b[2],-0.20,0.00],
+      [b[0],-2.30,b[2],-0.20,0.00],
+      [b[0], b[1], b[2], 0.22-i*0.06,1.00],
+      [KOL_X[i],-0.30,KOL_Z[i], 0.30,0.34]
+    ]});
+  }
+})();
+
+/* ---------- Helpers ---------- */
+function samen(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function gl(t){return t*t*(3-2*t)}
+function kl(v,a,b){return v<a?a:(v>b?b:v)}
+function klemm01(v){return v<0?0:(v>1?1:v)}
+function misch(a,b,t){return a+(b-a)*t}
+function neb(d){return Math.max(0.30,Math.min(1,1-(d-3.1)/21))}   /* Tiefendunst */
+function rgba(r,gg,b,a){return 'rgba('+(r|0)+','+(gg|0)+','+(b|0)+','+(a<0?0:a>1?1:a).toFixed(3)+')'}
+
+var STAUB=[];
+(function(){var r=samen(20261008);for(var j=0;j<132;j++)
+  STAUB.push({x:(r()-0.5)*8.6,y:BODEN+r()*4.2,z:-5.6+r()*6.6,v:0.05+r()*0.12,h:r()});})();
+
+/* ---------- Sprites: einmal gemalt, danach nur verzerrt eingefügt ---------- */
+function scheibe(F,mittel){
+  var c=document.createElement('canvas');c.width=c.height=F;
+  var x=c.getContext('2d'),h=F/2,r=x.createRadialGradient(h,h,0,h,h,h);
+  for(var i=0;i<mittel.length;i++)r.addColorStop(mittel[i][0],mittel[i][1]);
+  r.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=r;x.fillRect(0,0,F,F);return c;
+}
+var LAMPF=scheibe(256,[[0,'rgba(255,236,214,.95)'],[0.12,'rgba(240,186,132,.55)'],
+  [0.40,'rgba(180,86,52,.17)'],[0.72,'rgba(120,44,30,.05)']]);
+var PFOTZ=scheibe(256,[[0,'rgba(226,158,110,.34)'],[0.34,'rgba(160,68,48,.15)'],
+  [0.70,'rgba(90,36,28,.05)']]);
+
+/* Das Siegel: Wachs mit eingepresstem Knoten — ein Zentrum, fünf Fäden.
+   Dasselbe Zeichen, das Szene zwei baut; hier ist es das Ergebnis: abgelegt,
+   datiert, gültig. Der einzige gesättigte Gegenstand im Bild. */
+var SIEGEL=(function(){
+  var F=256,c=document.createElement('canvas');c.width=c.height=F;
+  var x=c.getContext('2d'),h=F/2,R=F*0.395,i,a,r;
+  x.beginPath();
+  for(i=0;i<=26;i++){
+    a=i/26*Math.PI*2;
+    r=R*(1+0.055*Math.sin(a*5+0.6)+0.032*Math.sin(a*9+2.2)+0.016*Math.sin(a*14+1.1));
+    var px=h+Math.cos(a)*r, py=h+Math.sin(a)*r*0.985;
+    if(i)x.lineTo(px,py);else x.moveTo(px,py);
+  }
+  x.closePath();
+  var gr=x.createRadialGradient(h-R*0.34,h-R*0.40,R*0.08,h,h,R*1.2);
+  gr.addColorStop(0,'#b4503d');gr.addColorStop(0.42,'#8e2f2f');gr.addColorStop(1,'#421414');
+  x.fillStyle=gr;x.fill();
+  x.save();x.clip();
+  x.strokeStyle='rgba(255,214,186,.16)';x.lineWidth=R*0.05;
+  x.beginPath();x.arc(h-R*0.10,h-R*0.14,R*0.86,Math.PI*1.05,Math.PI*1.85);x.stroke();
+  x.strokeStyle='rgba(40,8,8,.30)';x.lineWidth=R*0.09;
+  x.beginPath();x.arc(h,h,R*0.90,Math.PI*0.15,Math.PI*0.85);x.stroke();
+  function knoten(dx,dy,ln,br){
+    x.save();x.translate(h+dx,h+dy);
+    x.strokeStyle=ln;x.lineWidth=br;x.lineCap='round';
+    x.beginPath();x.arc(0,0,R*0.30,0,6.2832);x.stroke();
+    x.beginPath();
+    for(var k=0;k<5;k++){
+      var an=-Math.PI/2+k*1.2566;
+      x.moveTo(Math.cos(an)*R*0.30,Math.sin(an)*R*0.30);
+      x.lineTo(Math.cos(an)*R*0.60,Math.sin(an)*R*0.60);
+    }
+    x.moveTo(-R*0.11,0);x.arc(0,0,R*0.11,0,6.2832);
+    x.stroke();x.restore();
+  }
+  knoten(-R*0.028,-R*0.030,'rgba(48,10,10,.62)',R*0.075);
+  knoten( R*0.030, R*0.032,'rgba(255,206,178,.30)',R*0.075);
+  knoten(0,0,'rgba(104,30,26,.85)',R*0.055);
+  x.restore();
+  return c;
+})();
+
+/* ---------- Die Kamera selbst ---------- */
+var cam={x:0,y:0,z:8,yaw:0,pitch:0};
+var _x=0,_y=0,_d=0;
+function proj(px,py,pz){
+  var dx=px-cam.x,dy=py-cam.y,dz=pz-cam.z;
+  var cy=Math.cos(cam.yaw),sy=Math.sin(cam.yaw);
+  var x1=dx*cy-dz*sy, z1=dx*sy+dz*cy;
+  var cp=Math.cos(cam.pitch),sp=Math.sin(cam.pitch);
+  var y2=dy*cp+z1*sp, z2=-dy*sp+z1*cp;
+  var d=-z2;
+  _x=W*0.5+f*x1/d;_y=H*0.5-f*y2/d;_d=d;
+  return d>0.14;
+}
+/* eine Haltestelle aus zweien */
+function schnitt(feld,q){
+  var i=kl(Math.floor(q),0,feld.length-2),t=gl(klemm01(q-i));
+  var a=feld[i],b=feld[i+1];
+  return [misch(a[0],b[0],t),misch(a[1],b[1],t),misch(a[2],b[2],t),
+          misch(a[3],b[3],t),misch(a[4],b[4],t)];
+}
+function kamera(q){
+  var i=kl(Math.floor(q),0,2),t=gl(klemm01(q-i));
+  var a=KAM[i],b=KAM[i+1];
+  return {x:misch(a.x,b.x,t),y:misch(a.y,b.y,t),z:misch(a.z,b.z,t),
+          yaw:misch(a.yaw,b.yaw,t),pitch:misch(a.pitch,b.pitch,t)};
+}
+
+/* ---------- Boden: eine Fläche, drei Fugen, eine Fluchtkante ---------- */
+function boden(){
+  var hy=H*0.5+f*Math.tan(cam.pitch);
+  if(hy>H)return;
+  if(hy<0)hy=0;
+  var gr=g.createLinearGradient(0,hy,0,H);
+  gr.addColorStop(0,'#0e1217');gr.addColorStop(0.055,'#141a22');
+  gr.addColorStop(0.16,'#1a222b');gr.addColorStop(0.50,'#101419');gr.addColorStop(1,'#090b0e');
+  g.fillStyle=gr;g.fillRect(0,hy,W,H-hy);
+  g.fillStyle='rgba(226,164,118,.075)';g.fillRect(0,hy-0.5,W,1);
+  var zi=[-26,-8.5,-3.6,-1.5],k,ax,ay;
+  g.lineWidth=1;
+  for(k=0;k<zi.length;k++){
+    if(!proj(-16,BODEN,zi[k]))continue; ax=_x;ay=_y;
+    if(!proj( 16,BODEN,zi[k]))continue;
+    g.strokeStyle='rgba(246,244,239,'+(0.020+0.013*k).toFixed(3)+')';
+    g.beginPath();g.moveTo(ax,ay);g.lineTo(_x,_y);g.stroke();
+  }
+}
+
+/* ---------- Eine Karte: dunkles Papier, helle Kante, liniiert ---------- */
+var ECK=[[-1,-1],[1,-1],[1,1],[-1,1]];
+function karte(c,s){
+  var ton=s[4];
+  if(ton<=0.002)return null;
+  var x=s[0],y=s[1],z=s[2],yaw=s[3];
+  var hw=c.w/2,hh=c.h/2,ky=Math.cos(yaw),sy=Math.sin(yaw);
+  var P=[],i,u,v;
+  for(i=0;i<4;i++){
+    u=ECK[i][0]*hw;v=ECK[i][1]*hh;
+    if(!proj(x+u*ky,y+v,z+u*sy))return null;
+    P.push([_x,_y]);
+  }
+  proj(x,y,z);var tiefe=_d;
+  var t=ton*neb(tiefe), scale=f/tiefe, lift=26*t;
+
+  g.beginPath();g.moveTo(P[0][0],P[0][1]);
+  for(i=1;i<4;i++)g.lineTo(P[i][0],P[i][1]);
+  g.closePath();
+  var ob=[(P[2][0]+P[3][0])/2,(P[2][1]+P[3][1])/2],
+      un=[(P[0][0]+P[1][0])/2,(P[0][1]+P[1][1])/2];
+  var fl=g.createLinearGradient(ob[0],ob[1],un[0],un[1]);
+  fl.addColorStop(0,rgba(29+lift,35+lift,44+lift*1.1,1));
+  fl.addColorStop(0.52,rgba(17+lift*0.5,21+lift*0.5,27+lift*0.6,1));
+  fl.addColorStop(1,rgba(10+lift*0.2,12+lift*0.2,15+lift*0.2,1));
+  g.fillStyle=fl;g.fill();
+
+  /* Zeilen: eine Notiz, keine Fläche. Die erste ist kürzer — ein Titel. */
+  var n=c.zeilen,li,fy,fx;
+  g.lineWidth=Math.max(0.6,scale*0.006);
+  g.strokeStyle='rgba(246,244,239,'+(0.055*t).toFixed(3)+')';
+  for(li=0;li<n;li++){
+    fy=0.60-li*1.20/(n-1);fx=li===0?0.42:0.70;
+    if(!proj(x-hw*fx*ky,y+hh*fy,z-hw*fx*sy))continue;
+    var p1x=_x,p1y=_y;
+    if(!proj(x+hw*fx*ky,y+hh*fy,z+hw*fx*sy))continue;
+    g.beginPath();g.moveTo(p1x,p1y);g.lineTo(_x,_y);g.stroke();
+  }
+
+  /* Die Kante, die das Licht fängt: oben Elfenbein, rechts Glut, unten schluckt
+     der Boden. Zwei Striche, mehr braucht ein Körper nicht, damit er steht. */
+  var kb=Math.max(1,scale*0.010);
+  g.lineWidth=kb;
+  g.strokeStyle='rgba(246,244,239,'+(0.62*t).toFixed(3)+')';
+  g.beginPath();g.moveTo(P[3][0],P[3][1]);g.lineTo(P[2][0],P[2][1]);g.stroke();
+  g.strokeStyle='rgba(226,152,104,'+(0.38*t).toFixed(3)+')';
+  g.beginPath();g.moveTo(P[2][0],P[2][1]);g.lineTo(P[1][0],P[1][1]);g.stroke();
+  g.lineWidth=kb*3.4;
+  g.strokeStyle='rgba(226,152,104,'+(0.07*t).toFixed(3)+')';
+  g.beginPath();g.moveTo(P[3][0],P[3][1]);g.lineTo(P[2][0],P[2][1]);g.stroke();
+  g.lineWidth=1;
+  g.strokeStyle='rgba(246,244,239,'+(0.09*t).toFixed(3)+')';
+  g.beginPath();g.moveTo(P[1][0],P[1][1]);g.lineTo(P[0][0],P[0][1]);g.stroke();
+  return {x:x,y:y,z:z,yaw:yaw,hw:hw,hh:hh,t:t};
+}
+
+/* Spiegelbild auf der Fläche — nur die eine Karte, nur solange sie tief steht.
+   Eine Fläche, die ein Spiegelbild wirft, ist näher am Boden als am Himmel. */
+function spiegel(c,s){
+  var hw=c.w/2,hh=c.h/2,ky=Math.cos(s[3]),sy=Math.sin(s[3]);
+  var fuge=(s[1]-hh)-BODEN;                 /* Abstand der Unterkante zur Fläche */
+  var nahe=1-fuge/0.92;
+  if(nahe<=0.02||s[4]<=0.05)return;
+  var Q=[],i,u,v,tiefe=0;
+  for(i=0;i<4;i++){
+    u=ECK[i][0]*hw;v=ECK[i][1]*hh;
+    if(!proj(s[0]+u*ky,2*BODEN-(s[1]+v),s[2]+u*sy))return;
+    Q.push([_x,_y]);
+  }
+  proj(s[0],s[1],s[2]);tiefe=_d;
+  var mund=[(Q[0][0]+Q[1][0])/2,(Q[0][1]+Q[1][1])/2],
+      fuss=[(Q[2][0]+Q[3][0])/2,(Q[2][1]+Q[3][1])/2],
+      knie=[misch(mund[0],fuss[0],0.34),misch(mund[1],fuss[1],0.34)];
+  var gr=g.createLinearGradient(mund[0],mund[1],knie[0],knie[1]);
+  gr.addColorStop(0,'rgba(246,244,239,'+(0.062*s[4]*nahe*neb(tiefe)).toFixed(3)+')');
+  gr.addColorStop(1,'rgba(246,244,239,0)');
+  g.beginPath();g.moveTo(Q[0][0],Q[0][1]);
+  for(i=1;i<4;i++)g.lineTo(Q[i][0],Q[i][1]);
+  g.closePath();g.fillStyle=gr;g.fill();
+}
+
+/* ---------- Faden: ein Ruf von der einen zur anderen Karte.
+   Eine Gerade im Raum bleibt eine Gerade in der Projektion, also braucht ein
+   Faden zwei Striche statt sechzehn: ein breiter, kühler Saum als Wärme im Staub
+   und darübergang eine Linie, die zum Knoten hin anfärbt. ---------- */
+function faden(a,b,art,ton){
+  if(ton<=0.004||art<=0.002)return;
+  var ax=a.x,ay=a.y+0.16,az=a.z,bx=b[0],by=b[1]+0.16,bz=b[2];
+  /* Der Ruf endet vor der Karte, nicht in ihr: 84 % des Weges, der Knoten steht
+     im freien Raum. Ein Elfenbeinpunkt an der Silhouettkante einer Karte läge
+     genau dort, wo der Satz vorbeiläuft, und wäre kein Grund mehr für Tinte. */
+  var ende=art*0.84;
+  if(!proj(ax,ay,az))return;var sx=_x,sy=_y;
+  if(!proj(bx,by,bz))return;
+  if(!proj(ax+(bx-ax)*ende,ay+(by-ay)*ende,az+(bz-az)*ende))return;
+  var px=_x,py=_y;
+  var gr=g.createLinearGradient(sx,sy,px,py);
+  gr.addColorStop(0,rgba(214,138,96,0.26*ton));
+  gr.addColorStop(1,rgba(236,166,120,0.56*ton));
+  g.lineCap='round';
+  g.beginPath();g.moveTo(sx,sy);g.lineTo(px,py);
+  g.lineWidth=7;g.strokeStyle=rgba(196,104,66,0.070*ton);g.stroke();
+  g.lineWidth=2.0;g.strokeStyle=gr;g.stroke();
+  /* Der Funke läuft nur, solange gerufen wird. Am angekommenen Faden steht kein
+     heller Punkt: er läge sonst genau dort, wo der Satz vorbeiläuft, und ein
+     Elfenbeinpunkt unter Elfenbeinbuchstaben ist kein Grund mehr für Tinte. */
+  if(art<0.997){
+    g.fillStyle=rgba(246,222,190,0.60*ton);
+    g.beginPath();g.arc(px,py,2.0,0,6.2832);g.fill();
+  }
+}
+
+/* ---------- Rang: eine Länge, keine Zahl. Der Balken sitzt direkt unter der
+   eigenen Karte, auf einer Haarlinie, die das Maximum zeigt — erst der
+   Vergleich macht die Länge zu einer Aussage. ---------- */
+function rang(x,z,y,breite,wert,ton){
+  if(ton<=0.004)return;
+  if(!proj(x-breite/2,y,z))return;var ax=_x,ay=_y;
+  if(!proj(x+breite/2,y,z))return;var bx=_x,by=_y;
+  g.lineCap='butt';g.lineWidth=1;
+  g.strokeStyle='rgba(246,244,239,'+(0.15*ton).toFixed(3)+')';
+  g.beginPath();g.moveTo(ax,ay);g.lineTo(bx,by);g.stroke();
+  if(!proj(x-breite/2+breite*wert,y,z))return;var e1=_x,e2=_y;
+  g.lineWidth=3.4;g.strokeStyle='rgba(142,47,47,'+(0.95*ton).toFixed(3)+')';
+  g.beginPath();g.moveTo(ax,ay);g.lineTo(e1,e2);g.stroke();
+  g.lineWidth=1.2;g.strokeStyle='rgba(240,180,132,'+(0.85*ton).toFixed(3)+')';
+  g.beginPath();g.moveTo(ax,ay-1.3);g.lineTo(e1,e2-1.3);g.stroke();
+  g.fillStyle='rgba(246,244,239,'+(0.70*ton).toFixed(3)+')';
+  g.fillRect(e1-1,e2-3.5,2,6);
+}
+
+/* ---------- Malen ---------- */
+function mal(q,zeit){
+  var k=kamera(q);
+  cam.x=k.x*STREU;cam.y=k.y;cam.z=k.z;cam.yaw=k.yaw*STREU;cam.pitch=k.pitch;
+  if(!RM){cam.yaw+=Math.sin(zeit*0.13)*0.005;cam.y+=Math.sin(zeit*0.10+1.1)*0.011;}
+
+  /* alle Körper einmal je Bild vermessen */
+  var hs=schnitt(HERO.st,q), ss=[],art=[],j;
+  /* Auf schmalen Frame rückt die Besetzung zusammen: dieselbe Choreografie,
+     nur enger, damit die eine Karte nicht aus dem Bild wandert. */
+  hs[0]*=STREU;
+  var hp={x:hs[0],y:hs[1],z:hs[2]};
+  /* Szene zwei: die fünf steigen nicht im Takt der Kamera, sondern im Takt
+     ihrer eigenen Fäden. Eine Karte, die erst kommt, wenn man sie ruft. */
+  var dunn=misch(1,0.62,gl(klemm01(q-2)));
+  for(j=0;j<5;j++){
+    ss.push(schnitt(SAT[j].st,q));
+    ss[j][0]*=STREU;
+    art.push(gl(klemm01((q-1.05-j*0.075)/0.34)));
+    if(q>1&&q<2){
+      ss[j][1]=misch(-2.30,BOGEN[j][1],art[j]);
+      ss[j][4]*=misch(0.20,1,art[j]);
+    }
+  }
+
+  g.clearRect(0,0,cv.width,cv.height);
+  g.save();g.scale(DPR,DPR);
+  boden();
+
+  /* Pfütze und Lampe: eine einzige Wärme, additiv auf den Boden gelegt. Beide
+     hängen an der Karte, nicht am Bildrand — die Lampe bleibt über dem Objekt,
+     auch wenn die Kamera seitlich davonläuft. */
+  var lx=hs[0]*0.62;
+  g.globalCompositeOperation='lighter';
+  if(proj(lx,BODEN+0.004,hs[2])){
+    var pr=f*2.4/_d;
+    g.save();g.translate(_x,_y);g.scale(1,0.26);
+    g.drawImage(PFOTZ,-pr,-pr,pr*2,pr*2);g.restore();
+  }
+  var ly=2.85+(RM?0:Math.sin(zeit*0.19)*0.02);
+  if(proj(lx,ly,hs[2]-1.15)){
+    var lr=f*1.5/_d;
+    g.drawImage(LAMPF,_x-lr,_y-lr*0.9,lr*2,lr*1.8);
+    var hr=f*0.30/_d;
+    g.fillStyle='rgba(255,238,214,.70)';
+    g.beginPath();g.ellipse(_x,_y,hr,hr*0.30,0,0,6.2832);g.fill();
+  }
+  /* Staub im Lichtkegel — die einzige ungerufene Bewegung im Bild */
+  if(!RM){
+    for(j=0;j<STAUB.length;j++){
+      var m=STAUB[j];
+      m.y+=m.v*0.016;if(m.y>2.95)m.y=BODEN+0.04;
+      if(!proj(m.x,m.y,m.z))continue;
+      var a=(1/(_d*_d))*270*(0.30+m.h*0.95)*neb(_d);
+      if(a<0.005)continue;
+      var sd=Math.max(0.7,f*0.0065/_d);
+      g.fillStyle='rgba(240,206,178,'+Math.min(0.32,a).toFixed(3)+')';
+      g.fillRect(_x,_y,sd,sd);
+    }
+  }
+  g.globalCompositeOperation='source-over';
+
+  /* Fäden vor den Körpern: sie verbinden, sie verdecken nichts */
+  var ruf=gl(klemm01((q-1.02)/0.26))*dunn;
+  for(j=0;j<5;j++)if(art[j]>0)faden(hp,ss[j],art[j],ruf);
+
+  /* Körper von fern nach nah — Malreihenfolge ist Tiefenreihenfolge */
+  var re=[];
+  for(j=0;j<5;j++)re.push({c:SAT[j],s:ss[j]});
+  re.push({c:HERO,s:hs});
+  re.sort(function(a,b){return a.s[2]-b.s[2]});
+  var hr2=null;
+  for(j=0;j<re.length;j++){
+    var r=karte(re[j].c,re[j].s);
+    if(re[j].c===HERO){hr2=r;spiegel(HERO,hs);}
+  }
+
+  /* Siegel: presst sich in Szene eins auf die Karte, danach bleibt es stehen.
+   * Es sitzt unten rechts, wo kein Satz steht — die Fläche, auf der ein Archiv
+   * datiert, nicht die Mitte, auf der gelesen wird. */
+  var press=gl(klemm01((q-0.40)/0.44));
+  if(hr2&&press>0.002){
+    var sq=1+(1-press)*0.5;
+    var ox=0.40*hr2.hw, oy=-0.50*hr2.hh, ky=Math.cos(hr2.yaw);
+    if(proj(hr2.x+ox*ky,hr2.y+oy,hr2.z)){
+      var sr=f*0.215/_d*sq;
+      g.save();g.translate(_x,_y);g.rotate(-0.19);
+      g.scale(Math.max(0.12,Math.cos(hr2.yaw)),1);
+      g.globalAlpha=Math.min(1,press*1.35);
+      g.drawImage(SIEGEL,-sr,-sr*0.985,sr*2,sr*1.97);
+      g.restore();g.globalAlpha=1;
+    }
+  }
+
+  /* Reihung: die Kolonne und die eine, die herausgetreten ist */
+  var rton=gl(klemm01((q-2.14)/0.40));
+  if(rton>0.002){
+    for(j=0;j<5;j++)rang(ss[j][0],ss[j][2],ss[j][1]-0.86,0.94,RANG[j],rton);
+    rang(hs[0],hs[2],hs[1]-1.24,0.94,1,rton);
+  }
+  g.restore();
+}
+
+/* ==========================================================================
+   REGIE — der Scroll ist die Uhr
+   ========================================================================== */
+var ziel=0,ist=0,laeuft=false,drin=true,letzter=-1;
+function fortschritt(){
+  var lauf=bahn.offsetHeight-innerHeight;
+  if(lauf<=0)return 0;
+  return kl(-bahn.getBoundingClientRect().top/lauf,0,1);
+}
+function rahmen(){
+  var s=ist*3, i=kl(Math.floor(s),0,2), t=s-i, k;
+  /* Die Welt fährt nur über die ersten 64 % einer Szene; der Rest ist Hold.
+     Ohne den Hold wäre das Ende jeder Szene der Augenblick ihres Umschnitts, und
+     kein Leser sähe je die fertige Komposition.
+     Wer Ruhe verlangt, bekommt drei Standbilder: die Kamera steht die ganze
+     Szene auf der fertigen Komposition, sie reist nicht mit dem Scroll mit. */
+  var q=i+Math.min(1,t/0.64), tq=Math.min(1,t/0.64);
+  if(RM){q=Math.min(3,i+1);tq=1}
+  mal(q,performance.now()/1000);
+  if(i!==letzter){
+    saetze.forEach(function(fn,j){fn.classList.toggle('in',j===i)});
+    ritzen.forEach(function(r,j){
+      r.classList.toggle('erledigt',j<i);
+      r.setAttribute('aria-current',j===i?'true':'false');
+    });
+    letzter=i;
+  }
+  /* Wörter: heben aus dem Dunkeln und sinken zurück. Nur in der aktiven Szene.
+     Szene eins kommt gesetzt an — der erste Eindruck einer Seite ist kein
+     Nachschlagetakt. Der Satz fährt zudem gegen die Kamera, damit er im Raum
+     steht und nicht auf dem Glas. */
+  var fn=saetze[i];
+  if(!fn)return;
+  var w=fn.querySelectorAll('.w');
+  var vor=i===0?0.46:0;
+  var sinken=1-gl(klemm01((t-0.90)/0.10));
+  for(k=0;k<w.length;k++){
+    var e=gl(klemm01((t+vor-k*0.055)/0.26))*sinken;
+    if(RM){w[k].style.opacity='1';w[k].style.transform='none';continue}
+    w[k].style.opacity=e.toFixed(3);
+    w[k].style.transform='translate3d(0,'+((1-e)*0.42).toFixed(3)+'em,0) scale('+(0.958+0.042*e).toFixed(4)+')';
+  }
+  fn.style.transform=RM?'translateY(-50%)'
+    : 'translateY(calc(-50% + '+((tq-0.5)*-24).toFixed(1)+'px)) scale('+(1+(0.5-tq)*0.028).toFixed(4)+')';
+  hinweis.classList.toggle('weg',ist>0.03);
+}
+function tick(){
+  ziel=fortschritt();
+  var d=ziel-ist;
+  if(RM){ist=ziel;rahmen();laeuft=false;return}
+  ist+=d*0.115;
+  if(Math.abs(d)<0.00025)ist=ziel;
+  rahmen();
+  if(drin)requestAnimationFrame(tick);else laeuft=false;
+}
+function weck(){if(!laeuft&&drin){laeuft=true;requestAnimationFrame(tick)}}
+function groesse(){
+  var r=buehne.getBoundingClientRect();
+  W=Math.max(300,Math.round(r.width));H=Math.max(300,Math.round(r.height));
+  DPR=Math.min(window.devicePixelRatio||1,1.6);
+  cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);
+  cv.style.width=W+'px';cv.style.height=H+'px';
+  var a=W/H;
+  /* lange Brennweite: Kompression statt Fisheye. Auf Hochformat weiter zurück. */
+  f=H*(a<0.72?0.80:(a<1.05?0.95:1.14));
+  STREU=a<0.72?0.50:(a<1.05?0.76:1);
+}
+
+window.addEventListener('scroll',weck,{passive:true});
+window.addEventListener('resize',function(){groesse();weck()});
+if(RMQ.addEventListener)RMQ.addEventListener('change',function(e){
+  RM=e.matches;root.classList.toggle('rm',RM);ziel=ist;weck();});
+ritzen.forEach(function(r){r.addEventListener('click',function(){
+  setTimeout(weck,60);setTimeout(weck,380);setTimeout(weck,900);})});
+
+if('IntersectionObserver' in window){
+  new IntersectionObserver(function(es){
+    drin=es[0].isIntersecting;
+    rail.classList.toggle('on',drin);
+    /* Die Kopfzeile hat keinen Grund, über dem Angebot zu stehen: sie weicht,
+       sobald die Bühne aus dem Bild ist, und kommt beim Zurückfahren wieder. */
+    marke.classList.toggle('weg',!drin);
+    if(drin)weck();
+  },{threshold:0}).observe(buehne);
+}else{drin=true;rail.classList.add('on')}
+
+groesse();ist=fortschritt();rahmen();weck();
+})();
+</script>
+</body>
+</html>
