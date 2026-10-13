@@ -2123,7 +2123,7 @@
     <div><dt>retrieval</dt><dd>Full text, meaning and connections scored apart, fused at <b>k=60</b> &#8212; <b>45 of 45</b> queries came back with a result, full text alone <b>41</b></dd></div>
     <div><dt>time</dt><dd>A superseded memory keeps <b>0.4</b> of its weight, never the whole of it</dd></div>
     <div><dt>outbound</dt><dd><b>Zero.</b> No account, no upload, no server-side copy of a memory</dd></div>
-    <div><dt>tests</dt><dd><b>982</b> in 79 files on the engine as published (npm <code>kepta-mcp</code> 3.3.0, commit <code>7978139</code>, measured 2026-10-11), run by CI on every push to main and every pull request</dd></div>
+    <div><dt>tests</dt><dd><b>1041</b> in 85 files on the engine as published (npm <code>kepta-mcp</code> 3.4.0, commit <code>e394fd9</code>, measured 2026-10-13), run by CI on every push to main and every pull request</dd></div>
     <div><dt>interface</dt><dd><b>8</b> MCP tools over stdio, HTTP <code>POST /mcp</code> from source, protocol 2026-07-28</dd></div>
   </dl>
   <!-- Every number in the rows above is reproduced by a command in the public
@@ -2131,7 +2131,7 @@
        who has to go looking for the caveats reads the omission as concealment;
        and the measurements that found nothing are the lines that make the rest
        believable. -->
-  <p class="fine"><code>npm test</code> &#183; 982 tests in 79 files on the engine as published (npm <code>kepta-mcp</code> 3.3.0, commit <code>7978139</code>, measured 2026-10-11) on an M-series laptop. <code>npm run eval</code> &#183; 45 fixed queries against a 58-note corpus, offline, deterministic and without embeddings: Hit@1 71.1% and MRR 0.759 for the engine, 51.1% and 0.559 for the naive substring search it replaces. <code>npx tsx scripts/ablation.ts</code> &#183; the same corpus with embeddings from a local <code>nomic-embed-text</code>, one retrieval leg at a time: Hit@1 77.8% and MRR 0.823 for the fused engine. The same run shows the entity-graph leg adding nothing on this corpus and a paraphrased question landing 30% of the time, with vectors or without — <a href="#core">both in the table under &#8220;Inspect it before you trust it&#8221;</a>, because a benchmark that only reports wins reports nothing.</p>
+  <p class="fine"><code>npm test</code> &#183; 1041 tests in 85 files on the engine as published (npm <code>kepta-mcp</code> 3.4.0, commit <code>e394fd9</code>, measured 2026-10-13) on an M-series laptop. <code>npm run eval</code> &#183; 45 fixed queries against a 58-note corpus, offline, deterministic and without embeddings: Hit@1 71.1% and MRR 0.759 for the engine, 51.1% and 0.559 for the naive substring search it replaces. <code>npx tsx scripts/ablation.ts</code> &#183; the same corpus with embeddings from a local <code>nomic-embed-text</code>, one retrieval leg at a time: Hit@1 77.8% and MRR 0.823 for the fused engine. The same run shows the entity-graph leg adding nothing on this corpus and a paraphrased question landing 30% of the time, with vectors or without — <a href="#core">both in the table under &#8220;Inspect it before you trust it&#8221;</a>, because a benchmark that only reports wins reports nothing.</p>
   </div></div>
 
   <!-- ============ BEAT: THE WORLD, UNOBSTRUCTED ============
@@ -2392,7 +2392,7 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
         </div>
         <div>
           <p class="lead rv d1">The memory engine is BUSL-1.1 and free forever (converts to AGPL-3.0-or-later four years after each release). The Python client is MIT, standard library only. Read the code, fork it, ship your own product from it.</p>
-          <p class="fine rv d2" style="margin-top:16px"><code>npm test</code> runs 982 tests over 79 files on the engine as published (3.3.0, measured 2026-10-11), and <code>npm run eval</code> reproduces every number in both tables below from the corpus in the same repository.</p>
+          <p class="fine rv d2" style="margin-top:16px"><code>npm test</code> runs 1041 tests over 85 files on the engine as published (3.4.0, measured 2026-10-13), and <code>npm run eval</code> reproduces every number in both tables below from the corpus in the same repository.</p>
           <div class="cta-row rv d2"><a class="btn lg ghost" href="https://github.com/DamianTodorovic/kepta">github.com/DamianTodorovic/kepta</a></div>
         </div>
       </div>
@@ -2657,7 +2657,7 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
 
 <aside class="akte" data-scene="Proof" aria-labelledby="ak-t3">
   <p class="akte-micro">
-    Scene <b>07</b> <i>·</i> Proof <i>·</i> 982 tests
+    Scene <b>07</b> <i>·</i> Proof <i>·</i> 1041 tests
   </p>
   <h3 class="akte-titel" id="ak-t3">
     Paper, not <em>promises</em>
@@ -2674,7 +2674,7 @@ Embeddings locally &#8212; qwen3 runs on the build box through Ollama, so no clo
     printed under it.
   </p>
   <p class="akte-herkunft">
-    <span>Core</span> <span>982 / 79</span> <i>·</i>
+    <span>Core</span> <span>1041 / 85</span> <i>·</i>
     <span>Server</span> <span>746 / 61</span> <i>·</i> <span>07.10.2026</span> <i>·</i>
     <span>npm test</span>
   </p>
